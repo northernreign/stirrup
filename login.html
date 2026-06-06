@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Log in — Stirrup</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Inter',sans-serif;background:#f9f8f5;color:#1a1a18;min-height:100vh;display:flex;flex-direction:column}
+nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2rem;background:#fff;border-bottom:1px solid #e8e6e0}
+.logo{font-size:18px;font-weight:600;color:#1a1a18;text-decoration:none}
+.nav-link{font-size:14px;color:#5a5a55;text-decoration:none}
+.nav-link:hover{color:#1a1a18}
+.main{flex:1;display:flex;align-items:center;justify-content:center;padding:2rem}
+.card{background:#fff;border:1px solid #e8e6e0;border-radius:16px;padding:2rem;width:100%;max-width:400px}
+.card-title{font-size:22px;font-weight:600;margin-bottom:6px}
+.card-sub{font-size:14px;color:#5a5a55;margin-bottom:1.75rem}
+.field{margin-bottom:14px}
+.field label{display:block;font-size:13px;font-weight:500;color:#3a3a35;margin-bottom:5px}
+.field input{width:100%;padding:10px 12px;border:1px solid #d4d2cb;border-radius:8px;font-size:14px;font-family:'Inter',sans-serif;background:#fff;color:#1a1a18;outline:none;transition:border .15s}
+.field input:focus{border-color:#1D9E75}
+.forgot{font-size:12px;color:#1D9E75;text-decoration:none;float:right;margin-top:-18px;margin-bottom:14px;display:block;text-align:right}
+.btn-submit{width:100%;padding:11px;background:#1D9E75;border:none;border-radius:8px;color:#fff;font-size:15px;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif}
+.btn-submit:hover{background:#178a64}
+.signup-link{text-align:center;font-size:13px;color:#5a5a55;margin-top:1rem}
+.signup-link a{color:#1D9E75;text-decoration:none;font-weight:500}
+.signup-link a:hover{text-decoration:underline}
+</style>
+</head>
+<body>
+<nav>
+  <a href="index.html" class="logo">Stirrup</a>
+  <a href="signup.html" class="nav-link">Don't have an account? Sign up free</a>
+</nav>
+<div class="main">
+  <div class="card">
+    <div class="card-title">Welcome back</div>
+    <div class="card-sub">Log in to your Stirrup account.</div>
+    <div class="field">
+      <label>Email</label>
+      <input type="email" placeholder="claire@ridgeview.com" id="email">
+    </div>
+    <div class="field">
+      <label>Password</label>
+      <input type="password" placeholder="••••••••" id="password">
+    </div>
+    <a href="#" class="forgot">Forgot password?</a>
+    <button class="btn-submit" onclick="handleLogin()">Log in →</button>
+    <div class="signup-link">Don't have an account? <a href="signup.html">Sign up free</a></div>
+  </div>
+</div>
+<script>
+function handleLogin(){
+  const email = document.getElementById('email').value.trim();
+  const password = document.getElementById('password').value;
+  if(!email || !password){
+    alert('Please enter your email and password.');
+    return;
+  }
+  const user = localStorage.getItem('stirrup_user');
+  if(!user){
+    alert('No account found. Please sign up first.');
+    window.location.href = 'signup.html';
+    return;
+  }
+  window.location.href = 'dashboard.html';
+}
+</script>
+</body>
+</html>
