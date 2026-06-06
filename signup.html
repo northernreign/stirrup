@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Sign up — Stirrup</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Inter',sans-serif;background:#f9f8f5;color:#1a1a18;min-height:100vh;display:flex;flex-direction:column}
@@ -23,13 +25,12 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2
 .row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .btn-submit{width:100%;padding:11px;background:#1D9E75;border:none;border-radius:8px;color:#fff;font-size:15px;font-weight:500;cursor:pointer;margin-top:6px;font-family:'Inter',sans-serif}
 .btn-submit:hover{background:#178a64}
-.divider{display:flex;align-items:center;gap:10px;margin:1.25rem 0;font-size:13px;color:#aaa}
-.divider::before,.divider::after{content:'';flex:1;height:1px;background:#e8e6e0}
+.btn-submit:disabled{background:#9ad4be;cursor:not-allowed}
 .login-link{text-align:center;font-size:13px;color:#5a5a55;margin-top:1rem}
 .login-link a{color:#1D9E75;text-decoration:none;font-weight:500}
-.login-link a:hover{text-decoration:underline}
 .free-badge{display:inline-block;background:#e0f5ed;color:#0f6e47;font-size:12px;font-weight:500;padding:3px 10px;border-radius:20px;margin-bottom:1.25rem}
 .terms{font-size:12px;color:#8a8a85;text-align:center;margin-top:1rem;line-height:1.5}
+.error{background:#fcebeb;color:#c0392b;font-size:13px;padding:10px 12px;border-radius:8px;margin-bottom:14px;display:none}
 </style>
 </head>
 <body>
@@ -42,54 +43,56 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2
     <span class="free-badge">Free — no credit card required</span>
     <div class="card-title">Create your account</div>
     <div class="card-sub">Set up your barn in about 2 minutes.</div>
+    <div class="error" id="error"></div>
     <div class="row2">
-      <div class="field">
-        <label>First name</label>
-        <input type="text" placeholder="Claire" id="fname">
-      </div>
-      <div class="field">
-        <label>Last name</label>
-        <input type="text" placeholder="Morgan" id="lname">
-      </div>
+      <div class="field"><label>First name</label><input type="text" placeholder="Claire" id="fname"></div>
+      <div class="field"><label>Last name</label><input type="text" placeholder="Morgan" id="lname"></div>
     </div>
-    <div class="field">
-      <label>Email</label>
-      <input type="email" placeholder="claire@ridgeview.com" id="email">
-    </div>
-    <div class="field">
-      <label>Password</label>
-      <input type="password" placeholder="At least 8 characters" id="password">
-    </div>
-    <div class="field">
-      <label>Barn or program name</label>
-      <input type="text" placeholder="Ridgeview Equestrian" id="barn">
-    </div>
-    <button class="btn-submit" onclick="handleSignup()">Create account →</button>
+    <div class="field"><label>Email</label><input type="email" placeholder="claire@ridgeview.com" id="email"></div>
+    <div class="field"><label>Password</label><input type="password" placeholder="At least 8 characters" id="password"></div>
+    <div class="field"><label>Barn or program name</label><input type="text" placeholder="Ridgeview Equestrian" id="barn"></div>
+    <button class="btn-submit" id="submit-btn" onclick="handleSignup()">Create account →</button>
     <div class="terms">By signing up you agree to our Terms of Service and Privacy Policy.</div>
     <div class="login-link">Already have an account? <a href="login.html">Log in</a></div>
   </div>
 </div>
 <script>
-function handleSignup(){
+async function handleSignup(){
   const fname = document.getElementById('fname').value.trim();
+  const lname = document.getElementById('lname').value.trim();
   const email = document.getElementById('email').value.trim();
   const password = document.getElementById('password').value;
   const barn = document.getElementById('barn').value.trim();
+  const errorEl = document.getElementById('error');
+  const btn = document.getElementById('submit-btn');
+
+  errorEl.style.display = 'none';
+
   if(!fname || !email || !password || !barn){
-    alert('Please fill in all fields.');
+    errorEl.textContent = 'Please fill in all fields.';
+    errorEl.style.display = 'block';
     return;
   }
   if(password.length < 8){
-    alert('Password must be at least 8 characters.');
+    errorEl.textContent = 'Password must be at least 8 characters.';
+    errorEl.style.display = 'block';
     return;
   }
-  // Save to localStorage so other pages can read it
-  localStorage.setItem('stirrup_user', JSON.stringify({
-    name: fname,
-    barn: barn,
-    email: email
-  }));
-  window.location.href = 'onboarding.html';
+
+  btn.disabled = true;
+  btn.textContent = 'Creating account…';
+
+  try {
+    await signUp(email, password, fname + ' ' + lname, barn);
+    // Store name/barn locally for onboarding pre-fill
+    localStorage.setItem('stirrup_user', JSON.stringify({ name: fname, barn: barn, email: email }));
+    window.location.href = 'onboarding.html';
+  } catch(err) {
+    errorEl.textContent = err.message || 'Something went wrong. Please try again.';
+    errorEl.style.display = 'block';
+    btn.disabled = false;
+    btn.textContent = 'Create account →';
+  }
 }
 </script>
 </body>
