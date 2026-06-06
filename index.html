@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Stirrup — Lesson scheduling & payments</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Inter',sans-serif;background:#f9f8f5;color:#1a1a18;min-height:100vh}
+nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2rem;background:#fff;border-bottom:1px solid #e8e6e0}
+.logo{font-size:18px;font-weight:600;color:#1a1a18}
+.nav-right{display:flex;gap:12px}
+.btn{padding:8px 18px;border-radius:8px;font-size:14px;font-weight:500;cursor:pointer;text-decoration:none;display:inline-block}
+.btn-ghost{background:transparent;border:1px solid #d4d2cb;color:#1a1a18}
+.btn-ghost:hover{background:#f0efe9}
+.btn-primary{background:#1D9E75;border:1px solid #1D9E75;color:#fff}
+.btn-primary:hover{background:#178a64}
+.hero{text-align:center;padding:5rem 2rem 4rem}
+.hero h1{font-size:42px;font-weight:600;line-height:1.2;margin-bottom:1rem;max-width:600px;margin-left:auto;margin-right:auto}
+.hero p{font-size:18px;color:#5a5a55;max-width:480px;margin:0 auto 2rem;line-height:1.6}
+.hero-actions{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+.btn-large{padding:12px 28px;font-size:16px;border-radius:10px}
+.free-note{font-size:13px;color:#8a8a85;margin-top:12px}
+.features{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px;max-width:900px;margin:0 auto;padding:0 2rem 5rem}
+.feature{background:#fff;border:1px solid #e8e6e0;border-radius:12px;padding:1.5rem}
+.feature-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;margin-bottom:1rem}
+.feature h3{font-size:15px;font-weight:600;margin-bottom:6px}
+.feature p{font-size:13px;color:#5a5a55;line-height:1.6}
+.pricing{background:#fff;border-top:1px solid #e8e6e0;padding:4rem 2rem}
+.pricing h2{text-align:center;font-size:28px;font-weight:600;margin-bottom:2.5rem}
+.pricing-cards{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:20px;max-width:600px;margin:0 auto}
+.pricing-card{border:1px solid #e8e6e0;border-radius:12px;padding:1.5rem}
+.pricing-card.pro{border:2px solid #1D9E75}
+.tier{font-size:12px;font-weight:500;padding:3px 10px;border-radius:20px;display:inline-block;margin-bottom:12px}
+.tier-free{background:#f0efe9;color:#5a5a55}
+.tier-pro{background:#e0f5ed;color:#0f6e47}
+.price{font-size:32px;font-weight:600;margin-bottom:4px}
+.price span{font-size:14px;font-weight:400;color:#5a5a55}
+.price-note{font-size:12px;color:#8a8a85;margin-bottom:1.25rem}
+.feat-list{list-style:none;margin-bottom:1.5rem}
+.feat-list li{font-size:13px;padding:5px 0;border-bottom:1px solid #f0efe9;display:flex;align-items:center;gap:8px;color:#3a3a35}
+.feat-list li:last-child{border-bottom:none}
+.feat-list li.muted{color:#aaa}
+.check{color:#1D9E75;font-weight:600}
+.cross{color:#ccc}
+footer{text-align:center;padding:2rem;font-size:13px;color:#8a8a85;border-top:1px solid #e8e6e0}
+@media(max-width:600px){
+  .features{grid-template-columns:1fr}
+  .pricing-cards{grid-template-columns:1fr}
+  .hero h1{font-size:28px}
+}
+</style>
+</head>
+<body>
+<nav>
+  <div class="logo">Stirrup</div>
+  <div class="nav-right">
+    <a href="#" class="btn btn-ghost">Log in</a>
+    <a href="#" class="btn btn-primary">Get started free</a>
+  </div>
+</nav>
+<div class="hero">
+  <h1>Scheduling and payments for riding trainers</h1>
+  <p>Book lessons, track your riders, and collect payments — all in one place. No chasing Venmo. No paper schedules.</p>
+  <div class="hero-actions">
+    <a href="#" class="btn btn-primary btn-large">Get started free</a>
+    <a href="#pricing" class="btn btn-ghost btn-large">See pricing</a>
+  </div>
+  <div class="free-note">Free up to 10 lessons/month. No credit card required.</div>
+</div>
+<div class="features">
+  <div class="feature">
+    <div class="feature-icon" style="background:#e0f5ed">📅</div>
+    <h3>Lesson scheduling</h3>
+    <p>See your full week at a glance. Book lessons in seconds, track who's coming, and block off time when you need it.</p>
+  </div>
+  <div class="feature">
+    <div class="feature-icon" style="background:#e6f0fb">💳</div>
+    <h3>Square payments</h3>
+    <p>Send a payment link after every lesson. Riders pay online, money goes straight to your Square account.</p>
+  </div>
+  <div class="feature">
+    <div class="feature-icon" style="background:#faeeda">🔔</div>
+    <h3>Automatic reminders</h3>
+    <p>Riders get a text reminder 24 hours before their lesson. Fewer no-shows, less chasing.</p>
+  </div>
+  <div class="feature">
+    <div class="feature-icon" style="background:#eeedfe">🐴</div>
+    <h3>Rider profiles</h3>
+    <p>Keep notes, track lesson history, and store emergency contacts for every rider in one place.</p>
+  </div>
+  <div class="feature">
+    <div class="feature-icon" style="background:#faece7">💰</div>
+    <h3>Payment tracking</h3>
+    <p>See who's paid, who hasn't, and who's overdue — without opening Square or digging through texts.</p>
+  </div>
+  <div class="feature">
+    <div class="feature-icon" style="background:#e0f5ed">📱</div>
+    <h3>Works on any device</h3>
+    <p>Use Stirrup from your phone at the barn or your laptop at home. No app to download.</p>
+  </div>
+</div>
+<div class="pricing" id="pricing">
+  <h2>Simple pricing</h2>
+  <div class="pricing-cards">
+    <div class="pricing-card">
+      <span class="tier tier-free">Free</span>
+      <div class="price">$0<span>/mo</span></div>
+      <div class="price-note">forever, no card required</div>
+      <ul class="feat-list">
+        <li><span class="check">✓</span>Up to 10 bookings/month</li>
+        <li><span class="check">✓</span>Rider profiles</li>
+        <li><span class="check">✓</span>Weekly calendar</li>
+        <li class="muted"><span class="cross">✗</span>Square payment links</li>
+        <li class="muted"><span class="cross">✗</span>Automated reminders</li>
+      </ul>
+      <a href="#" class="btn btn-ghost" style="width:100%;text-align:center">Get started free</a>
+    </div>
+    <div class="pricing-card pro">
+      <span class="tier tier-pro">Pro</span>
+      <div class="price">$19<span>/mo</span></div>
+      <div class="price-note">or $190/yr — save $38</div>
+      <ul class="feat-list">
+        <li><span class="check">✓</span>Unlimited bookings</li>
+        <li><span class="check">✓</span>Rider profiles</li>
+        <li><span class="check">✓</span>Weekly calendar</li>
+        <li><span class="check">✓</span>Square payment links</li>
+        <li><span class="check">✓</span>Automated reminders</li>
+      </ul>
+      <a href="#" class="btn btn-primary" style="width:100%;text-align:center">Start free 14-day trial</a>
+    </div>
+  </div>
+</div>
+<footer>
+  © 2026 Stirrup · Payments processed by Square · Subscriptions by Stripe
+</footer>
+</body>
+</html>
