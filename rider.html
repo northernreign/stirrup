@@ -3,152 +3,173 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Riders — Stirrup</title>
+<title>Rider — Stirrup</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Inter',sans-serif;background:#f9f8f5;color:#1a1a18;min-height:100vh}
 nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2rem;background:#fff;border-bottom:1px solid #e8e6e0}
 .logo{font-size:18px;font-weight:600;color:#1a1a18;text-decoration:none}
-.nav-right{display:flex;align-items:center;gap:12px}
+.nav-right{display:flex;gap:10px}
 .btn{padding:7px 16px;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;text-decoration:none;display:inline-block;font-family:'Inter',sans-serif;border:1px solid transparent}
 .btn-primary{background:#1D9E75;border-color:#1D9E75;color:#fff}
 .btn-primary:hover{background:#178a64}
 .btn-ghost{background:transparent;border-color:#d4d2cb;color:#1a1a18}
 .btn-ghost:hover{background:#f0efe9}
-.wrap{max-width:720px;margin:0 auto;padding:2rem}
-.page-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem}
-.page-title{font-size:22px;font-weight:600}
-.summary{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:1.25rem}
-.sum{background:#fff;border:1px solid #e8e6e0;border-radius:10px;padding:.75rem 1rem}
-.sum-label{font-size:11px;color:#5a5a55;margin-bottom:3px}
-.sum-val{font-size:20px;font-weight:600;color:#1a1a18}
-.toolbar{display:flex;align-items:center;gap:10px;margin-bottom:1.25rem}
-.search-wrap{flex:1;position:relative}
-.search-wrap input{width:100%;padding:9px 12px 9px 34px;border:1px solid #d4d2cb;border-radius:8px;font-size:14px;font-family:'Inter',sans-serif;background:#fff;color:#1a1a18;outline:none}
-.search-wrap input:focus{border-color:#1D9E75}
-.search-icon{position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:15px;color:#8a8a85;pointer-events:none}
-.filter-btns{display:flex;gap:6px}
-.filter-btn{font-size:12px;padding:6px 12px;border-radius:20px;border:1px solid #d4d2cb;background:#fff;color:#5a5a55;cursor:pointer;font-family:'Inter',sans-serif;transition:all .15s}
-.filter-btn.active{background:#f0efe9;color:#1a1a18;border-color:#c8c6bf;font-weight:500}
-.rider-card{background:#fff;border:1px solid #e8e6e0;border-radius:10px;padding:.875rem 1.25rem;margin-bottom:8px;display:flex;align-items:center;gap:12px;cursor:pointer;transition:background .15s}
-.rider-card:hover{background:#f9f8f5}
-.av{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;flex-shrink:0}
-.rider-info{flex:1;min-width:0}
-.rider-name{font-size:14px;font-weight:500;color:#1a1a18}
-.rider-meta{font-size:12px;color:#5a5a55;margin-top:1px}
-.rider-right{display:flex;align-items:center;gap:10px;flex-shrink:0}
+.wrap{max-width:680px;margin:0 auto;padding:2rem}
+.profile-header{display:flex;align-items:center;gap:16px;margin-bottom:1.5rem}
+.av{width:56px;height:56px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:600;flex-shrink:0;background:#e0f5ed;color:#0f6e47}
+.profile-name{font-size:22px;font-weight:600;margin-bottom:3px}
+.profile-meta{font-size:13px;color:#5a5a55}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:1.25rem}
+.stat{background:#fff;border:1px solid #e8e6e0;border-radius:10px;padding:.75rem 1rem}
+.stat-label{font-size:11px;color:#5a5a55;margin-bottom:4px}
+.stat-val{font-size:20px;font-weight:600;color:#1a1a18}
+.tabs{display:flex;gap:0;border-bottom:1px solid #e8e6e0;margin-bottom:1.25rem}
+.tab{font-size:13px;padding:8px 16px;cursor:pointer;color:#5a5a55;border-bottom:2px solid transparent;margin-bottom:-1px;transition:color .15s}
+.tab.active{color:#1a1a18;font-weight:500;border-bottom-color:#1a1a18}
+.tab-panel{display:none}
+.tab-panel.active{display:block}
+.card{background:#fff;border:1px solid #e8e6e0;border-radius:12px;padding:1rem 1.25rem;margin-bottom:1.25rem}
+.card-title{font-size:14px;font-weight:600;color:#1a1a18;margin-bottom:.75rem}
+.info-row{display:flex;justify-content:space-between;font-size:13px;padding:6px 0;border-bottom:1px solid #f0efe9}
+.info-row:last-child{border-bottom:none}
+.info-label{color:#5a5a55}
+.info-val{font-weight:500;color:#1a1a18}
+.note-box{background:#f9f8f5;border-radius:8px;padding:.75rem 1rem;font-size:13px;color:#5a5a55;line-height:1.6}
+.booking-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid #f0efe9}
+.booking-row:last-child{border-bottom:none}
+.booking-date{font-size:12px;color:#5a5a55;width:100px;flex-shrink:0}
+.booking-info{flex:1}
+.booking-type{font-size:13px;font-weight:500;color:#1a1a18}
+.booking-notes{font-size:11px;color:#5a5a55;margin-top:1px}
 .pill{font-size:11px;padding:2px 8px;border-radius:20px;font-weight:500}
 .pill-green{background:#e0f5ed;color:#0f6e47}
 .pill-amber{background:#faeeda;color:#633806}
-.chevron{font-size:14px;color:#8a8a85}
-.empty{text-align:center;padding:3rem 1rem}
-.empty-icon{font-size:32px;margin-bottom:12px}
-.empty-title{font-size:15px;font-weight:500;color:#1a1a18;margin-bottom:6px}
-.empty-sub{font-size:13px;color:#5a5a55;margin-bottom:1.25rem}
-.loading{text-align:center;padding:3rem;color:#8a8a85;font-size:14px}
+.empty{text-align:center;padding:2rem;color:#5a5a55;font-size:13px}
+.loading{text-align:center;padding:2rem;color:#8a8a85;font-size:13px}
 </style>
 </head>
 <body>
 <nav>
-  <a href="dashboard.html" class="logo">Stirrup</a>
+  <a href="riders.html" class="logo">Stirrup</a>
   <div class="nav-right">
-    <a href="dashboard.html" class="btn btn-ghost">Dashboard</a>
-    <a href="add-rider.html" class="btn btn-primary">+ Add rider</a>
+    <a href="riders.html" class="btn btn-ghost">← Riders</a>
+    <a href="book.html" class="btn btn-primary">+ Book lesson</a>
   </div>
 </nav>
+
 <div class="wrap">
-  <div class="page-head">
-    <div class="page-title">Riders</div>
-    <a href="add-rider.html" class="btn btn-primary">+ Add rider</a>
-  </div>
-  <div class="summary">
-    <div class="sum"><div class="sum-label">Total riders</div><div class="sum-val" id="total-riders">—</div></div>
-    <div class="sum"><div class="sum-label">Lessons booked</div><div class="sum-val" id="total-lessons">—</div></div>
-    <div class="sum"><div class="sum-label">Unpaid balances</div><div class="sum-val" id="total-unpaid">—</div></div>
-  </div>
-  <div class="toolbar">
-    <div class="search-wrap">
-      <span class="search-icon">🔍</span>
-      <input type="text" id="search" placeholder="Search riders…" oninput="filterRiders()">
-    </div>
-    <div class="filter-btns">
-      <button class="filter-btn active" id="f-all" onclick="setFilter('all')">All</button>
-      <button class="filter-btn" id="f-unpaid" onclick="setFilter('unpaid')">Unpaid</button>
+  <div class="profile-header">
+    <div class="av" id="av">?</div>
+    <div>
+      <div class="profile-name" id="rider-name">Loading…</div>
+      <div class="profile-meta" id="rider-meta">—</div>
     </div>
   </div>
-  <div id="rider-list"><div class="loading">Loading riders…</div></div>
+
+  <div class="stats">
+    <div class="stat"><div class="stat-label">Total lessons</div><div class="stat-val" id="stat-lessons">—</div></div>
+    <div class="stat"><div class="stat-label">Preferred horse</div><div class="stat-val" id="stat-horse">—</div></div>
+    <div class="stat"><div class="stat-label">Member since</div><div class="stat-val" id="stat-since">—</div></div>
+  </div>
+
+  <div class="tabs">
+    <div class="tab active" id="tab-overview" onclick="showTab('overview')">Overview</div>
+    <div class="tab" id="tab-lessons" onclick="showTab('lessons')">Lessons</div>
+  </div>
+
+  <div class="tab-panel active" id="panel-overview">
+    <div class="card">
+      <div class="card-title">Contact & details</div>
+      <div class="info-row"><span class="info-label">Phone</span><span class="info-val" id="info-phone">—</span></div>
+      <div class="info-row"><span class="info-label">Email</span><span class="info-val" id="info-email">—</span></div>
+      <div class="info-row"><span class="info-label">Emergency contact</span><span class="info-val" id="info-ec">—</span></div>
+      <div class="info-row"><span class="info-label">Level</span><span class="info-val" id="info-level">—</span></div>
+      <div class="info-row"><span class="info-label">Preferred lesson</span><span class="info-val" id="info-lesson">—</span></div>
+      <div class="info-row"><span class="info-label">Preferred duration</span><span class="info-val" id="info-duration">—</span></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Trainer notes</div>
+      <div class="note-box" id="info-notes">No notes yet.</div>
+    </div>
+  </div>
+
+  <div class="tab-panel" id="panel-lessons">
+    <div class="card">
+      <div class="card-title">Lesson history</div>
+      <div id="lesson-list"><div class="loading">Loading lessons…</div></div>
+    </div>
+  </div>
 </div>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 const SUPABASE_URL = 'https://mfinlbqfowymmklhkuhb.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_PcwbX1YoncwnrHobFmpAIA_L39K4XfK';
 const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 const avColors=[{bg:'#e0f5ed',fg:'#0f6e47'},{bg:'#faeeda',fg:'#633806'},{bg:'#eeedfe',fg:'#3c3489'},{bg:'#faece7',fg:'#712b13'},{bg:'#e6f0fb',fg:'#0c447c'}];
-let allRiders=[];
-let activeFilter='all';
 
-function setFilter(f){
-  activeFilter=f;
-  ['all','unpaid'].forEach(x=>document.getElementById('f-'+x).classList.toggle('active',x===f));
-  filterRiders();
-}
-
-function filterRiders(){
-  const q=document.getElementById('search').value.toLowerCase();
-  const filtered=allRiders.filter(r=>{
-    const name=(r.first_name+' '+r.last_name).toLowerCase();
-    const matchQ=name.includes(q)||(r.level||'').toLowerCase().includes(q);
-    const matchF=activeFilter==='all'||r.payment_status==='unpaid';
-    return matchQ&&matchF;
-  });
-  renderRiders(filtered);
-}
-
-function renderRiders(riders){
-  const list=document.getElementById('rider-list');
-  document.getElementById('total-riders').textContent=allRiders.length;
-  document.getElementById('total-unpaid').textContent=allRiders.filter(r=>r.payment_status==='unpaid').length;
-  if(riders.length===0){
-    list.innerHTML=`<div class="empty">
-      <div class="empty-icon">🐴</div>
-      <div class="empty-title">${allRiders.length===0?'No riders yet':'No riders match'}</div>
-      <div class="empty-sub">${allRiders.length===0?'Add your first rider to get started.':'Try a different search.'}</div>
-      ${allRiders.length===0?'<a href="add-rider.html" class="btn btn-primary">Add first rider</a>':''}
-    </div>`;
-    return;
-  }
-  list.innerHTML='';
-  riders.forEach((r,i)=>{
-    const c=avColors[i%avColors.length];
-    const initials=((r.first_name?.[0]||'')+(r.last_name?.[0]||'')).toUpperCase();
-    const card=document.createElement('div');
-    card.className='rider-card';
-    card.onclick=()=>{localStorage.setItem('stirrup_viewing_rider',JSON.stringify(r));window.location.href='rider.html';};
-    card.innerHTML=`
-      <div class="av" style="background:${c.bg};color:${c.fg}">${initials}</div>
-      <div class="rider-info">
-        <div class="rider-name">${r.first_name} ${r.last_name}</div>
-        <div class="rider-meta">${r.level||'No level'} · ${r.lesson_type||'No type'}</div>
-      </div>
-      <div class="rider-right">
-        ${r.payment_status==='unpaid'?'<span class="pill pill-amber">unpaid</span>':'<span class="pill pill-green">paid</span>'}
-        <span class="chevron">→</span>
-      </div>`;
-    list.appendChild(card);
+function showTab(name){
+  ['overview','lessons'].forEach(t=>{
+    document.getElementById('tab-'+t).classList.toggle('active',t===name);
+    document.getElementById('panel-'+t).classList.toggle('active',t===name);
   });
 }
 
 async function load(){
   const { data: { user } } = await db.auth.getUser();
   if(!user){ window.location.href='login.html'; return; }
-  const [{ data: riders }, { data: bookings }] = await Promise.all([
-    db.from('riders').select('*').eq('trainer_id', user.id).order('created_at', { ascending: false }),
-    db.from('bookings').select('*').eq('trainer_id', user.id)
-  ]);
-  allRiders = riders || [];
-  document.getElementById('total-lessons').textContent = (bookings||[]).length;
-  filterRiders();
+
+  const rider = JSON.parse(localStorage.getItem('stirrup_viewing_rider')||'null');
+  if(!rider){ window.location.href='riders.html'; return; }
+
+  const { data: riders } = await db.from('riders').select('id').eq('trainer_id', user.id);
+  const idx = (riders||[]).findIndex(r=>r.id===rider.id);
+  const color = avColors[Math.max(0,idx)%avColors.length];
+  const initials = ((rider.first_name?.[0]||'')+(rider.last_name?.[0]||'')).toUpperCase();
+
+  document.getElementById('av').textContent = initials;
+  document.getElementById('av').style.background = color.bg;
+  document.getElementById('av').style.color = color.fg;
+  document.getElementById('rider-name').textContent = rider.first_name+' '+rider.last_name;
+  document.getElementById('rider-meta').textContent = (rider.level||'')+(rider.lesson_type?' · '+rider.lesson_type+' lessons':'');
+  document.getElementById('stat-horse').textContent = rider.horse||'No preference';
+  document.getElementById('info-phone').textContent = rider.phone||'—';
+  document.getElementById('info-email').textContent = rider.email||'—';
+  document.getElementById('info-ec').textContent = rider.ec_name?(rider.ec_name+(rider.ec_phone?' · '+rider.ec_phone:'')):'—';
+  document.getElementById('info-level').textContent = rider.level?(rider.level.charAt(0).toUpperCase()+rider.level.slice(1)):'—';
+  document.getElementById('info-lesson').textContent = rider.lesson_type?(rider.lesson_type.charAt(0).toUpperCase()+rider.lesson_type.slice(1)):'—';
+  document.getElementById('info-duration').textContent = rider.duration||'—';
+  document.getElementById('info-notes').textContent = rider.notes||'No notes yet.';
+
+  if(rider.created_at){
+    const d = new Date(rider.created_at);
+    document.getElementById('stat-since').textContent = d.toLocaleString('default',{month:'short',year:'numeric'});
+  }
+
+  const { data: bookings } = await db.from('bookings').select('*').eq('rider_id', rider.id).order('created_at',{ascending:false});
+  const b = bookings||[];
+  document.getElementById('stat-lessons').textContent = b.length;
+
+  const list = document.getElementById('lesson-list');
+  if(b.length===0){
+    list.innerHTML='<div class="empty">No lessons yet.</div>';
+  } else {
+    list.innerHTML='';
+    b.forEach(bk=>{
+      const row=document.createElement('div');
+      row.className='booking-row';
+      row.innerHTML=`
+        <div class="booking-date">${bk.date}</div>
+        <div class="booking-info">
+          <div class="booking-type">${bk.lesson_type.charAt(0).toUpperCase()+bk.lesson_type.slice(1)} · ${bk.time}</div>
+          ${bk.notes?`<div class="booking-notes">${bk.notes}</div>`:''}
+        </div>
+        <span class="pill ${bk.payment_status==='paid'?'pill-green':'pill-amber'}">${bk.payment_status}</span>`;
+      list.appendChild(row);
+    });
+  }
 }
 
 load();
