@@ -16,8 +16,6 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2
 .btn-ghost:hover{background:#f0efe9}
 .btn-primary{background:#1D9E75;border-color:#1D9E75;color:#fff}
 .btn-primary:hover{background:#178a64}
-.btn-danger{background:transparent;border-color:#e8c5c5;color:#c0392b;width:100%;padding:10px;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif;text-align:left}
-.btn-danger:hover{background:#fcebeb}
 .wrap{max-width:600px;margin:0 auto;padding:2rem}
 .page-title{font-size:22px;font-weight:600;margin-bottom:1.5rem}
 .plan-card{background:#fff;border:1px solid #e8e6e0;border-radius:12px;padding:1rem 1.25rem;display:flex;align-items:center;gap:12px;margin-bottom:1.75rem}
@@ -27,7 +25,6 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2
 .plan-right{margin-left:auto;display:flex;flex-direction:column;align-items:flex-end;gap:6px}
 .badge{font-size:11px;padding:2px 8px;border-radius:20px;font-weight:500}
 .badge-free{background:#f0efe9;color:#5a5a55}
-.badge-pro{background:#e0f5ed;color:#0f6e47}
 .section{margin-bottom:1.75rem}
 .section-label{font-size:11px;font-weight:500;color:#8a8a85;letter-spacing:.04em;text-transform:uppercase;margin-bottom:8px}
 .card{background:#fff;border:1px solid #e8e6e0;border-radius:12px;overflow:hidden}
@@ -75,11 +72,11 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2
   <div class="plan-card">
     <div class="plan-icon">⭐</div>
     <div>
-      <div class="plan-name" id="plan-name">Stirrup Free</div>
-      <div class="plan-meta" id="plan-meta">Up to 10 bookings/month</div>
+      <div class="plan-name">Stirrup Free</div>
+      <div class="plan-meta">Up to 10 bookings/month</div>
     </div>
     <div class="plan-right">
-      <span class="badge badge-free" id="plan-badge">Free</span>
+      <span class="badge badge-free">Free</span>
       <a href="index.html#pricing" class="btn btn-primary" style="font-size:12px;padding:5px 12px">Upgrade to Pro</a>
     </div>
   </div>
@@ -122,22 +119,22 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2
       <div class="row">
         <div class="row-icon" style="background:#e6f0fb">🔔</div>
         <div class="row-body"><div class="row-title">New booking alerts</div><div class="row-sub">Notify me when a lesson is booked</div></div>
-        <button class="toggle on" id="t-booking" onclick="tog('booking')" aria-label="Toggle booking alerts"></button>
+        <button class="toggle on" id="t-booking" onclick="tog('booking')"></button>
       </div>
       <div class="row">
         <div class="row-icon" style="background:#e0f5ed">⏰</div>
         <div class="row-body"><div class="row-title">Lesson reminders to riders</div><div class="row-sub">Text riders 24hrs before their lesson</div></div>
-        <button class="toggle on" id="t-reminder" onclick="tog('reminder')" aria-label="Toggle reminders"></button>
+        <button class="toggle on" id="t-reminder" onclick="tog('reminder')"></button>
       </div>
       <div class="row">
         <div class="row-icon" style="background:#faeeda">💰</div>
         <div class="row-body"><div class="row-title">Payment received alerts</div><div class="row-sub">Notify me when a Square payment clears</div></div>
-        <button class="toggle on" id="t-payment" onclick="tog('payment')" aria-label="Toggle payment alerts"></button>
+        <button class="toggle on" id="t-payment" onclick="tog('payment')"></button>
       </div>
       <div class="row">
         <div class="row-icon" style="background:#fcebeb">⚠️</div>
         <div class="row-body"><div class="row-title">Overdue payment reminders</div><div class="row-sub">Remind riders with unpaid balances after 7 days</div></div>
-        <button class="toggle off" id="t-overdue" onclick="tog('overdue')" aria-label="Toggle overdue reminders"></button>
+        <button class="toggle off" id="t-overdue" onclick="tog('overdue')"></button>
       </div>
     </div>
   </div>
@@ -161,12 +158,12 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2
   <div class="section">
     <div class="section-label">Account</div>
     <div class="card">
-      <div class="row" onclick="signOut()">
+      <div class="row" onclick="handleSignOut()">
         <div class="row-icon" style="background:#f0efe9">🚪</div>
         <div class="row-body"><div class="row-title">Sign out</div><div class="row-sub">Sign out of this device</div></div>
         <div class="row-right">→</div>
       </div>
-      <div class="row" onclick="openModal('delete')" style="cursor:pointer">
+      <div class="row" onclick="openModal('delete')">
         <div class="row-icon" style="background:#fcebeb">🗑</div>
         <div class="row-body"><div class="row-title" style="color:#c0392b">Delete account</div><div class="row-sub">Permanently remove all your data</div></div>
         <div class="row-right">→</div>
@@ -180,9 +177,8 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2
   <div class="modal">
     <div class="modal-title">Edit profile</div>
     <div class="modal-sub">Update your name and email.</div>
-    <div class="field"><label>First name</label><input type="text" id="edit-fname"></div>
-    <div class="field"><label>Last name</label><input type="text" id="edit-lname"></div>
-    <div class="field"><label>Email</label><input type="email" id="edit-email"></div>
+    <div class="field"><label>Full name</label><input type="text" id="edit-name"></div>
+    <div class="field"><label>Email</label><input type="email" id="edit-email" disabled style="background:#f9f8f5;color:#8a8a85"></div>
     <div class="modal-actions">
       <button class="btn-cancel" onclick="closeModal('profile')">Cancel</button>
       <button class="btn-save" onclick="saveProfile()">Save</button>
@@ -194,16 +190,8 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2
 <div class="modal-overlay" id="modal-barn">
   <div class="modal">
     <div class="modal-title">Barn details</div>
-    <div class="modal-sub">Update your barn name and timezone.</div>
+    <div class="modal-sub">Update your barn name.</div>
     <div class="field"><label>Barn name</label><input type="text" id="edit-barn"></div>
-    <div class="field"><label>Timezone</label>
-      <select id="edit-timezone" style="width:100%;padding:9px 12px;border:1px solid #d4d2cb;border-radius:8px;font-size:14px;font-family:'Inter',sans-serif;outline:none">
-        <option>Eastern Time (ET)</option>
-        <option>Central Time (CT)</option>
-        <option>Mountain Time (MT)</option>
-        <option>Pacific Time (PT)</option>
-      </select>
-    </div>
     <div class="modal-actions">
       <button class="btn-cancel" onclick="closeModal('barn')">Cancel</button>
       <button class="btn-save" onclick="saveBarn()">Save</button>
@@ -218,12 +206,16 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2
     <div class="modal-sub">This will permanently delete all your riders, bookings, and settings. This cannot be undone.</div>
     <div class="modal-actions">
       <button class="btn-cancel" onclick="closeModal('delete')">Cancel</button>
-      <button class="btn-delete" onclick="deleteAccount()">Yes, delete everything</button>
+      <button class="btn-delete" onclick="handleDelete()">Yes, delete everything</button>
     </div>
   </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
+const SUPABASE_URL = 'https://mfinlbqfowymmklhkuhb.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_PcwbX1YoncwnrHobFmpAIA_L39K4XfK';
+const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 const toggleStates = {booking:true,reminder:true,payment:true,overdue:false};
 
 function tog(k){
@@ -235,15 +227,12 @@ function tog(k){
 
 function openModal(name){
   if(name==='profile'){
-    const user=JSON.parse(localStorage.getItem('stirrup_user')||'{}');
-    const parts=(user.name||'').split(' ');
-    document.getElementById('edit-fname').value=parts[0]||'';
-    document.getElementById('edit-lname').value=parts.slice(1).join(' ')||'';
-    document.getElementById('edit-email').value=user.email||'';
+    const sub = document.getElementById('profile-sub').textContent;
+    document.getElementById('edit-name').value = sub.split(' · ')[0] || '';
+    document.getElementById('edit-email').value = sub.split(' · ')[1] || '';
   }
   if(name==='barn'){
-    const user=JSON.parse(localStorage.getItem('stirrup_user')||'{}');
-    document.getElementById('edit-barn').value=user.barn||'';
+    document.getElementById('edit-barn').value = document.getElementById('barn-sub').textContent || '';
   }
   document.getElementById('modal-'+name).classList.add('open');
 }
@@ -252,47 +241,55 @@ function closeModal(name){
   document.getElementById('modal-'+name).classList.remove('open');
 }
 
-function saveProfile(){
-  const user=JSON.parse(localStorage.getItem('stirrup_user')||'{}');
-  const fname=document.getElementById('edit-fname').value.trim();
-  const lname=document.getElementById('edit-lname').value.trim();
-  user.name=fname+(lname?' '+lname:'');
-  user.email=document.getElementById('edit-email').value.trim();
-  localStorage.setItem('stirrup_user',JSON.stringify(user));
+async function saveProfile(){
+  const { data: { user } } = await db.auth.getUser();
+  if(!user) return;
+  const name = document.getElementById('edit-name').value.trim();
+  await db.from('trainers').update({ name }).eq('id', user.id);
   closeModal('profile');
   loadSettings();
 }
 
-function saveBarn(){
-  const user=JSON.parse(localStorage.getItem('stirrup_user')||'{}');
-  user.barn=document.getElementById('edit-barn').value.trim();
-  localStorage.setItem('stirrup_user',JSON.stringify(user));
+async function saveBarn(){
+  const { data: { user } } = await db.auth.getUser();
+  if(!user) return;
+  const barn_name = document.getElementById('edit-barn').value.trim();
+  await db.from('trainers').update({ barn_name }).eq('id', user.id);
   closeModal('barn');
   loadSettings();
 }
 
-function signOut(){
+async function handleSignOut(){
   if(confirm('Sign out of Stirrup?')){
+    await db.auth.signOut();
     localStorage.removeItem('stirrup_user');
-    window.location.href='index.html';
+    localStorage.removeItem('stirrup_viewing_rider');
+    window.location.href = 'index.html';
   }
 }
 
-function deleteAccount(){
-  localStorage.removeItem('stirrup_user');
-  localStorage.removeItem('stirrup_riders');
-  localStorage.removeItem('stirrup_bookings');
-  localStorage.removeItem('stirrup_viewing_rider');
-  window.location.href='index.html';
+async function handleDelete(){
+  const { data: { user } } = await db.auth.getUser();
+  if(!user) return;
+  await db.from('bookings').delete().eq('trainer_id', user.id);
+  await db.from('riders').delete().eq('trainer_id', user.id);
+  await db.from('trainers').delete().eq('id', user.id);
+  await db.auth.signOut();
+  localStorage.clear();
+  window.location.href = 'index.html';
 }
 
-function loadSettings(){
-  const user=JSON.parse(localStorage.getItem('stirrup_user')||'{}');
-  document.getElementById('profile-sub').textContent=(user.name||'Not set')+(user.email?' · '+user.email:'');
-  document.getElementById('barn-sub').textContent=user.barn||'Not set';
+async function loadSettings(){
+  const { data: { user } } = await db.auth.getUser();
+  if(!user){ window.location.href='login.html'; return; }
+  const { data: trainer } = await db.from('trainers').select('*').eq('id', user.id).single();
+  if(trainer){
+    document.getElementById('profile-sub').textContent = (trainer.name||'Not set')+' · '+user.email;
+    document.getElementById('barn-sub').textContent = trainer.barn_name||'Not set';
+  }
 }
 
-window.onload=loadSettings;
+loadSettings();
 </script>
 </body>
 </html>
