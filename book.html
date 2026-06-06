@@ -5,8 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Book lesson — Stirrup</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="supabase.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Inter',sans-serif;background:#f9f8f5;color:#1a1a18;min-height:100vh;display:flex;flex-direction:column}
@@ -75,7 +73,6 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2
 .done-wrap{text-align:center;padding:1rem 0}
 .done-icon{width:56px;height:56px;border-radius:50%;background:#e0f5ed;display:flex;align-items:center;justify-content:center;font-size:26px;margin:0 auto 1rem}
 .error{background:#fcebeb;color:#c0392b;font-size:13px;padding:10px 12px;border-radius:8px;margin-bottom:14px;display:none}
-.loading{text-align:center;padding:2rem;color:#8a8a85;font-size:13px}
 </style>
 </head>
 <body>
@@ -87,15 +84,13 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2
   <div class="card">
     <div class="progress" id="progress"></div>
     <div class="error" id="error"></div>
-
     <div class="step active" id="step-1">
       <div class="step-title">Who's the lesson for?</div>
       <div class="step-sub">Pick a rider or add a new one.</div>
-      <div id="rider-list"><div class="loading">Loading riders…</div></div>
+      <div id="rider-list"><div style="text-align:center;padding:1rem;color:#8a8a85">Loading riders…</div></div>
       <a href="add-rider.html" style="font-size:13px;color:#1D9E75;text-decoration:none;display:block;margin-top:4px">+ Add new rider</a>
       <div class="actions"><span></span><button class="btn-next" onclick="go(2)">Continue →</button></div>
     </div>
-
     <div class="step" id="step-2">
       <div class="step-title">What kind of lesson?</div>
       <div class="step-sub">Choose a type and duration.</div>
@@ -113,7 +108,6 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2
       <div class="field"><label>Notes (optional)</label><textarea id="notes" placeholder="e.g. focus on canter transitions…"></textarea></div>
       <div class="actions"><button class="btn-back" onclick="go(1)">← Back</button><button class="btn-next" onclick="go(3)">Continue →</button></div>
     </div>
-
     <div class="step" id="step-3">
       <div class="step-title">Pick a date & time</div>
       <div class="step-sub">Showing available slots for this month.</div>
@@ -122,7 +116,6 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2
       <div class="time-grid" id="times"></div>
       <div class="actions"><button class="btn-back" onclick="go(2)">← Back</button><button class="btn-next" onclick="go(4)">Continue →</button></div>
     </div>
-
     <div class="step" id="step-4">
       <div class="step-title">Confirm & payment</div>
       <div class="step-sub">Review the details and choose how to handle payment.</div>
@@ -144,7 +137,6 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2
       </div>
       <div class="actions"><button class="btn-back" onclick="go(3)">← Back</button><button class="btn-next" id="book-btn" onclick="saveBooking()">Book lesson ✓</button></div>
     </div>
-
     <div class="step" id="step-5">
       <div class="done-wrap">
         <div class="done-icon">✓</div>
@@ -158,8 +150,11 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2
     </div>
   </div>
 </div>
-
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
+const SUPABASE_URL = 'https://mfinlbqfowymmklhkuhb.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_PcwbX1YoncwnrHobFmpAIA_L39K4XfK';
+const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 let cur=1,selRiderIdx=0,selTypeVal='private',selTypePrice='$75',selDay=null,selTime=null,selPayIdx=0;
 let allRiders=[];
 const avColors=[{bg:'#e0f5ed',fg:'#0f6e47'},{bg:'#faeeda',fg:'#633806'},{bg:'#eeedfe',fg:'#3c3489'},{bg:'#faece7',fg:'#712b13'},{bg:'#e6f0fb',fg:'#0c447c'}];
@@ -215,7 +210,7 @@ function renderCal(){
     const el=document.createElement('div');
     el.className='cal-day'+(isAvail?'':' off')+(d===selDay?' sel':'');
     el.textContent=d;
-    if(isAvail){el.onclick=()=>{selDay=d;selTime=null;renderCal();renderTimes();document.getElementById('time-label').textContent=`Available times for ${now.toLocaleString('default',{month:'long'})} ${d}`;};} 
+    if(isAvail)el.onclick=()=>{selDay=d;selTime=null;renderCal();renderTimes();document.getElementById('time-label').textContent=`Available times for ${now.toLocaleString('default',{month:'long'})} ${d}`;};
     g.appendChild(el);
   }
 }
@@ -269,27 +264,29 @@ async function saveBooking(){
   if(!selDay||!selTime){alert('Please select a date and time.');go(3);return;}
   const btn=document.getElementById('book-btn');
   btn.disabled=true;btn.textContent='Saving…';
+  const { data: { user } } = await db.auth.getUser();
   const now=new Date();
-  try{
-    await addBooking({
-      rider_id:rider.id,
-      rider_name:rider.first_name+' '+rider.last_name,
-      lesson_type:selTypeVal,
-      price:selTypePrice,
-      duration:document.getElementById('duration').value,
-      notes:document.getElementById('notes').value,
-      date:`${now.toLocaleString('default',{month:'long'})} ${selDay}`,
-      time:selTime,
-      payment_option:['square_link','manual','later'][selPayIdx],
-      payment_status:selPayIdx===1?'paid':'unpaid'
-    });
-    document.getElementById('done-sub').textContent=`${rider.first_name} ${rider.last_name} · ${selTypeVal} · ${now.toLocaleString('default',{month:'long'})} ${selDay} at ${selTime}`;
-    go(5);
-  }catch(err){
-    document.getElementById('error').textContent=err.message||'Failed to save booking.';
+  const { error } = await db.from('bookings').insert({
+    trainer_id: user.id,
+    rider_id: rider.id,
+    rider_name: rider.first_name+' '+rider.last_name,
+    lesson_type: selTypeVal,
+    price: selTypePrice,
+    duration: document.getElementById('duration').value,
+    notes: document.getElementById('notes').value,
+    date: `${now.toLocaleString('default',{month:'long'})} ${selDay}`,
+    time: selTime,
+    payment_option: ['square_link','manual','later'][selPayIdx],
+    payment_status: selPayIdx===1?'paid':'unpaid'
+  });
+  if(error){
+    document.getElementById('error').textContent=error.message;
     document.getElementById('error').style.display='block';
     btn.disabled=false;btn.textContent='Book lesson ✓';
+    return;
   }
+  document.getElementById('done-sub').textContent=`${rider.first_name} ${rider.last_name} · ${selTypeVal} · ${now.toLocaleString('default',{month:'long'})} ${selDay} at ${selTime}`;
+  go(5);
 }
 
 function resetForm(){
@@ -300,9 +297,10 @@ function resetForm(){
 }
 
 async function load(){
-  const user=await getUser();
+  const { data: { user } } = await db.auth.getUser();
   if(!user){window.location.href='login.html';return;}
-  allRiders=await getRiders();
+  const { data: riders } = await db.from('riders').select('*').eq('trainer_id', user.id).order('created_at', { ascending: false });
+  allRiders = riders || [];
   renderProgress();renderRiders();renderCal();
 }
 
