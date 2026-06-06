@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Log in — Stirrup</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Inter',sans-serif;background:#f9f8f5;color:#1a1a18;min-height:100vh;display:flex;flex-direction:column}
@@ -20,12 +22,12 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2
 .field label{display:block;font-size:13px;font-weight:500;color:#3a3a35;margin-bottom:5px}
 .field input{width:100%;padding:10px 12px;border:1px solid #d4d2cb;border-radius:8px;font-size:14px;font-family:'Inter',sans-serif;background:#fff;color:#1a1a18;outline:none;transition:border .15s}
 .field input:focus{border-color:#1D9E75}
-.forgot{font-size:12px;color:#1D9E75;text-decoration:none;float:right;margin-top:-18px;margin-bottom:14px;display:block;text-align:right}
 .btn-submit{width:100%;padding:11px;background:#1D9E75;border:none;border-radius:8px;color:#fff;font-size:15px;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif}
 .btn-submit:hover{background:#178a64}
+.btn-submit:disabled{background:#9ad4be;cursor:not-allowed}
 .signup-link{text-align:center;font-size:13px;color:#5a5a55;margin-top:1rem}
 .signup-link a{color:#1D9E75;text-decoration:none;font-weight:500}
-.signup-link a:hover{text-decoration:underline}
+.error{background:#fcebeb;color:#c0392b;font-size:13px;padding:10px 12px;border-radius:8px;margin-bottom:14px;display:none}
 </style>
 </head>
 <body>
@@ -37,34 +39,48 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2
   <div class="card">
     <div class="card-title">Welcome back</div>
     <div class="card-sub">Log in to your Stirrup account.</div>
-    <div class="field">
-      <label>Email</label>
-      <input type="email" placeholder="claire@ridgeview.com" id="email">
-    </div>
-    <div class="field">
-      <label>Password</label>
-      <input type="password" placeholder="••••••••" id="password">
-    </div>
-    <a href="#" class="forgot">Forgot password?</a>
-    <button class="btn-submit" onclick="handleLogin()">Log in →</button>
+    <div class="error" id="error"></div>
+    <div class="field"><label>Email</label><input type="email" placeholder="claire@ridgeview.com" id="email"></div>
+    <div class="field"><label>Password</label><input type="password" placeholder="••••••••" id="password"></div>
+    <button class="btn-submit" id="submit-btn" onclick="handleLogin()">Log in →</button>
     <div class="signup-link">Don't have an account? <a href="signup.html">Sign up free</a></div>
   </div>
 </div>
 <script>
-function handleLogin(){
+async function handleLogin(){
   const email = document.getElementById('email').value.trim();
   const password = document.getElementById('password').value;
+  const errorEl = document.getElementById('error');
+  const btn = document.getElementById('submit-btn');
+
+  errorEl.style.display = 'none';
+
   if(!email || !password){
-    alert('Please enter your email and password.');
+    errorEl.textContent = 'Please enter your email and password.';
+    errorEl.style.display = 'block';
     return;
   }
-  const user = localStorage.getItem('stirrup_user');
-  if(!user){
-    alert('No account found. Please sign up first.');
-    window.location.href = 'signup.html';
-    return;
+
+  btn.disabled = true;
+  btn.textContent = 'Logging in…';
+
+  try {
+    const data = await signIn(email, password);
+    const trainer = await getTrainer();
+    if(trainer){
+      localStorage.setItem('stirrup_user', JSON.stringify({
+        name: trainer.name,
+        barn: trainer.barn_name,
+        email: data.user.email
+      }));
+    }
+    window.location.href = 'dashboard.html';
+  } catch(err) {
+    errorEl.textContent = err.message || 'Invalid email or password.';
+    errorEl.style.display = 'block';
+    btn.disabled = false;
+    btn.textContent = 'Log in →';
   }
-  window.location.href = 'dashboard.html';
 }
 </script>
 </body>
