@@ -51,7 +51,7 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2
   <div class="header">
     <div class="lock-icon">🔒</div>
     <div class="header-title">You've hit your free limit</div>
-    <div class="header-sub">You've used all 10 free bookings this month. Upgrade to keep booking and unlock more features.</div>
+    <div class="header-sub">You've used all 20 free bookings this month. Upgrade to keep booking and unlock more features.</div>
   </div>
 
   <div class="cards">
@@ -60,7 +60,7 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2
       <div class="price">$0<span>/mo</span></div>
       <div class="price-note">your current plan</div>
       <div class="divider"></div>
-      <div class="feat"><span class="feat-check">✓</span>10 bookings/month</div>
+      <div class="feat"><span class="feat-check">✓</span>20 bookings/month</div>
       <div class="feat"><span class="feat-check">✓</span>Rider profiles</div>
       <div class="feat"><span class="feat-check">✓</span>Horse roster</div>
       <div class="feat"><span class="feat-x">✗</span><span class="feat-muted">Square payment links</span></div>
@@ -93,7 +93,7 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2
       <div class="feat"><span class="feat-check amber">✓</span>Horse roster</div>
       <div class="feat"><span class="feat-check amber">✓</span>Square payment links</div>
       <div class="feat"><span class="feat-check amber">✓</span>Automated reminders</div>
-      <div class="feat"><span class="feat-check amber">✓</span>Staff trainers</div>
+      <div class="feat"><span class="feat-check amber">✓</span>Unlimited staff trainers</div>
       <button class="btn-upgrade btn-barn" onclick="window.location.href='dashboard.html'">Upgrade to Barn →</button>
     </div>
   </div>
@@ -108,13 +108,12 @@ const SUPABASE_KEY = 'sb_publishable_PcwbX1YoncwnrHobFmpAIA_L39K4XfK';
 const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 async function load(){
-  const { data: { user } } = await db.auth.getUser();
-  if(!user){ window.location.href='login.html'; return; }
-  const now = new Date();
-  const nextMonth = new Date(now.getFullYear(), now.getMonth()+1, 1);
-  const resetStr = nextMonth.toLocaleString('default',{month:'long',day:'numeric'});
-  document.getElementById('reset-note').textContent =
-    `Your existing bookings and riders are safe. Free bookings reset ${resetStr}.`;
+  const { data: { user } }=await db.auth.getUser();
+  if(!user){window.location.href='login.html';return;}
+  const now=new Date();
+  const nextMonth=new Date(now.getFullYear(),now.getMonth()+1,1);
+  const resetStr=nextMonth.toLocaleString('default',{month:'long',day:'numeric'});
+  document.getElementById('reset-note').textContent=`Your existing bookings and riders are safe. Free bookings reset ${resetStr}.`;
 }
 
 load();
