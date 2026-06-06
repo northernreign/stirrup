@@ -21,7 +21,7 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2
 .wrap{max-width:960px;margin:0 auto;padding:2rem}
 .greeting{font-size:22px;font-weight:600;margin-bottom:4px}
 .greeting-sub{font-size:14px;color:#5a5a55;margin-bottom:1.5rem}
-.metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin-bottom:1.5rem}
+.metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-bottom:1.5rem}
 .metric{background:#fff;border:1px solid #e8e6e0;border-radius:12px;padding:1rem}
 .metric-label{font-size:12px;color:#5a5a55;margin-bottom:6px}
 .metric-val{font-size:24px;font-weight:600;color:#1a1a18}
@@ -63,6 +63,7 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2
   <a href="dashboard.html" class="logo">Stirrup</a>
   <div class="nav-right">
     <div class="free-badge"><strong id="bookings-left">10</strong> bookings left</div>
+    <a href="horses.html" class="btn btn-ghost">Horses</a>
     <a href="riders.html" class="btn btn-ghost">Riders</a>
     <a href="settings.html" class="btn btn-ghost">Settings</a>
     <a href="book.html" class="btn btn-primary">+ Book lesson</a>
@@ -85,6 +86,11 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2
       <div class="metric-sub">in your roster</div>
     </div>
     <div class="metric">
+      <div class="metric-label">Horses</div>
+      <div class="metric-val" id="m-horses">—</div>
+      <div class="metric-sub">in your barn</div>
+    </div>
+    <div class="metric">
       <div class="metric-label">Collected</div>
       <div class="metric-val">$0</div>
       <div class="metric-sub">payments via Square</div>
@@ -93,11 +99,16 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2
 
   <div class="checklist">
     <div class="cl-title">Finish setting up your barn</div>
-    <div class="cl-sub" id="cl-sub">1 of 5 complete</div>
-    <div class="cl-prog"><div class="cl-fill" id="cl-fill" style="width:20%"></div></div>
+    <div class="cl-sub" id="cl-sub">1 of 6 complete</div>
+    <div class="cl-prog"><div class="cl-fill" id="cl-fill" style="width:16%"></div></div>
     <div class="cl-row">
       <div class="cl-check done">✓</div>
       <div class="cl-text done">Create your account</div>
+    </div>
+    <div class="cl-row" onclick="window.location.href='horses.html'">
+      <div class="cl-check" id="ck-horses"></div>
+      <div class="cl-text" id="ct-horses">Add your horses</div>
+      <div class="cl-arrow">→</div>
     </div>
     <div class="cl-row" onclick="window.location.href='riders.html'">
       <div class="cl-check" id="ck-rider"></div>
@@ -169,19 +180,28 @@ async function load(){
   document.getElementById('greeting').textContent = greeting+(name?', '+name:'');
   document.getElementById('greeting-sub').textContent = "Here's what's happening at "+barn+".";
 
-  const [{ data: riders }, { data: bookings }] = await Promise.all([
+  const [{ data: riders },{ data: bookings },{ data: horses }] = await Promise.all([
     db.from('riders').select('*').eq('trainer_id', user.id),
-    db.from('bookings').select('*').eq('trainer_id', user.id).order('created_at', { ascending: false })
+    db.from('bookings').select('*').eq('trainer_id', user.id).order('created_at',{ascending:false}),
+    db.from('horses').select('*').eq('trainer_id', user.id).eq('active', true)
   ]);
 
-  const r = riders || [];
-  const b = bookings || [];
+  const r = riders||[];
+  const b = bookings||[];
+  const h = horses||[];
 
   document.getElementById('m-riders').textContent = r.length;
   document.getElementById('m-lessons').textContent = b.length;
+  document.getElementById('m-horses').textContent = h.length;
   document.getElementById('bookings-left').textContent = Math.max(0, 10 - b.length);
 
   let done = 1;
+  if(h.length > 0){
+    done++;
+    document.getElementById('ck-horses').className='cl-check done';
+    document.getElementById('ck-horses').textContent='✓';
+    document.getElementById('ct-horses').className='cl-text done';
+  }
   if(r.length > 0){
     done++;
     document.getElementById('ck-rider').className='cl-check done';
@@ -194,19 +214,19 @@ async function load(){
     document.getElementById('ck-booking').textContent='✓';
     document.getElementById('ct-booking').className='cl-text done';
   }
-  document.getElementById('cl-sub').textContent = done+' of 5 complete';
-  document.getElementById('cl-fill').style.width = (done/5*100)+'%';
+  document.getElementById('cl-sub').textContent = done+' of 6 complete';
+  document.getElementById('cl-fill').style.width = (done/6*100)+'%';
 
   if(b.length > 0){
     const rb = document.getElementById('recent-bookings');
-    rb.innerHTML = '';
+    rb.innerHTML='';
     b.slice(0,5).forEach(bk=>{
-      const row = document.createElement('div');
-      row.className = 'pay-row';
-      row.innerHTML = `
+      const row=document.createElement('div');
+      row.className='pay-row';
+      row.innerHTML=`
         <div>
           <div class="pay-name">${bk.rider_name}</div>
-          <div class="pay-meta">${bk.lesson_type} · ${bk.date} ${bk.time}</div>
+          <div class="pay-meta">${bk.lesson_type}${bk.horse_name?' · '+bk.horse_name:''} · ${bk.date} ${bk.time}</div>
         </div>
         <span class="pill ${bk.payment_status==='paid'?'pill-green':'pill-amber'}">${bk.payment_status}</span>`;
       rb.appendChild(row);
@@ -216,11 +236,11 @@ async function load(){
   const paid = b.filter(bk=>bk.payment_status==='paid');
   if(paid.length > 0){
     const rp = document.getElementById('recent-payments');
-    rp.innerHTML = '';
+    rp.innerHTML='';
     paid.slice(0,4).forEach(bk=>{
-      const row = document.createElement('div');
-      row.className = 'pay-row';
-      row.innerHTML = `
+      const row=document.createElement('div');
+      row.className='pay-row';
+      row.innerHTML=`
         <div>
           <div class="pay-name">${bk.rider_name}</div>
           <div class="pay-meta">${bk.lesson_type} · ${bk.date}</div>
