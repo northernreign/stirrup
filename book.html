@@ -48,11 +48,21 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2
 .cal-day.sel{background:#e0f5ed;color:#0f6e47;border-color:#1D9E75;font-weight:600}
 .cal-day.off{background:transparent;color:#d4d2cb;cursor:default}
 .cal-day.past{background:#f9f8f5;color:#c8c6bf;cursor:not-allowed}
-.time-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:14px}
-.time-btn{padding:9px;border-radius:8px;font-size:12px;text-align:center;border:1px solid #d4d2cb;background:#fff;cursor:pointer;color:#1a1a18;transition:all .15s;font-family:'Inter',sans-serif}
+.time-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:14px}
+.time-btn{padding:8px 4px;border-radius:8px;font-size:11px;text-align:center;border:1px solid #d4d2cb;background:#fff;cursor:pointer;color:#1a1a18;transition:all .15s;font-family:'Inter',sans-serif}
 .time-btn.sel{background:#e0f5ed;border-color:#1D9E75;color:#0f6e47;font-weight:500}
 .time-btn:hover{background:#f0efe9}
 .time-btn.taken{background:#f0efe9;color:#c8c6bf;cursor:default;text-decoration:line-through}
+.recurring-toggle{display:flex;align-items:center;gap:10px;padding:12px;background:#f9f8f5;border-radius:10px;margin-bottom:14px;cursor:pointer}
+.toggle{width:36px;height:20px;border-radius:10px;border:none;cursor:pointer;position:relative;transition:background .2s;flex-shrink:0;padding:0}
+.toggle.on{background:#1D9E75}
+.toggle.off{background:#d4d2cb}
+.toggle::after{content:'';position:absolute;top:3px;width:14px;height:14px;border-radius:50%;background:#fff;transition:left .2s}
+.toggle.on::after{left:19px}
+.toggle.off::after{left:3px}
+.recurring-label{font-size:13px;font-weight:500;color:#1a1a18;flex:1}
+.recurring-sub{font-size:11px;color:#5a5a55;margin-top:1px}
+.recurring-detail{background:#e0f5ed;border-radius:10px;padding:10px 12px;font-size:13px;color:#0f6e47;margin-bottom:14px;display:none}
 .summary-card{background:#f9f8f5;border-radius:10px;padding:1rem;margin-bottom:1rem}
 .sum-row{display:flex;justify-content:space-between;font-size:13px;padding:5px 0;border-bottom:1px solid #e8e6e0}
 .sum-row:last-child{border-bottom:none}
@@ -69,6 +79,9 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2
 .done-icon{width:56px;height:56px;border-radius:50%;background:#e0f5ed;display:flex;align-items:center;justify-content:center;font-size:26px;margin:0 auto 1rem}
 .error{background:#fcebeb;color:#c0392b;font-size:13px;padding:10px 12px;border-radius:8px;margin-bottom:14px;display:none}
 .warning{background:#faeeda;color:#633806;font-size:12px;padding:8px 12px;border-radius:8px;margin-bottom:10px;display:none}
+.conflict-list{background:#fcebeb;border-radius:10px;padding:12px;font-size:13px;color:#c0392b;margin-bottom:14px;display:none}
+.conflict-list ul{margin-top:6px;padding-left:16px}
+.conflict-list li{margin-bottom:3px}
 </style>
 </head>
 <body>
@@ -98,7 +111,6 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2
         <button class="type-btn" id="lt-jumping" onclick="selType('jumping','$85')"><div class="type-icon" style="background:#faeeda">🏇</div><div><div class="type-name">Jumping</div><div class="type-price">$85</div></div></button>
         <button class="type-btn" id="lt-dressage" onclick="selType('dressage','$85')"><div class="type-icon" style="background:#faece7">🎯</div><div><div class="type-name">Dressage</div><div class="type-price">$85</div></div></button>
       </div>
-      <div class="field"><label>Horse</label><select id="horse-select"><option value="">No horse assigned</option></select></div>
       <div class="field"><label>Duration</label>
         <select id="duration" style="width:180px">
           <option>30 minutes</option><option selected>45 minutes</option><option>60 minutes</option><option>90 minutes</option>
@@ -110,28 +122,39 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2
 
     <div class="step" id="step-3">
       <div class="step-title">Pick a date & time</div>
-      <div class="step-sub">Showing available slots for this month. Past dates are unavailable.</div>
+      <div class="step-sub">Showing slots within your barn hours. Past dates unavailable.</div>
       <div class="warning" id="horse-warning"></div>
+
+      <div class="recurring-toggle" onclick="toggleRecurring()">
+        <div>
+          <div class="recurring-label">Recurring lesson</div>
+          <div class="recurring-sub">Repeat weekly for 16 weeks</div>
+        </div>
+        <button class="toggle off" id="recurring-toggle" aria-label="Toggle recurring"></button>
+      </div>
+      <div class="recurring-detail" id="recurring-detail">📅 This will create 16 weekly bookings starting from the date you select. All weeks must be conflict-free to proceed.</div>
+
       <div class="cal-grid" id="cal"></div>
       <div style="font-size:12px;color:#5a5a55;margin-bottom:8px" id="time-label">Select a date to see times</div>
       <div class="time-grid" id="times"></div>
+      <div class="conflict-list" id="conflict-list"></div>
       <div class="actions"><button class="btn-back" onclick="go(2)">← Back</button><button class="btn-next" onclick="go(4)">Continue →</button></div>
     </div>
 
     <div class="step" id="step-4">
       <div class="step-title">Confirm booking</div>
-      <div class="step-sub">Review the details. Payment will be collected after the lesson.</div>
+      <div class="step-sub">Review the details. Payment collected after the lesson.</div>
       <div class="summary-card" id="summary"></div>
-      <div class="payment-note">💳 Payment options (Send Square Link or Received Payment) will be available after the lesson date has passed.</div>
+      <div class="payment-note">💳 Payment options will be available after the lesson date has passed.</div>
       <div class="actions"><button class="btn-back" onclick="go(3)">← Back</button><button class="btn-next" id="book-btn" onclick="saveBooking()">Book lesson ✓</button></div>
     </div>
 
     <div class="step" id="step-5">
       <div class="done-wrap">
         <div class="done-icon">✓</div>
-        <div style="font-size:20px;font-weight:600;margin-bottom:6px">Lesson booked</div>
+        <div style="font-size:20px;font-weight:600;margin-bottom:6px" id="done-title">Lesson booked</div>
         <div style="font-size:14px;color:#5a5a55;margin-bottom:1.5rem" id="done-sub">Your lesson has been scheduled.</div>
-        <div style="font-size:13px;color:#8a8a85;background:#f9f8f5;border-radius:8px;padding:10px;margin-bottom:1.5rem">Payment options will appear on this booking after the lesson date passes.</div>
+        <div style="font-size:13px;color:#8a8a85;background:#f9f8f5;border-radius:8px;padding:10px;margin-bottom:1.5rem">Payment options will appear after the lesson date passes.</div>
         <div style="display:flex;flex-direction:column;gap:8px">
           <button class="btn-next" style="width:100%;padding:11px" onclick="window.location.href='dashboard.html'">Back to dashboard →</button>
           <button class="btn-back" style="width:100%;padding:11px;text-align:center" onclick="resetForm()">Book another lesson</button>
@@ -148,11 +171,27 @@ const SUPABASE_KEY = 'sb_publishable_PcwbX1YoncwnrHobFmpAIA_L39K4XfK';
 const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 let cur=1,selRiderIdx=0,selTypeVal='private',selTypePrice='$75',selDay=null,selTime=null;
 let allRiders=[],allHorses=[],allBookings=[];
+let barnOpen='09:00',barnClose='18:00';
+let isRecurring=false;
 const avColors=[{bg:'#e0f5ed',fg:'#0f6e47'},{bg:'#faeeda',fg:'#633806'},{bg:'#eeedfe',fg:'#3c3489'},{bg:'#faece7',fg:'#712b13'},{bg:'#e6f0fb',fg:'#0c447c'}];
-const times=['8:00 AM','9:00 AM','10:00 AM','11:00 AM','1:00 PM','2:00 PM','3:00 PM','4:00 PM','5:00 PM'];
 const days=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
 const today=new Date();
 today.setHours(0,0,0,0);
+
+function generateTimeSlots(open, close){
+  const slots=[];
+  const [oh,om]=open.split(':').map(Number);
+  const [ch,cm]=close.split(':').map(Number);
+  let h=oh,m=om;
+  while(h<ch||(h===ch&&m<cm)){
+    const hour12=h>12?h-12:h===0?12:h;
+    const ampm=h>=12?'PM':'AM';
+    slots.push(`${hour12}:${m===0?'00':'30'} ${ampm}`);
+    m+=30;
+    if(m>=60){m=0;h++;}
+  }
+  return slots;
+}
 
 function renderProgress(){
   const p=document.getElementById('progress');
@@ -182,25 +221,23 @@ function renderRiders(){
   });
 }
 
-function renderHorseDropdown(){
-  const sel=document.getElementById('horse-select');
-  sel.innerHTML='<option value="">No horse assigned</option>';
-  allHorses.forEach(h=>{
-    const opt=document.createElement('option');
-    opt.value=h.id;
-    opt.textContent=h.name+(h.breed?' ('+h.breed+')':'');
-    sel.appendChild(opt);
-  });
-}
-
 function selType(t,p){
   selTypeVal=t;selTypePrice=p;
   ['private','group','jumping','dressage'].forEach(x=>document.getElementById('lt-'+x).classList.toggle('sel',x===t));
 }
 
-function isHorseBooked(horseId,dateStr,timeStr){
-  if(!horseId)return false;
-  return allBookings.some(b=>b.horse_id===horseId&&b.date===dateStr&&b.time===timeStr);
+function toggleRecurring(){
+  isRecurring=!isRecurring;
+  const btn=document.getElementById('recurring-toggle');
+  btn.classList.toggle('on',isRecurring);
+  btn.classList.toggle('off',!isRecurring);
+  document.getElementById('recurring-detail').style.display=isRecurring?'block':'none';
+  document.getElementById('conflict-list').style.display='none';
+  if(selDay&&selTime) checkRecurringConflicts();
+}
+
+function isTimeBooked(dateStr,timeStr){
+  return allBookings.some(b=>b.date===dateStr&&b.time===timeStr);
 }
 
 function renderCal(){
@@ -222,7 +259,7 @@ function renderCal(){
     else if(isPast){el.className='cal-day past';}
     else{
       el.className='cal-day'+(d===selDay?' sel':'');
-      el.onclick=()=>{selDay=d;selTime=null;renderCal();renderTimes();document.getElementById('time-label').textContent=`Available times for ${now.toLocaleString('default',{month:'long'})} ${d}`;};
+      el.onclick=()=>{selDay=d;selTime=null;renderCal();renderTimes();document.getElementById('time-label').textContent=`Available times for ${now.toLocaleString('default',{month:'long'})} ${d}`;document.getElementById('conflict-list').style.display='none';};
     }
     el.textContent=d;
     g.appendChild(el);
@@ -235,41 +272,65 @@ function renderTimes(){
   if(!selDay)return;
   const now=new Date();
   const dateStr=`${now.toLocaleString('default',{month:'long'})} ${selDay}`;
-  const horseId=document.getElementById('horse-select').value;
-  const warning=document.getElementById('horse-warning');
-  times.forEach(t=>{
-    const horseConflict=isHorseBooked(horseId,dateStr,t);
+  const slots=generateTimeSlots(barnOpen,barnClose);
+  slots.forEach(t=>{
+    const booked=isTimeBooked(dateStr,t);
     const btn=document.createElement('button');
-    btn.className='time-btn'+(horseConflict?' taken':t===selTime?' sel':'');
-    btn.textContent=t+(horseConflict?' (horse booked)':'');
-    if(!horseConflict)btn.onclick=()=>{selTime=t;renderTimes();};
+    btn.className='time-btn'+(booked?' taken':t===selTime?' sel':'');
+    btn.textContent=t;
+    if(!booked)btn.onclick=()=>{selTime=t;renderTimes();if(isRecurring)checkRecurringConflicts();};
     else btn.disabled=true;
     g.appendChild(btn);
   });
-  if(horseId){
-    const conflicts=times.filter(t=>isHorseBooked(horseId,dateStr,t));
-    if(conflicts.length>0){warning.textContent=`This horse is already booked at ${conflicts.join(', ')} on this date.`;warning.style.display='block';}
-    else{warning.style.display='none';}
-  } else {warning.style.display='none';}
+}
+
+function checkRecurringConflicts(){
+  if(!selDay||!selTime||!isRecurring){
+    document.getElementById('conflict-list').style.display='none';
+    return;
+  }
+  const now=new Date();
+  const conflicts=[];
+  for(let w=0;w<16;w++){
+    const d=new Date(now.getFullYear(),now.getMonth(),selDay+(w*7));
+    const dateStr=d.toLocaleString('default',{month:'long',day:'numeric'});
+    if(isTimeBooked(dateStr,selTime)){
+      conflicts.push(dateStr);
+    }
+  }
+  const cl=document.getElementById('conflict-list');
+  if(conflicts.length>0){
+    cl.innerHTML=`<strong>Conflicts found — series cannot be booked:</strong><ul>${conflicts.map(c=>`<li>${c} at ${selTime}</li>`).join('')}</ul><div style="margin-top:6px">Please resolve these conflicts first or choose a different time.</div>`;
+    cl.style.display='block';
+  } else {
+    cl.style.display='none';
+  }
 }
 
 function buildSummary(){
   const rider=allRiders[selRiderIdx];
   const now=new Date();
   const dateStr=selDay?`${now.toLocaleString('default',{month:'long'})} ${selDay}`:'No date selected';
-  const horseId=document.getElementById('horse-select').value;
-  const horse=allHorses.find(h=>h.id===horseId);
   document.getElementById('summary').innerHTML=`
     <div class="sum-row"><span class="sum-label">Rider</span><span class="sum-val">${rider?rider.first_name+' '+rider.last_name:'—'}</span></div>
     <div class="sum-row"><span class="sum-label">Lesson type</span><span class="sum-val">${selTypeVal.charAt(0).toUpperCase()+selTypeVal.slice(1)}</span></div>
-    <div class="sum-row"><span class="sum-label">Horse</span><span class="sum-val">${horse?horse.name:'None assigned'}</span></div>
     <div class="sum-row"><span class="sum-label">Date & time</span><span class="sum-val">${dateStr} · ${selTime||'No time selected'}</span></div>
     <div class="sum-row"><span class="sum-label">Duration</span><span class="sum-val">${document.getElementById('duration').value}</span></div>
-    <div class="sum-row"><span class="sum-label">Amount</span><span class="sum-val">${selTypePrice}</span></div>`;
+    <div class="sum-row"><span class="sum-label">Amount</span><span class="sum-val">${selTypePrice}</span></div>
+    ${isRecurring?'<div class="sum-row"><span class="sum-label">Recurring</span><span class="sum-val" style="color:#1D9E75">16 weeks</span></div>':''}`;
 }
 
 function go(n){
-  if(n===4)buildSummary();
+  if(n===4){
+    if(isRecurring){
+      const cl=document.getElementById('conflict-list');
+      if(cl.style.display==='block'){
+        alert('Please resolve conflicts before confirming.');
+        return;
+      }
+    }
+    buildSummary();
+  }
   document.getElementById('step-'+cur).classList.remove('active');
   cur=n;
   document.getElementById('step-'+cur).classList.add('active');
@@ -284,49 +345,88 @@ async function saveBooking(){
   btn.disabled=true;btn.textContent='Saving…';
   const { data: { user } }=await db.auth.getUser();
   const now=new Date();
-  const dateStr=`${now.toLocaleString('default',{month:'long'})} ${selDay}`;
-  const horseId=document.getElementById('horse-select').value;
-  const horse=allHorses.find(h=>h.id===horseId);
 
-  if(horseId&&isHorseBooked(horseId,dateStr,selTime)){
-    document.getElementById('error').textContent='This horse is already booked at that time.';
-    document.getElementById('error').style.display='block';
-    btn.disabled=false;btn.textContent='Book lesson ✓';
-    return;
+  if(isRecurring){
+    // Check all 16 weeks for conflicts one more time
+    const conflicts=[];
+    for(let w=0;w<16;w++){
+      const d=new Date(now.getFullYear(),now.getMonth(),selDay+(w*7));
+      const dateStr=d.toLocaleString('default',{month:'long',day:'numeric'});
+      if(isTimeBooked(dateStr,selTime)) conflicts.push(dateStr);
+    }
+    if(conflicts.length>0){
+      document.getElementById('error').textContent='Conflicts detected. Please go back and resolve them.';
+      document.getElementById('error').style.display='block';
+      btn.disabled=false;btn.textContent='Book lesson ✓';
+      return;
+    }
+
+    // Create 16 bookings
+    const inserts=[];
+    for(let w=0;w<16;w++){
+      const d=new Date(now.getFullYear(),now.getMonth(),selDay+(w*7));
+      const dateStr=d.toLocaleString('default',{month:'long',day:'numeric'});
+      const scheduledDate=d.toISOString().split('T')[0];
+      inserts.push({
+        trainer_id:user.id,
+        rider_id:rider.id,
+        rider_name:rider.first_name+' '+rider.last_name,
+        lesson_type:selTypeVal,
+        price:selTypePrice,
+        duration:document.getElementById('duration').value,
+        notes:document.getElementById('notes').value,
+        date:dateStr,
+        time:selTime,
+        scheduled_date:scheduledDate,
+        payment_status:'upcoming',
+        is_recurring:true,
+        recurring_week:w+1,
+        recurring_total:16
+      });
+    }
+    const { error }=await db.from('bookings').insert(inserts);
+    if(error){
+      document.getElementById('error').textContent=error.message;
+      document.getElementById('error').style.display='block';
+      btn.disabled=false;btn.textContent='Book lesson ✓';
+      return;
+    }
+    document.getElementById('done-title').textContent='16 lessons booked';
+    document.getElementById('done-sub').textContent=`${rider.first_name} ${rider.last_name} · ${selTypeVal} · ${selTime} · weekly for 16 weeks`;
+
+  } else {
+    const dateStr=`${now.toLocaleString('default',{month:'long'})} ${selDay}`;
+    const scheduledDate=new Date(now.getFullYear(),now.getMonth(),selDay).toISOString().split('T')[0];
+    const { error }=await db.from('bookings').insert({
+      trainer_id:user.id,
+      rider_id:rider.id,
+      rider_name:rider.first_name+' '+rider.last_name,
+      lesson_type:selTypeVal,
+      price:selTypePrice,
+      duration:document.getElementById('duration').value,
+      notes:document.getElementById('notes').value,
+      date:dateStr,
+      time:selTime,
+      scheduled_date:scheduledDate,
+      payment_status:'upcoming'
+    });
+    if(error){
+      document.getElementById('error').textContent=error.message;
+      document.getElementById('error').style.display='block';
+      btn.disabled=false;btn.textContent='Book lesson ✓';
+      return;
+    }
+    document.getElementById('done-sub').textContent=`${rider.first_name} ${rider.last_name} · ${selTypeVal} · ${now.toLocaleString('default',{month:'long'})} ${selDay} at ${selTime}`;
   }
-
-  const scheduledDate=new Date(now.getFullYear(),now.getMonth(),selDay).toISOString().split('T')[0];
-
-  const { error }=await db.from('bookings').insert({
-    trainer_id: user.id,
-    rider_id: rider.id,
-    rider_name: rider.first_name+' '+rider.last_name,
-    lesson_type: selTypeVal,
-    price: selTypePrice,
-    duration: document.getElementById('duration').value,
-    notes: document.getElementById('notes').value,
-    date: dateStr,
-    time: selTime,
-    scheduled_date: scheduledDate,
-    horse_id: horseId||null,
-    horse_name: horse?horse.name:null,
-    payment_status: 'upcoming'
-  });
-
-  if(error){
-    document.getElementById('error').textContent=error.message;
-    document.getElementById('error').style.display='block';
-    btn.disabled=false;btn.textContent='Book lesson ✓';
-    return;
-  }
-  document.getElementById('done-sub').textContent=`${rider.first_name} ${rider.last_name} · ${selTypeVal}${horse?' · '+horse.name:''} · ${dateStr} at ${selTime}`;
   go(5);
 }
 
 function resetForm(){
-  selDay=null;selTime=null;cur=1;
+  selDay=null;selTime=null;isRecurring=false;cur=1;
   document.getElementById('step-5').classList.remove('active');
   document.getElementById('step-1').classList.add('active');
+  document.getElementById('recurring-toggle').className='toggle off';
+  document.getElementById('recurring-detail').style.display='none';
   renderProgress();renderRiders();
 }
 
@@ -335,27 +435,22 @@ async function load(){
   if(!user){window.location.href='login.html';return;}
 
   const { data: bookings }=await db.from('bookings').select('id').eq('trainer_id',user.id);
-  if((bookings||[]).length>=20){
-    window.location.href='paywall.html';
-    return;
-  }
+  if((bookings||[]).length>=20){window.location.href='paywall.html';return;}
 
-  const [{ data: riders },{ data: horses },{ data: allB }]=await Promise.all([
+  const [{ data: trainer },{ data: riders },{ data: allB }]=await Promise.all([
+    db.from('trainers').select('barn_open,barn_close').eq('id',user.id).single(),
     db.from('riders').select('*').eq('trainer_id',user.id).order('created_at',{ascending:false}),
-    db.from('horses').select('*').eq('trainer_id',user.id).eq('active',true).order('name',{ascending:true}),
-    db.from('bookings').select('horse_id,date,time').eq('trainer_id',user.id)
+    db.from('bookings').select('date,time').eq('trainer_id',user.id)
   ]);
 
+  barnOpen=trainer?.barn_open||'09:00';
+  barnClose=trainer?.barn_close||'18:00';
   allRiders=riders||[];
-  allHorses=horses||[];
   allBookings=allB||[];
 
   renderProgress();
   renderRiders();
-  renderHorseDropdown();
   renderCal();
-
-  document.getElementById('horse-select').onchange=()=>{ if(selDay) renderTimes(); };
 }
 
 load();
