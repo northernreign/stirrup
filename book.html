@@ -151,7 +151,7 @@ let allRiders=[],allHorses=[],allBookings=[];
 const avColors=[{bg:'#e0f5ed',fg:'#0f6e47'},{bg:'#faeeda',fg:'#633806'},{bg:'#eeedfe',fg:'#3c3489'},{bg:'#faece7',fg:'#712b13'},{bg:'#e6f0fb',fg:'#0c447c'}];
 const times=['8:00 AM','9:00 AM','10:00 AM','11:00 AM','1:00 PM','2:00 PM','3:00 PM','4:00 PM','5:00 PM'];
 const days=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
-const today = new Date();
+const today=new Date();
 today.setHours(0,0,0,0);
 
 function renderProgress(){
@@ -199,7 +199,7 @@ function selType(t,p){
 }
 
 function isHorseBooked(horseId,dateStr,timeStr){
-  if(!horseId) return false;
+  if(!horseId)return false;
   return allBookings.some(b=>b.horse_id===horseId&&b.date===dateStr&&b.time===timeStr);
 }
 
@@ -218,11 +218,9 @@ function renderCal(){
     const thisDate=new Date(now.getFullYear(),now.getMonth(),d);
     const isPast=thisDate<today;
     const el=document.createElement('div');
-    if(!isWeekday){
-      el.className='cal-day off';
-    } else if(isPast){
-      el.className='cal-day past';
-    } else {
+    if(!isWeekday){el.className='cal-day off';}
+    else if(isPast){el.className='cal-day past';}
+    else{
       el.className='cal-day'+(d===selDay?' sel':'');
       el.onclick=()=>{selDay=d;selTime=null;renderCal();renderTimes();document.getElementById('time-label').textContent=`Available times for ${now.toLocaleString('default',{month:'long'})} ${d}`;};
     }
@@ -250,15 +248,9 @@ function renderTimes(){
   });
   if(horseId){
     const conflicts=times.filter(t=>isHorseBooked(horseId,dateStr,t));
-    if(conflicts.length>0){
-      warning.textContent=`This horse is already booked at ${conflicts.join(', ')} on this date.`;
-      warning.style.display='block';
-    } else {
-      warning.style.display='none';
-    }
-  } else {
-    warning.style.display='none';
-  }
+    if(conflicts.length>0){warning.textContent=`This horse is already booked at ${conflicts.join(', ')} on this date.`;warning.style.display='block';}
+    else{warning.style.display='none';}
+  } else {warning.style.display='none';}
 }
 
 function buildSummary(){
@@ -290,7 +282,7 @@ async function saveBooking(){
   if(!selDay||!selTime){alert('Please select a date and time.');go(3);return;}
   const btn=document.getElementById('book-btn');
   btn.disabled=true;btn.textContent='Saving…';
-  const { data: { user } } = await db.auth.getUser();
+  const { data: { user } }=await db.auth.getUser();
   const now=new Date();
   const dateStr=`${now.toLocaleString('default',{month:'long'})} ${selDay}`;
   const horseId=document.getElementById('horse-select').value;
@@ -303,11 +295,9 @@ async function saveBooking(){
     return;
   }
 
-  // Build proper date for scheduled_date field
-  const scheduledDate = new Date(now.getFullYear(), now.getMonth(), selDay);
-  const scheduledDateStr = scheduledDate.toISOString().split('T')[0];
+  const scheduledDate=new Date(now.getFullYear(),now.getMonth(),selDay).toISOString().split('T')[0];
 
-  const { error } = await db.from('bookings').insert({
+  const { error }=await db.from('bookings').insert({
     trainer_id: user.id,
     rider_id: rider.id,
     rider_name: rider.first_name+' '+rider.last_name,
@@ -317,7 +307,7 @@ async function saveBooking(){
     notes: document.getElementById('notes').value,
     date: dateStr,
     time: selTime,
-    scheduled_date: scheduledDateStr,
+    scheduled_date: scheduledDate,
     horse_id: horseId||null,
     horse_name: horse?horse.name:null,
     payment_status: 'upcoming'
@@ -341,19 +331,19 @@ function resetForm(){
 }
 
 async function load(){
-  const { data: { user } } = await db.auth.getUser();
+  const { data: { user } }=await db.auth.getUser();
   if(!user){window.location.href='login.html';return;}
 
-  const { data: bookings } = await db.from('bookings').select('id').eq('trainer_id', user.id);
-  if((bookings||[]).length >= 10){
+  const { data: bookings }=await db.from('bookings').select('id').eq('trainer_id',user.id);
+  if((bookings||[]).length>=20){
     window.location.href='paywall.html';
     return;
   }
 
-  const [{ data: riders },{ data: horses },{ data: allB }] = await Promise.all([
-    db.from('riders').select('*').eq('trainer_id', user.id).order('created_at',{ascending:false}),
-    db.from('horses').select('*').eq('trainer_id', user.id).eq('active',true).order('name',{ascending:true}),
-    db.from('bookings').select('horse_id,date,time').eq('trainer_id', user.id)
+  const [{ data: riders },{ data: horses },{ data: allB }]=await Promise.all([
+    db.from('riders').select('*').eq('trainer_id',user.id).order('created_at',{ascending:false}),
+    db.from('horses').select('*').eq('trainer_id',user.id).eq('active',true).order('name',{ascending:true}),
+    db.from('bookings').select('horse_id,date,time').eq('trainer_id',user.id)
   ]);
 
   allRiders=riders||[];
