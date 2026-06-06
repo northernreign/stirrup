@@ -87,6 +87,7 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2
       </div>
       <div class="actions"><span></span><button class="btn-next" onclick="go(2)">Continue →</button></div>
     </div>
+
     <div class="step" id="step-2">
       <div class="step-title">Riding details</div>
       <div class="step-sub">Helps match the right lessons and horses.</div>
@@ -105,7 +106,7 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2
       </div>
       <div class="row2">
         <div class="field"><label>Preferred horse <span class="optional">optional</span></label>
-          <select id="horse"><option value="">No preference</option><option>Willow</option><option>Biscuit</option><option>Thunder</option><option>Clover</option><option>Maple</option></select>
+          <select id="horse"><option value="">No preference</option></select>
         </div>
         <div class="field"><label>Preferred duration</label>
           <select id="duration"><option>30 min</option><option selected>45 min</option><option>60 min</option><option>90 min</option></select>
@@ -116,6 +117,7 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2
         <button class="btn-next" onclick="go(3)">Continue →</button>
       </div>
     </div>
+
     <div class="step" id="step-3">
       <div class="step-title">Notes <span class="optional" style="font-size:14px">optional</span></div>
       <div class="step-sub">Anything useful to remember about this rider.</div>
@@ -125,6 +127,7 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2
         <button class="btn-next" onclick="go(4)">Continue →</button>
       </div>
     </div>
+
     <div class="step" id="step-4">
       <div class="step-title">Confirm new rider</div>
       <div class="step-sub">Double-check before saving.</div>
@@ -134,6 +137,7 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2
         <button class="btn-next" id="save-btn" onclick="saveRider()">Add rider ✓</button>
       </div>
     </div>
+
     <div class="step" id="step-5">
       <div class="done-wrap">
         <div class="done-icon">✓</div>
@@ -147,12 +151,14 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2
     </div>
   </div>
 </div>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 const SUPABASE_URL = 'https://mfinlbqfowymmklhkuhb.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_PcwbX1YoncwnrHobFmpAIA_L39K4XfK';
 const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 let cur=1, selLevelVal='intermediate', selTypeVal='private';
+let allHorses=[];
 
 function renderProgress(){
   const p=document.getElementById('progress');
@@ -186,14 +192,15 @@ function buildSummary(){
   const fname=document.getElementById('fname').value||'—';
   const lname=document.getElementById('lname').value||'—';
   const phone=document.getElementById('phone').value||'—';
-  const horse=document.getElementById('horse').value||'No preference';
+  const horseId=document.getElementById('horse').value;
+  const horse=allHorses.find(h=>h.id===horseId);
   const duration=document.getElementById('duration').value;
   document.getElementById('summary').innerHTML=`
     <div class="sum-row"><span class="sum-label">Name</span><span class="sum-val">${fname} ${lname}</span></div>
     <div class="sum-row"><span class="sum-label">Phone</span><span class="sum-val">${phone}</span></div>
     <div class="sum-row"><span class="sum-label">Level</span><span class="sum-val">${selLevelVal.charAt(0).toUpperCase()+selLevelVal.slice(1)}</span></div>
     <div class="sum-row"><span class="sum-label">Lesson type</span><span class="sum-val">${selTypeVal.charAt(0).toUpperCase()+selTypeVal.slice(1)}</span></div>
-    <div class="sum-row"><span class="sum-label">Preferred horse</span><span class="sum-val">${horse}</span></div>
+    <div class="sum-row"><span class="sum-label">Preferred horse</span><span class="sum-val">${horse?horse.name:'No preference'}</span></div>
     <div class="sum-row"><span class="sum-label">Duration</span><span class="sum-val">${duration}</span></div>`;
 }
 
@@ -209,6 +216,8 @@ async function saveRider(){
   btn.disabled=true;btn.textContent='Saving…';
   const { data: { user } } = await db.auth.getUser();
   if(!user){ window.location.href='login.html'; return; }
+  const horseId=document.getElementById('horse').value;
+  const horse=allHorses.find(h=>h.id===horseId);
   const { error } = await db.from('riders').insert({
     trainer_id: user.id,
     first_name: fname,
@@ -219,7 +228,7 @@ async function saveRider(){
     ec_phone: document.getElementById('ec-phone').value,
     level: selLevelVal,
     lesson_type: selTypeVal,
-    horse: document.getElementById('horse').value,
+    horse: horse?horse.name:'',
     duration: document.getElementById('duration').value,
     notes: document.getElementById('notes').value,
     payment_status: 'paid'
@@ -234,7 +243,23 @@ async function saveRider(){
   go(5);
 }
 
-renderProgress();
+async function load(){
+  const { data: { user } } = await db.auth.getUser();
+  if(!user){ window.location.href='login.html'; return; }
+  const { data: horses } = await db.from('horses').select('*').eq('trainer_id', user.id).eq('active',true).order('name',{ascending:true});
+  allHorses = horses||[];
+  const sel=document.getElementById('horse');
+  sel.innerHTML='<option value="">No preference</option>';
+  allHorses.forEach(h=>{
+    const opt=document.createElement('option');
+    opt.value=h.id;
+    opt.textContent=h.name+(h.breed?' ('+h.breed+')':'');
+    sel.appendChild(opt);
+  });
+  renderProgress();
+}
+
+load();
 </script>
 </body>
 </html>
