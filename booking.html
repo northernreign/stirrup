@@ -1,1 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Booking — Stirrup</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Inter',sans-serif;background:#f9f8f5;color:#1a1a18;min-height:100vh}
+nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2rem;background:#fff;border-bottom:1px solid #e8e6e0}
+.logo{font-size:18px;font-weight:600;color:#1a1a18;text-decoration:none}
+.nav-right{display:flex;gap:10px}
+.btn{padding:7px 16px;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;text-decoration:none;display:inline-block;font-family:'Inter',sans-serif;border:1px solid transparent}
+.btn-primary{background:#1D9E75;border-color:#1D9E75;color:#fff}
+.btn-primary:hover{background:#178a64}
+.btn-ghost{background:transparent;border-color:#d4d2cb;color:#1a1a18}
+.btn-ghost:hover{background:#f0efe9}
+.btn-danger{background:transparent;border-color:#e8c5c5;color:#c0392b}
+.btn-danger:hover{background:#fcebeb}
+.wrap{max-width:600px;margin:0 auto;padding:2rem}
+.booking-header{margin-bottom:1.5rem}
+.booking-title{font-size:22px;font-weight:600;margin-bottom:4px}
+.booking-meta{font-size:13px;color:#5a5a55}
+.card{background:#fff;border:1px solid #e8e6e0;border-radius:12px;padding:1rem 1.25rem;margin-bottom:1.25rem}
+.card-title{font-size:14px;font-weight:600;color:#1a1a18;margin-bottom:.75rem;display:flex;align-items:center;justify-content:space-between}
+.info-row{display:flex;justify-content:space-between;align-items:center;font-size:13px;padding:8px 0;border-bottom:1px solid #f0efe9}
+.info-row:last-child{border-bottom:none}
+.info-label{color:#5a5a55}
+.info-val{font-weight:500;color:#1a1a18}
+.pill{font-size:11px;padding:2px 8px;border-radius:20px;font-weight:500}
+.pill-green{background:#e0f5ed;color:#0f6e47}
+.pill-amber{background:#faeeda;color:#633806}
+.pill-red{background:#fcebeb;color:#791f1f}
+.field{margin-bottom:12px}
+.field label{display:block;font-size:12px;font-weight:500;color:#3a3a35;margin-bottom:4px}
+.field input,.field select{width:100%;padding:9px 12px;border:1px solid #d4d2cb;border-radius:8px;font-size:14px;font-family:'Inter',sans-serif;outline:none;background:#fff;color:#1a1a18}
+.field input:focus,.field select:focus{border-color:#1D9E75}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:12px}
+.cal-label{font-size:11px;color:#8a8a85;text-align:center;padding-bottom:4px}
+.cal-day{height:34px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:12px;cursor:pointer;border:1px solid transparent;transition:all .15s;background:#f0efe9;color:#1a1a18}
+.cal-day:hover{border-color:#d4d2cb}
+.cal-day.sel{background:#e0f5ed;color:#0f6e47;border-color:#1D9E75;font-weight:600}
+.cal-day.off{background:transparent;color:#d4d2cb;cursor:default}
+.time-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:12px}
+.time-btn{padding:8px;border-radius:8px;font-size:12px;text-align:center;border:1px solid #d4d2cb;background:#fff;cursor:pointer;color:#1a1a18;transition:all .15s;font-family:'Inter',sans-serif}
+.time-btn.sel{background:#e0f5ed;border-color:#1D9E75;color:#0f6e47;font-weight:500}
+.time-btn:hover{background:#f0efe9}
+.time-btn.taken{background:#f0efe9;color:#c8c6bf;cursor:default;text-decoration:line-through}
+.action-row{display:flex;gap:10px;margin-top:1.25rem}
+.error{background:#fcebeb;color:#c0392b;font-size:13px;padding:10px 12px;border-radius:8px;margin-bottom:14px;display:none}
+.success{background:#e0f5ed;color:#0f6e47;font-size:13px;padding:10px 12px;border-radius:8px;margin-bottom:14px;display:none}
+.loading{text-align:center;padding:3rem;color:#8a8a85;font-size:14px}
+</style>
+</head>
+<body>
+<nav>
+  <a href="dashboard.html" class="logo">Stirrup</a>
+  <div class="nav-right">
+    <a href="dashboard.html" class="btn btn-ghost">← Dashboard</a>
+  </div>
+</nav>
 
+<div class="wrap">
+  <div id="main-content"><div class="loading">Loading booking…</div></div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SUPABASE_URL = 'https://mfinlbqfowymmklhkuhb.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_PcwbX1YoncwnrHobFmpAIA_L39K4XfK';
+const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+let booking = null;
+let allHorses = [];
+let allBookings = [];
+let selDay = null;
+let selTime = null;
+const times = ['8:00 AM','9:00 AM','10:00 AM','11:00 AM','1:00 PM','2:00 PM','3:00 PM','4:00 PM','5:00 PM'];
+const days = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+
+function isHorseBooked(horseId, dateStr, timeStr){
+  if(!horseId) return false;
+  return allBookings.some(b=>b.horse_id===horseId && b.date===dateStr && b.time===timeStr && b.id!==booking.id);
+}
+
+function renderCal(){
+  const g = document.getElementById('reschedule-cal');
+  if(!g) return;
+  g.innerHTML='';
+  days.forEach(d=>{const l=document.createElement('div');l.className='cal-label';l.textContent=d;g.appendChild(l);});
+  const now=new Date();
+  const firstDay=new Date(now.getFullYear(),now.getMonth(),1).getDay();
+  const daysInMonth=new Date(now.getFullYear(),now.getMonth()+1,0).getDate();
+  const offset=(firstDay+6)%7;
+  for(let i=0;i<offset;i++){const e=document.createElement('div');e.className='cal-day off';g.appendChild(e);}
+  for(let d=1;d<=daysInMonth;d++){
+    const dow=(offset+d-1)%7;
+    const isAvail=dow<5;
+    const el=document.createElement('div');
+    el.className='cal-day'+(isAvail?'':' off')+(d===selDay?' sel':'');
+    el.textContent=d;
+    if(isAvail)el.onclick=()=>{selDay=d;selTime=null;renderCal();renderTimes();};
+    g.appendChild(el);
+  }
+}
+
+function renderTimes(){
+  const g = document.getElementById('reschedule-times');
+  if(!g||!selDay) return;
+  const now=new Date();
+  const dateStr=`${now.toLocaleString('default',{month:'long'})} ${selDay}`;
+  const horseId = booking.horse_id;
+  g.innerHTML='';
+  times.forEach(t=>{
+    const conflict=isHorseBooked(horseId,dateStr,t);
+    const btn=document.createElement('button');
+    btn.className='time-btn'+(conflict?' taken':t===selTime?' sel':'');
+    btn.textContent=t;
+    if(!conflict)btn.onclick=()=>{selTime=t;renderTimes();};
+    else btn.disabled=true;
+    g.appendChild(btn);
+  });
+}
+
+async function saveReschedule(){
+  if(!selDay||!selTime){
+    showError('Please select a date and time.');return;
+  }
+  const now=new Date();
+  const dateStr=`${now.toLocaleString('default',{month:'long'})} ${selDay}`;
+  const horseId=booking.horse_id;
+  if(horseId && isHorseBooked(horseId,dateStr,selTime)){
+    showError('This horse is already booked at that time.');return;
+  }
+  const { error } = await db.from('bookings').update({date:dateStr,time:selTime}).eq('id',booking.id);
+  if(error){showError(error.message);return;}
+  showSuccess('Booking rescheduled to '+dateStr+' at '+selTime);
+  booking.date=dateStr;booking.time=selTime;
+  document.getElementById('disp-date').textContent=dateStr+' at '+selTime;
+}
+
+async function updatePayment(){
+  const status=document.getElementById('payment-select').value;
+  const { error } = await db.from('bookings').update({payment_status:status}).eq('id',booking.id);
+  if(error){showError(error.message);return;}
+  booking.payment_status=status;
+  const pill=document.getElementById('payment-pill');
+  pill.className='pill '+(status==='paid'?'pill-green':'pill-amber');
+  pill.textContent=status;
+  showSuccess('Payment status updated.');
+}
+
+async function cancelBooking(){
+  if(!confirm('Cancel this booking? This cannot be undone.')) return;
+  const { error } = await db.from('bookings').delete().eq('id',booking.id);
+  if(error){showError(error.message);return;}
+  window.location.href='dashboard.html';
+}
+
+function showError(msg){
+  const el=document.getElementById('msg-error');
+  el.textContent=msg;el.style.display='block';
+  document.getElementById('msg-success').style.display='none';
+}
+
+function showSuccess(msg){
+  const el=document.getElementById('msg-success');
+  el.textContent=msg;el.style.display='block';
+  document.getElementById('msg-error').style.display='none';
+}
+
+function render(){
+  const horse=allHorses.find(h=>h.id===booking.horse_id);
+  const horseOptions=allHorses.map(h=>`<option value="${h.id}"${h.id===booking.horse_id?' selected':''}>${h.name}</option>`).join('');
+
+  document.getElementById('main-content').innerHTML=`
+    <div class="booking-header">
+      <div class="booking-title">${booking.rider_name}</div>
+      <div class="booking-meta">${booking.lesson_type.charAt(0).toUpperCase()+booking.lesson_type.slice(1)} · ${booking.date} at ${booking.time}</div>
+    </div>
+
+    <div class="error" id="msg-error"></div>
+    <div class="success" id="msg-success"></div>
+
+    <div class="card">
+      <div class="card-title">Booking details</div>
+      <div class="info-row"><span class="info-label">Rider</span><span class="info-val">${booking.rider_name}</span></div>
+      <div class="info-row"><span class="info-label">Lesson type</span><span class="info-val">${booking.lesson_type.charAt(0).toUpperCase()+booking.lesson_type.slice(1)}</span></div>
+      <div class="info-row"><span class="info-label">Date & time</span><span class="info-val" id="disp-date">${booking.date} at ${booking.time}</span></div>
+      <div class="info-row"><span class="info-label">Duration</span><span class="info-val">${booking.duration||'—'}</span></div>
+      <div class="info-row"><span class="info-label">Horse</span><span class="info-val">${horse?horse.name:'None assigned'}</span></div>
+      <div class="info-row"><span class="info-label">Price</span><span class="info-val">${booking.price||'—'}</span></div>
+      <div class="info-row"><span class="info-label">Payment</span><span class="info-val"><span class="pill ${booking.payment_status==='paid'?'pill-green':'pill-amber'}" id="payment-pill">${booking.payment_status}</span></span></div>
+      ${booking.notes?`<div class="info-row"><span class="info-label">Notes</span><span class="info-val">${booking.notes}</span></div>`:''}
+    </div>
+
+    <div class="card">
+      <div class="card-title">Reschedule</div>
+      <div class="cal-grid" id="reschedule-cal"></div>
+      <div style="font-size:12px;color:#5a5a55;margin-bottom:8px" id="time-label">Select a new date then pick a time</div>
+      <div class="time-grid" id="reschedule-times"></div>
+      <button class="btn btn-primary" onclick="saveReschedule()" style="width:100%;padding:10px">Save new date & time</button>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Payment status</div>
+      <div class="field">
+        <select id="payment-select">
+          <option value="unpaid"${booking.payment_status==='unpaid'?' selected':''}>Unpaid</option>
+          <option value="paid"${booking.payment_status==='paid'?' selected':''}>Paid</option>
+        </select>
+      </div>
+      <button class="btn btn-primary" onclick="updatePayment()" style="width:100%;padding:10px">Update payment status</button>
+    </div>
+
+    <div class="card">
+      <div class="card-title" style="color:#c0392b">Danger zone</div>
+      <p style="font-size:13px;color:#5a5a55;margin-bottom:1rem">Cancelling a booking removes it permanently and cannot be undone.</p>
+      <button class="btn btn-danger" style="width:100%;padding:10px" onclick="cancelBooking()">Cancel this booking</button>
+    </div>`;
+
+  renderCal();
+}
+
+async function load(){
+  const { data: { user } } = await db.auth.getUser();
+  if(!user){ window.location.href='login.html'; return; }
+
+  const bookingData = JSON.parse(localStorage.getItem('stirrup_viewing_booking')||'null');
+  if(!bookingData){ window.location.href='dashboard.html'; return; }
+  booking = bookingData;
+
+  const [{ data: horses },{ data: bookings }] = await Promise.all([
+    db.from('horses').select('*').eq('trainer_id', user.id).eq('active',true),
+    db.from('bookings').select('horse_id,date,time,id').eq('trainer_id', user.id)
+  ]);
+
+  allHorses = horses||[];
+  allBookings = bookings||[];
+  render();
+}
+
+load();
+</script>
+</body>
+</html>
