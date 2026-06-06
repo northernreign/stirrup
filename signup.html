@@ -5,8 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Sign up — Stirrup</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="supabase.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Inter',sans-serif;background:#f9f8f5;color:#1a1a18;min-height:100vh;display:flex;flex-direction:column}
@@ -56,6 +54,8 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2
     <div class="login-link">Already have an account? <a href="login.html">Log in</a></div>
   </div>
 </div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase.js"></script>
 <script>
 async function handleSignup(){
   const fname = document.getElementById('fname').value.trim();
@@ -84,7 +84,6 @@ async function handleSignup(){
 
   try {
     await signUp(email, password, fname + ' ' + lname, barn);
-    // Store name/barn locally for onboarding pre-fill
     localStorage.setItem('stirrup_user', JSON.stringify({ name: fname, barn: barn, email: email }));
     window.location.href = 'onboarding.html';
   } catch(err) {
