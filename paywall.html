@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Upgrade to Pro — Stirrup</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Inter',sans-serif;background:#f9f8f5;color:#1a1a18;min-height:100vh;display:flex;flex-direction:column}
+nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2rem;background:#fff;border-bottom:1px solid #e8e6e0}
+.logo{font-size:18px;font-weight:600;color:#1a1a18;text-decoration:none}
+.main{flex:1;display:flex;align-items:center;justify-content:center;padding:2rem;position:relative;overflow:hidden}
+.blur-bg{position:absolute;inset:0;display:grid;grid-template-columns:repeat(7,1fr);gap:4px;padding:2rem;opacity:.15;pointer-events:none}
+.blur-slot{border-radius:6px;height:40px}
+.modal{background:#fff;border:1px solid #e8e6e0;border-radius:16px;padding:2rem;width:100%;max-width:400px;position:relative;z-index:2;box-shadow:0 4px 24px rgba(0,0,0,.08)}
+.lock-icon{width:48px;height:48px;border-radius:50%;background:#faeeda;display:flex;align-items:center;justify-content:center;font-size:22px;margin:0 auto 1rem}
+.modal-title{font-size:20px;font-weight:600;text-align:center;margin-bottom:6px}
+.modal-sub{font-size:14px;color:#5a5a55;text-align:center;line-height:1.6;margin-bottom:1.25rem}
+.divider{height:1px;background:#e8e6e0;margin-bottom:1.25rem}
+.feat-list{margin-bottom:1.25rem}
+.feat-row{display:flex;align-items:center;gap:8px;margin-bottom:8px;font-size:13px;color:#1a1a18}
+.feat-check{color:#1D9E75;font-weight:600;font-size:15px;flex-shrink:0}
+.price-row{text-align:center;margin-bottom:6px}
+.price-big{font-size:32px;font-weight:600;color:#1a1a18}
+.price-per{font-size:14px;color:#5a5a55;font-weight:400}
+.price-annual{font-size:12px;color:#5a5a55;text-align:center;margin-bottom:1.25rem}
+.btn-upgrade{width:100%;padding:12px;background:#1D9E75;border:none;border-radius:10px;color:#fff;font-size:15px;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif;margin-bottom:8px}
+.btn-upgrade:hover{background:#178a64}
+.btn-dismiss{width:100%;padding:10px;background:transparent;border:1px solid #d4d2cb;border-radius:10px;color:#5a5a55;font-size:13px;cursor:pointer;font-family:'Inter',sans-serif}
+.btn-dismiss:hover{background:#f0efe9}
+.reset-note{font-size:12px;color:#8a8a85;text-align:center;margin-top:10px;line-height:1.5}
+</style>
+</head>
+<body>
+<nav>
+  <a href="dashboard.html" class="logo">Stirrup</a>
+</nav>
+<div class="main">
+  <div class="blur-bg" aria-hidden="true">
+    <div><div class="blur-slot" style="background:#e0f5ed"></div><div class="blur-slot" style="background:#f0efe9;margin-top:4px"></div></div>
+    <div><div class="blur-slot" style="background:#f0efe9"></div><div class="blur-slot" style="background:#e0f5ed;margin-top:4px"></div></div>
+    <div><div class="blur-slot" style="background:#faeeda"></div><div class="blur-slot" style="background:#f0efe9;margin-top:4px"></div></div>
+    <div><div class="blur-slot" style="background:#e0f5ed"></div><div class="blur-slot" style="background:#faeeda;margin-top:4px"></div></div>
+    <div><div class="blur-slot" style="background:#f0efe9"></div><div class="blur-slot" style="background:#e0f5ed;margin-top:4px"></div></div>
+    <div><div class="blur-slot" style="background:#e0f5ed"></div><div class="blur-slot" style="background:#f0efe9;margin-top:4px"></div></div>
+    <div><div class="blur-slot" style="background:#faeeda"></div><div class="blur-slot" style="background:#e0f5ed;margin-top:4px"></div></div>
+  </div>
+
+  <div class="modal">
+    <div class="lock-icon">🔒</div>
+    <div class="modal-title">You've hit your free limit</div>
+    <div class="modal-sub">You've used all 10 free bookings this month. Upgrade to Pro to keep booking and unlock payments & reminders.</div>
+    <div class="divider"></div>
+    <div class="feat-list">
+      <div class="feat-row"><span class="feat-check">✓</span>Unlimited bookings</div>
+      <div class="feat-row"><span class="feat-check">✓</span>Square payment links on every lesson</div>
+      <div class="feat-row"><span class="feat-check">✓</span>Automated booking reminders</div>
+      <div class="feat-row"><span class="feat-check">✓</span>Booking notifications</div>
+    </div>
+    <div class="price-row">
+      <span class="price-big">$19</span>
+      <span class="price-per">/month</span>
+    </div>
+    <div class="price-annual">or $190/yr — save two months</div>
+    <button class="btn-upgrade" onclick="window.location.href='dashboard.html'">Upgrade to Pro →</button>
+    <button class="btn-dismiss" onclick="window.location.href='dashboard.html'">Maybe next month</button>
+    <div class="reset-note" id="reset-note">Your existing bookings and riders are safe.</div>
+  </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SUPABASE_URL = 'https://mfinlbqfowymmklhkuhb.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_PcwbX1YoncwnrHobFmpAIA_L39K4XfK';
+const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+async function load(){
+  const { data: { user } } = await db.auth.getUser();
+  if(!user){ window.location.href='login.html'; return; }
+
+  // Show when bookings reset
+  const now = new Date();
+  const nextMonth = new Date(now.getFullYear(), now.getMonth()+1, 1);
+  const resetStr = nextMonth.toLocaleString('default',{month:'long',day:'numeric'});
+  document.getElementById('reset-note').textContent =
+    `Your existing bookings and riders are safe. Bookings reset ${resetStr}.`;
+}
+
+load();
+</script>
+</body>
+</html>
