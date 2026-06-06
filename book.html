@@ -299,7 +299,15 @@ function resetForm(){
 async function load(){
   const { data: { user } } = await db.auth.getUser();
   if(!user){window.location.href='login.html';return;}
-  const { data: riders } = await db.from('riders').select('*').eq('trainer_id', user.id).order('created_at', { ascending: false });
+
+  // Check booking limit
+  const { data: bookings } = await db.from('bookings').select('id').eq('trainer_id', user.id);
+  if((bookings||[]).length >= 10){
+    window.location.href='paywall.html';
+    return;
+  }
+
+  const { data: riders } = await db.from('riders').select('*').eq('trainer_id', user.id).order('created_at',{ascending:false});
   allRiders = riders || [];
   renderProgress();renderRiders();renderCal();
 }
