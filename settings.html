@@ -44,18 +44,20 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2
 .toggle.off::after{left:3px}
 .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:100;align-items:center;justify-content:center}
 .modal-overlay.open{display:flex}
-.modal{background:#fff;border-radius:16px;padding:1.5rem;width:100%;max-width:400px;margin:1rem}
+.modal{background:#fff;border-radius:16px;padding:1.5rem;width:100%;max-width:420px;margin:1rem}
 .modal-title{font-size:18px;font-weight:600;margin-bottom:6px}
 .modal-sub{font-size:14px;color:#5a5a55;margin-bottom:1.25rem;line-height:1.5}
 .field{margin-bottom:12px}
 .field label{display:block;font-size:12px;font-weight:500;color:#3a3a35;margin-bottom:4px}
-.field input{width:100%;padding:9px 12px;border:1px solid #d4d2cb;border-radius:8px;font-size:14px;font-family:'Inter',sans-serif;outline:none}
-.field input:focus{border-color:#1D9E75}
+.field input,.field select{width:100%;padding:9px 12px;border:1px solid #d4d2cb;border-radius:8px;font-size:14px;font-family:'Inter',sans-serif;outline:none;background:#fff;color:#1a1a18}
+.field input:focus,.field select:focus{border-color:#1D9E75}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .modal-actions{display:flex;gap:8px;margin-top:1.25rem}
 .btn-cancel{flex:1;padding:9px;background:transparent;border:1px solid #d4d2cb;border-radius:8px;font-size:13px;cursor:pointer;font-family:'Inter',sans-serif;color:#5a5a55}
 .btn-save{flex:1;padding:9px;background:#1D9E75;border:none;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif;color:#fff}
 .btn-save:hover{background:#178a64}
 .btn-delete{flex:1;padding:9px;background:#c0392b;border:none;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif;color:#fff}
+.hours-note{font-size:12px;color:#5a5a55;background:#f9f8f5;border-radius:8px;padding:10px 12px;margin-top:8px;line-height:1.5}
 </style>
 </head>
 <body>
@@ -73,11 +75,11 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2
     <div class="plan-icon">⭐</div>
     <div>
       <div class="plan-name">Stirrup Free</div>
-      <div class="plan-meta">Up to 10 bookings/month</div>
+      <div class="plan-meta">Up to 20 bookings/month</div>
     </div>
     <div class="plan-right">
       <span class="badge badge-free">Free</span>
-      <a href="index.html#pricing" class="btn btn-primary" style="font-size:12px;padding:5px 12px">Upgrade to Pro</a>
+      <a href="paywall.html" class="btn btn-primary" style="font-size:12px;padding:5px 12px">Upgrade</a>
     </div>
   </div>
 
@@ -100,14 +102,19 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2
   <div class="section">
     <div class="section-label">Scheduling</div>
     <div class="card">
-      <div class="row">
-        <div class="row-icon" style="background:#e0f5ed">📅</div>
-        <div class="row-body"><div class="row-title">Default availability</div><div class="row-sub">Mon – Fri · 9:00 AM – 5:00 PM</div></div>
-        <div class="row-right">→</div>
+      <div class="row" onclick="openModal('hours')">
+        <div class="row-icon" style="background:#e0f5ed">🕐</div>
+        <div class="row-body"><div class="row-title">Barn hours</div><div class="row-sub" id="hours-sub">Loading…</div></div>
+        <div class="row-right">Edit →</div>
       </div>
       <div class="row">
         <div class="row-icon" style="background:#eeedfe">⏱</div>
         <div class="row-body"><div class="row-title">Buffer time between lessons</div><div class="row-sub">15 minutes</div></div>
+        <div class="row-right">→</div>
+      </div>
+      <div class="row">
+        <div class="row-icon" style="background:#faece7">📅</div>
+        <div class="row-body"><div class="row-title">Recurring lesson default</div><div class="row-sub">16 weeks</div></div>
         <div class="row-right">→</div>
       </div>
     </div>
@@ -117,24 +124,19 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2
     <div class="section-label">Notifications</div>
     <div class="card">
       <div class="row">
-        <div class="row-icon" style="background:#e6f0fb">🔔</div>
-        <div class="row-body"><div class="row-title">New booking alerts</div><div class="row-sub">Notify me when a lesson is booked</div></div>
-        <button class="toggle on" id="t-booking" onclick="tog('booking')"></button>
-      </div>
-      <div class="row">
         <div class="row-icon" style="background:#e0f5ed">⏰</div>
         <div class="row-body"><div class="row-title">Lesson reminders to riders</div><div class="row-sub">Text riders 24hrs before their lesson</div></div>
-        <button class="toggle on" id="t-reminder" onclick="tog('reminder')"></button>
+        <button class="toggle on" id="t-reminder" onclick="tog('reminder')" aria-label="Toggle reminders"></button>
       </div>
       <div class="row">
-        <div class="row-icon" style="background:#faeeda">💰</div>
-        <div class="row-body"><div class="row-title">Payment received alerts</div><div class="row-sub">Notify me when a Square payment clears</div></div>
-        <button class="toggle on" id="t-payment" onclick="tog('payment')"></button>
+        <div class="row-icon" style="background:#faeeda">🐴</div>
+        <div class="row-body"><div class="row-title">Horse assignment prompts</div><div class="row-sub">Remind you to assign a horse 24hrs before each lesson</div></div>
+        <button class="toggle on" id="t-horse" onclick="tog('horse')" aria-label="Toggle horse prompts"></button>
       </div>
       <div class="row">
         <div class="row-icon" style="background:#fcebeb">⚠️</div>
         <div class="row-body"><div class="row-title">Overdue payment reminders</div><div class="row-sub">Remind riders with unpaid balances after 7 days</div></div>
-        <button class="toggle off" id="t-overdue" onclick="tog('overdue')"></button>
+        <button class="toggle off" id="t-overdue" onclick="tog('overdue')" aria-label="Toggle overdue reminders"></button>
       </div>
     </div>
   </div>
@@ -144,7 +146,10 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2
     <div class="card">
       <div class="row">
         <div class="row-icon" style="background:#e6f0fb">◼</div>
-        <div class="row-body"><div class="row-title">Square account</div><div class="row-sub">Not connected</div></div>
+        <div class="row-body">
+          <div class="row-title">Square account</div>
+          <div class="row-sub">Connected for payments only — not scheduling</div>
+        </div>
         <div class="row-right"><span style="font-size:11px;padding:2px 8px;border-radius:20px;background:#faeeda;color:#633806;font-weight:500">Not connected</span></div>
       </div>
       <div class="row">
@@ -176,9 +181,8 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2
 <div class="modal-overlay" id="modal-profile">
   <div class="modal">
     <div class="modal-title">Edit profile</div>
-    <div class="modal-sub">Update your name and email.</div>
+    <div class="modal-sub">Update your name.</div>
     <div class="field"><label>Full name</label><input type="text" id="edit-name"></div>
-    <div class="field"><label>Email</label><input type="email" id="edit-email" disabled style="background:#f9f8f5;color:#8a8a85"></div>
     <div class="modal-actions">
       <button class="btn-cancel" onclick="closeModal('profile')">Cancel</button>
       <button class="btn-save" onclick="saveProfile()">Save</button>
@@ -190,11 +194,40 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2
 <div class="modal-overlay" id="modal-barn">
   <div class="modal">
     <div class="modal-title">Barn details</div>
-    <div class="modal-sub">Update your barn name.</div>
+    <div class="modal-sub">Update your barn name and timezone.</div>
     <div class="field"><label>Barn name</label><input type="text" id="edit-barn"></div>
+    <div class="field"><label>Timezone</label>
+      <select id="edit-timezone">
+        <option>Eastern Time (ET)</option>
+        <option>Central Time (CT)</option>
+        <option>Mountain Time (MT)</option>
+        <option>Pacific Time (PT)</option>
+      </select>
+    </div>
     <div class="modal-actions">
       <button class="btn-cancel" onclick="closeModal('barn')">Cancel</button>
       <button class="btn-save" onclick="saveBarn()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Barn hours modal -->
+<div class="modal-overlay" id="modal-hours">
+  <div class="modal">
+    <div class="modal-title">Barn hours</div>
+    <div class="modal-sub">Set when your barn opens and closes for lessons. Booking slots will only show within these hours.</div>
+    <div class="row2">
+      <div class="field"><label>Opens</label>
+        <select id="edit-open"></select>
+      </div>
+      <div class="field"><label>Closes</label>
+        <select id="edit-close"></select>
+      </div>
+    </div>
+    <div class="hours-note">⏰ Earliest available: 6:00 AM · Latest available: 10:00 PM · Default: 9:00 AM – 6:00 PM</div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal('hours')">Cancel</button>
+      <button class="btn-save" onclick="saveHours()">Save</button>
     </div>
   </div>
 </div>
@@ -216,7 +249,31 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2
 const SUPABASE_URL = 'https://mfinlbqfowymmklhkuhb.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_PcwbX1YoncwnrHobFmpAIA_L39K4XfK';
 const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-const toggleStates = {booking:true,reminder:true,payment:true,overdue:false};
+const toggleStates = {reminder:true, horse:true, overdue:false};
+
+// Generate time options 6am to 10pm in 30min increments
+function generateTimeOptions(){
+  const times = [];
+  for(let h=6;h<=22;h++){
+    for(let m=0;m<60;m+=30){
+      if(h===22&&m>0) break;
+      const hour12 = h>12?h-12:h===0?12:h;
+      const ampm = h>=12?'PM':'AM';
+      const label = `${hour12}:${m===0?'00':'30'} ${ampm}`;
+      const val = `${String(h).padStart(2,'0')}:${m===0?'00':'30'}`;
+      times.push({label,val});
+    }
+  }
+  return times;
+}
+
+function formatTime(val){
+  if(!val) return '9:00 AM';
+  const [h,m] = val.split(':').map(Number);
+  const hour12 = h>12?h-12:h===0?12:h;
+  const ampm = h>=12?'PM':'AM';
+  return `${hour12}:${m===0?'00':'30'} ${ampm}`;
+}
 
 function tog(k){
   toggleStates[k]=!toggleStates[k];
@@ -227,12 +284,27 @@ function tog(k){
 
 function openModal(name){
   if(name==='profile'){
-    const sub = document.getElementById('profile-sub').textContent;
-    document.getElementById('edit-name').value = sub.split(' · ')[0] || '';
-    document.getElementById('edit-email').value = sub.split(' · ')[1] || '';
+    document.getElementById('edit-name').value=document.getElementById('profile-sub').textContent.split(' · ')[0]||'';
   }
   if(name==='barn'){
-    document.getElementById('edit-barn').value = document.getElementById('barn-sub').textContent || '';
+    document.getElementById('edit-barn').value=document.getElementById('barn-sub').textContent||'';
+  }
+  if(name==='hours'){
+    const times=generateTimeOptions();
+    const openSel=document.getElementById('edit-open');
+    const closeSel=document.getElementById('edit-close');
+    openSel.innerHTML='';
+    closeSel.innerHTML='';
+    times.forEach(t=>{
+      const o=document.createElement('option');
+      o.value=t.val;o.textContent=t.label;
+      openSel.appendChild(o);
+      const c=document.createElement('option');
+      c.value=t.val;c.textContent=t.label;
+      closeSel.appendChild(c);
+    });
+    openSel.value=window._barnOpen||'09:00';
+    closeSel.value=window._barnClose||'18:00';
   }
   document.getElementById('modal-'+name).classList.add('open');
 }
@@ -242,20 +314,37 @@ function closeModal(name){
 }
 
 async function saveProfile(){
-  const { data: { user } } = await db.auth.getUser();
-  if(!user) return;
-  const name = document.getElementById('edit-name').value.trim();
-  await db.from('trainers').update({ name }).eq('id', user.id);
+  const { data: { user } }=await db.auth.getUser();
+  if(!user)return;
+  const name=document.getElementById('edit-name').value.trim();
+  await db.from('trainers').update({name}).eq('id',user.id);
   closeModal('profile');
   loadSettings();
 }
 
 async function saveBarn(){
-  const { data: { user } } = await db.auth.getUser();
-  if(!user) return;
-  const barn_name = document.getElementById('edit-barn').value.trim();
-  await db.from('trainers').update({ barn_name }).eq('id', user.id);
+  const { data: { user } }=await db.auth.getUser();
+  if(!user)return;
+  const barn_name=document.getElementById('edit-barn').value.trim();
+  const timezone=document.getElementById('edit-timezone').value;
+  await db.from('trainers').update({barn_name,timezone}).eq('id',user.id);
   closeModal('barn');
+  loadSettings();
+}
+
+async function saveHours(){
+  const { data: { user } }=await db.auth.getUser();
+  if(!user)return;
+  const barn_open=document.getElementById('edit-open').value;
+  const barn_close=document.getElementById('edit-close').value;
+  if(barn_open>=barn_close){
+    alert('Closing time must be after opening time.');
+    return;
+  }
+  await db.from('trainers').update({barn_open,barn_close}).eq('id',user.id);
+  window._barnOpen=barn_open;
+  window._barnClose=barn_close;
+  closeModal('hours');
   loadSettings();
 }
 
@@ -264,28 +353,36 @@ async function handleSignOut(){
     await db.auth.signOut();
     localStorage.removeItem('stirrup_user');
     localStorage.removeItem('stirrup_viewing_rider');
-    window.location.href = 'index.html';
+    localStorage.removeItem('stirrup_viewing_booking');
+    window.location.href='index.html';
   }
 }
 
 async function handleDelete(){
-  const { data: { user } } = await db.auth.getUser();
-  if(!user) return;
-  await db.from('bookings').delete().eq('trainer_id', user.id);
-  await db.from('riders').delete().eq('trainer_id', user.id);
-  await db.from('trainers').delete().eq('id', user.id);
+  const { data: { user } }=await db.auth.getUser();
+  if(!user)return;
+  await db.from('bookings').delete().eq('trainer_id',user.id);
+  await db.from('riders').delete().eq('trainer_id',user.id);
+  await db.from('horses').delete().eq('trainer_id',user.id);
+  await db.from('staff_trainers').delete().eq('head_trainer_id',user.id);
+  await db.from('trainers').delete().eq('id',user.id);
   await db.auth.signOut();
   localStorage.clear();
-  window.location.href = 'index.html';
+  window.location.href='index.html';
 }
 
 async function loadSettings(){
-  const { data: { user } } = await db.auth.getUser();
-  if(!user){ window.location.href='login.html'; return; }
-  const { data: trainer } = await db.from('trainers').select('*').eq('id', user.id).single();
+  const { data: { user } }=await db.auth.getUser();
+  if(!user){window.location.href='login.html';return;}
+  const { data: trainer }=await db.from('trainers').select('*').eq('id',user.id).single();
   if(trainer){
-    document.getElementById('profile-sub').textContent = (trainer.name||'Not set')+' · '+user.email;
-    document.getElementById('barn-sub').textContent = trainer.barn_name||'Not set';
+    document.getElementById('profile-sub').textContent=(trainer.name||'Not set')+' · '+user.email;
+    document.getElementById('barn-sub').textContent=trainer.barn_name||'Not set';
+    const openStr=formatTime(trainer.barn_open||'09:00');
+    const closeStr=formatTime(trainer.barn_close||'18:00');
+    document.getElementById('hours-sub').textContent=`${openStr} – ${closeStr}`;
+    window._barnOpen=trainer.barn_open||'09:00';
+    window._barnClose=trainer.barn_close||'18:00';
   }
 }
 
