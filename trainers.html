@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Trainers — Stirrup</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Inter',sans-serif;background:#f9f8f5;color:#1a1a18;min-height:100vh}
+nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2rem;background:#fff;border-bottom:1px solid #e8e6e0}
+.logo{font-size:18px;font-weight:600;color:#1a1a18;text-decoration:none}
+.nav-right{display:flex;align-items:center;gap:12px}
+.btn{padding:7px 16px;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;text-decoration:none;display:inline-block;font-family:'Inter',sans-serif;border:1px solid transparent}
+.btn-primary{background:#1D9E75;border-color:#1D9E75;color:#fff}
+.btn-primary:hover{background:#178a64}
+.btn-ghost{background:transparent;border-color:#d4d2cb;color:#1a1a18}
+.btn-ghost:hover{background:#f0efe9}
+.wrap{max-width:720px;margin:0 auto;padding:2rem}
+.page-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem}
+.page-title{font-size:22px;font-weight:600}
+.barn-tier-notice{background:#e6f0fb;border:1px solid #85b7eb;border-radius:12px;padding:1rem 1.25rem;margin-bottom:1.25rem;display:flex;align-items:flex-start;gap:12px}
+.notice-body{flex:1}
+.notice-title{font-size:13px;font-weight:600;color:#0c447c;margin-bottom:3px}
+.notice-text{font-size:12px;color:#185fa5;line-height:1.5}
+.btn-upgrade{font-size:12px;padding:5px 12px;border-radius:8px;border:1px solid #85b7eb;background:transparent;color:#0c447c;cursor:pointer;margin-top:8px;font-family:'Inter',sans-serif;display:inline-block}
+.summary{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:1.25rem}
+.sum{background:#fff;border:1px solid #e8e6e0;border-radius:10px;padding:.75rem 1rem}
+.sum-label{font-size:11px;color:#5a5a55;margin-bottom:3px}
+.sum-val{font-size:20px;font-weight:600;color:#1a1a18}
+.trainer-card{background:#fff;border:1px solid #e8e6e0;border-radius:10px;padding:1rem 1.25rem;margin-bottom:8px;display:flex;align-items:center;gap:12px;transition:background .15s}
+.trainer-card:hover{background:#f9f8f5}
+.trainer-av{width:40px;height:40px;border-radius:50%;background:#e0f5ed;color:#0f6e47;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;flex-shrink:0}
+.trainer-info{flex:1;min-width:0}
+.trainer-name{font-size:14px;font-weight:500;color:#1a1a18}
+.trainer-meta{font-size:12px;color:#5a5a55;margin-top:1px}
+.trainer-right{display:flex;align-items:center;gap:8px;flex-shrink:0}
+.btn-remove{font-size:12px;padding:4px 10px;border-radius:6px;border:1px solid #e8c5c5;background:transparent;color:#c0392b;cursor:pointer;font-family:'Inter',sans-serif}
+.btn-remove:hover{background:#fcebeb}
+.empty{text-align:center;padding:3rem 1rem}
+.empty-icon{font-size:32px;margin-bottom:12px}
+.empty-title{font-size:15px;font-weight:500;color:#1a1a18;margin-bottom:6px}
+.empty-sub{font-size:13px;color:#5a5a55;margin-bottom:1.25rem}
+.loading{text-align:center;padding:3rem;color:#8a8a85;font-size:14px}
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:100;align-items:center;justify-content:center}
+.modal-overlay.open{display:flex}
+.modal{background:#fff;border-radius:16px;padding:1.5rem;width:100%;max-width:420px;margin:1rem}
+.modal-title{font-size:18px;font-weight:600;margin-bottom:6px}
+.modal-sub{font-size:14px;color:#5a5a55;margin-bottom:1.25rem}
+.field{margin-bottom:12px}
+.field label{display:block;font-size:12px;font-weight:500;color:#3a3a35;margin-bottom:4px}
+.field input{width:100%;padding:9px 12px;border:1px solid #d4d2cb;border-radius:8px;font-size:14px;font-family:'Inter',sans-serif;outline:none;background:#fff;color:#1a1a18}
+.field input:focus{border-color:#1D9E75}
+.optional{font-size:11px;color:#8a8a85;margin-left:4px}
+.modal-actions{display:flex;gap:8px;margin-top:1.25rem}
+.btn-cancel{flex:1;padding:9px;background:transparent;border:1px solid #d4d2cb;border-radius:8px;font-size:13px;cursor:pointer;font-family:'Inter',sans-serif;color:#5a5a55}
+.btn-save{flex:1;padding:9px;background:#1D9E75;border:none;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif;color:#fff}
+.btn-save:hover{background:#178a64}
+.btn-save:disabled{background:#9ad4be;cursor:not-allowed}
+.error{background:#fcebeb;color:#c0392b;font-size:13px;padding:10px 12px;border-radius:8px;margin-bottom:14px;display:none}
+.locked{opacity:.5;pointer-events:none}
+</style>
+</head>
+<body>
+<nav>
+  <a href="dashboard.html" class="logo">Stirrup</a>
+  <div class="nav-right">
+    <a href="dashboard.html" class="btn btn-ghost">Dashboard</a>
+    <button class="btn btn-primary" id="add-btn" onclick="openModal()">+ Add trainer</button>
+  </div>
+</nav>
+
+<div class="wrap">
+  <div class="page-head">
+    <div class="page-title">Staff Trainers</div>
+    <button class="btn btn-primary" id="add-btn2" onclick="openModal()">+ Add trainer</button>
+  </div>
+
+  <div class="barn-tier-notice" id="tier-notice" style="display:none">
+    <div style="font-size:20px">⭐</div>
+    <div class="notice-body">
+      <div class="notice-title">Barn plan required</div>
+      <div class="notice-text">Adding staff trainers is a Barn plan feature. Upgrade to add unlimited trainers, assign them to lessons, and manage your whole team from one place.</div>
+      <a href="paywall.html" class="btn-upgrade">Upgrade to Barn — $49/mo →</a>
+    </div>
+  </div>
+
+  <div class="summary" id="summary-wrap">
+    <div class="sum"><div class="sum-label">Staff trainers</div><div class="sum-val" id="total-trainers">—</div></div>
+    <div class="sum"><div class="sum-label">Active</div><div class="sum-val" id="active-trainers">—</div></div>
+  </div>
+
+  <div id="trainer-list"><div class="loading">Loading trainers…</div></div>
+</div>
+
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <div class="modal-title">Add a staff trainer</div>
+    <div class="modal-sub">Add a trainer who teaches lessons at your barn.</div>
+    <div class="error" id="error"></div>
+    <div class="field"><label>Full name</label><input type="text" id="t-name" placeholder="e.g. Sarah Johnson"></div>
+    <div class="field"><label>Email <span class="optional">optional</span></label><input type="email" id="t-email" placeholder="sarah@example.com"></div>
+    <div class="field"><label>Phone <span class="optional">optional</span></label><input type="tel" id="t-phone" placeholder="(704) 555-0100"></div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal()">Cancel</button>
+      <button class="btn-save" id="save-btn" onclick="saveTrainer()">Add trainer</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SUPABASE_URL = 'https://mfinlbqfowymmklhkuhb.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_PcwbX1YoncwnrHobFmpAIA_L39K4XfK';
+const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+let allTrainers = [];
+let isBarnTier = false;
+
+function openModal(){
+  if(!isBarnTier){
+    window.location.href='paywall.html';
+    return;
+  }
+  document.getElementById('t-name').value='';
+  document.getElementById('t-email').value='';
+  document.getElementById('t-phone').value='';
+  document.getElementById('error').style.display='none';
+  document.getElementById('save-btn').disabled=false;
+  document.getElementById('save-btn').textContent='Add trainer';
+  document.getElementById('modal').classList.add('open');
+}
+
+function closeModal(){
+  document.getElementById('modal').classList.remove('open');
+}
+
+async function saveTrainer(){
+  const name=document.getElementById('t-name').value.trim();
+  if(!name){
+    document.getElementById('error').textContent='Please enter a name.';
+    document.getElementById('error').style.display='block';
+    return;
+  }
+  const btn=document.getElementById('save-btn');
+  btn.disabled=true;btn.textContent='Saving…';
+  const { data: { user } } = await db.auth.getUser();
+  const { error } = await db.from('staff_trainers').insert({
+    head_trainer_id: user.id,
+    name: name,
+    email: document.getElementById('t-email').value.trim(),
+    phone: document.getElementById('t-phone').value.trim(),
+    active: true
+  });
+  if(error){
+    document.getElementById('error').textContent=error.message;
+    document.getElementById('error').style.display='block';
+    btn.disabled=false;btn.textContent='Add trainer';
+    return;
+  }
+  closeModal();
+  load();
+}
+
+async function removeTrainer(id){
+  if(!confirm('Remove this trainer?')) return;
+  await db.from('staff_trainers').update({active:false}).eq('id',id);
+  load();
+}
+
+function getInitials(name){
+  const parts=name.trim().split(' ');
+  return (parts[0]?.[0]||'')+(parts[1]?.[0]||'');
+}
+
+function renderTrainers(){
+  const list=document.getElementById('trainer-list');
+  const active=allTrainers.filter(t=>t.active);
+  document.getElementById('total-trainers').textContent=allTrainers.length;
+  document.getElementById('active-trainers').textContent=active.length;
+
+  if(active.length===0){
+    list.innerHTML=`<div class="empty ${!isBarnTier?'locked':''}">
+      <div class="empty-icon">👤</div>
+      <div class="empty-title">No staff trainers yet</div>
+      <div class="empty-sub">${isBarnTier?'Add trainers who teach lessons at your barn. They\'ll appear as an option when booking lessons.':'Upgrade to the Barn plan to add staff trainers.'}</div>
+      ${isBarnTier?'<button class="btn btn-primary" onclick="openModal()">Add first trainer</button>':'<a href="paywall.html" class="btn btn-primary">Upgrade to Barn</a>'}
+    </div>`;
+    return;
+  }
+
+  list.innerHTML='';
+  active.forEach(t=>{
+    const card=document.createElement('div');
+    card.className='trainer-card';
+    card.innerHTML=`
+      <div class="trainer-av">${getInitials(t.name).toUpperCase()||'?'}</div>
+      <div class="trainer-info">
+        <div class="trainer-name">${t.name}</div>
+        <div class="trainer-meta">${[t.email,t.phone].filter(Boolean).join(' · ')||'No contact info'}</div>
+      </div>
+      <div class="trainer-right">
+        <button class="btn-remove" onclick="removeTrainer('${t.id}')">Remove</button>
+      </div>`;
+    list.appendChild(card);
+  });
+}
+
+async function load(){
+  const { data: { user } } = await db.auth.getUser();
+  if(!user){ window.location.href='login.html'; return; }
+
+  const { data: trainer } = await db.from('trainers').select('tier').eq('id', user.id).single();
+  isBarnTier = trainer?.tier === 'barn';
+
+  if(!isBarnTier){
+    document.getElementById('tier-notice').style.display='flex';
+    document.getElementById('add-btn').style.opacity='0.5';
+    document.getElementById('add-btn2').style.opacity='0.5';
+  }
+
+  const { data: trainers } = await db.from('staff_trainers').select('*').eq('head_trainer_id', user.id).order('name',{ascending:true});
+  allTrainers = trainers||[];
+  renderTrainers();
+}
+
+load();
+</script>
+</body>
+</html>
