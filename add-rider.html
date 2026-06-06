@@ -5,8 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Add rider — Stirrup</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="supabase.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Inter',sans-serif;background:#f9f8f5;color:#1a1a18;min-height:100vh;display:flex;flex-direction:column}
@@ -70,7 +68,6 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2
   <div class="card">
     <div class="progress" id="progress"></div>
     <div class="error" id="error"></div>
-
     <div class="step active" id="step-1">
       <div class="step-title">Contact info</div>
       <div class="step-sub">Basic details for the rider and an emergency contact.</div>
@@ -90,7 +87,6 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2
       </div>
       <div class="actions"><span></span><button class="btn-next" onclick="go(2)">Continue →</button></div>
     </div>
-
     <div class="step" id="step-2">
       <div class="step-title">Riding details</div>
       <div class="step-sub">Helps match the right lessons and horses.</div>
@@ -120,7 +116,6 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2
         <button class="btn-next" onclick="go(3)">Continue →</button>
       </div>
     </div>
-
     <div class="step" id="step-3">
       <div class="step-title">Notes <span class="optional" style="font-size:14px">optional</span></div>
       <div class="step-sub">Anything useful to remember about this rider.</div>
@@ -130,7 +125,6 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2
         <button class="btn-next" onclick="go(4)">Continue →</button>
       </div>
     </div>
-
     <div class="step" id="step-4">
       <div class="step-title">Confirm new rider</div>
       <div class="step-sub">Double-check before saving.</div>
@@ -140,7 +134,6 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2
         <button class="btn-next" id="save-btn" onclick="saveRider()">Add rider ✓</button>
       </div>
     </div>
-
     <div class="step" id="step-5">
       <div class="done-wrap">
         <div class="done-icon">✓</div>
@@ -154,51 +147,48 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2
     </div>
   </div>
 </div>
-
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-let cur = 1;
-let selLevelVal = 'intermediate';
-let selTypeVal = 'private';
+const SUPABASE_URL = 'https://mfinlbqfowymmklhkuhb.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_PcwbX1YoncwnrHobFmpAIA_L39K4XfK';
+const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+let cur=1, selLevelVal='intermediate', selTypeVal='private';
 
 function renderProgress(){
-  const p = document.getElementById('progress');
-  p.innerHTML = '';
+  const p=document.getElementById('progress');
+  p.innerHTML='';
   for(let i=1;i<=4;i++){
-    const b = document.createElement('div');
-    b.className = 'prog-bar' + (i<cur?' done':i===cur?' active':'');
+    const b=document.createElement('div');
+    b.className='prog-bar'+(i<cur?' done':i===cur?' active':'');
     p.appendChild(b);
   }
 }
 
 function go(n){
-  if(n===4) buildSummary();
+  if(n===4)buildSummary();
   document.getElementById('step-'+cur).classList.remove('active');
-  cur = n;
+  cur=n;
   document.getElementById('step-'+cur).classList.add('active');
   renderProgress();
 }
 
 function selLevel(l){
-  selLevelVal = l;
-  ['beginner','intermediate','advanced'].forEach(x=>{
-    document.getElementById('lv-'+x).classList.toggle('sel', x===l);
-  });
+  selLevelVal=l;
+  ['beginner','intermediate','advanced'].forEach(x=>document.getElementById('lv-'+x).classList.toggle('sel',x===l));
 }
 
 function selType(t){
-  selTypeVal = t;
-  ['private','group','jumping','dressage'].forEach(x=>{
-    document.getElementById('lt-'+x).classList.toggle('sel', x===t);
-  });
+  selTypeVal=t;
+  ['private','group','jumping','dressage'].forEach(x=>document.getElementById('lt-'+x).classList.toggle('sel',x===t));
 }
 
 function buildSummary(){
-  const fname = document.getElementById('fname').value || '—';
-  const lname = document.getElementById('lname').value || '—';
-  const phone = document.getElementById('phone').value || '—';
-  const horse = document.getElementById('horse').value || 'No preference';
-  const duration = document.getElementById('duration').value;
-  document.getElementById('summary').innerHTML = `
+  const fname=document.getElementById('fname').value||'—';
+  const lname=document.getElementById('lname').value||'—';
+  const phone=document.getElementById('phone').value||'—';
+  const horse=document.getElementById('horse').value||'No preference';
+  const duration=document.getElementById('duration').value;
+  document.getElementById('summary').innerHTML=`
     <div class="sum-row"><span class="sum-label">Name</span><span class="sum-val">${fname} ${lname}</span></div>
     <div class="sum-row"><span class="sum-label">Phone</span><span class="sum-val">${phone}</span></div>
     <div class="sum-row"><span class="sum-label">Level</span><span class="sum-val">${selLevelVal.charAt(0).toUpperCase()+selLevelVal.slice(1)}</span></div>
@@ -208,40 +198,40 @@ function buildSummary(){
 }
 
 async function saveRider(){
-  const fname = document.getElementById('fname').value.trim();
-  const lname = document.getElementById('lname').value.trim();
-  if(!fname || !lname){
-    document.getElementById('error').textContent = 'Please enter a first and last name.';
-    document.getElementById('error').style.display = 'block';
-    go(1);
+  const fname=document.getElementById('fname').value.trim();
+  const lname=document.getElementById('lname').value.trim();
+  if(!fname||!lname){
+    document.getElementById('error').textContent='Please enter a first and last name.';
+    document.getElementById('error').style.display='block';
+    go(1);return;
+  }
+  const btn=document.getElementById('save-btn');
+  btn.disabled=true;btn.textContent='Saving…';
+  const { data: { user } } = await db.auth.getUser();
+  if(!user){ window.location.href='login.html'; return; }
+  const { error } = await db.from('riders').insert({
+    trainer_id: user.id,
+    first_name: fname,
+    last_name: lname,
+    phone: document.getElementById('phone').value,
+    email: document.getElementById('email').value,
+    ec_name: document.getElementById('ec-name').value,
+    ec_phone: document.getElementById('ec-phone').value,
+    level: selLevelVal,
+    lesson_type: selTypeVal,
+    horse: document.getElementById('horse').value,
+    duration: document.getElementById('duration').value,
+    notes: document.getElementById('notes').value,
+    payment_status: 'paid'
+  });
+  if(error){
+    document.getElementById('error').textContent=error.message;
+    document.getElementById('error').style.display='block';
+    btn.disabled=false;btn.textContent='Add rider ✓';
     return;
   }
-  const btn = document.getElementById('save-btn');
-  btn.disabled = true;
-  btn.textContent = 'Saving…';
-  try {
-    await addRider({
-      first_name: fname,
-      last_name: lname,
-      phone: document.getElementById('phone').value,
-      email: document.getElementById('email').value,
-      ec_name: document.getElementById('ec-name').value,
-      ec_phone: document.getElementById('ec-phone').value,
-      level: selLevelVal,
-      lesson_type: selTypeVal,
-      horse: document.getElementById('horse').value,
-      duration: document.getElementById('duration').value,
-      notes: document.getElementById('notes').value,
-      payment_status: 'paid'
-    });
-    document.getElementById('done-title').textContent = fname + ' ' + lname + ' added';
-    go(5);
-  } catch(err) {
-    document.getElementById('error').textContent = err.message || 'Failed to save rider.';
-    document.getElementById('error').style.display = 'block';
-    btn.disabled = false;
-    btn.textContent = 'Add rider ✓';
-  }
+  document.getElementById('done-title').textContent=fname+' '+lname+' added';
+  go(5);
 }
 
 renderProgress();
