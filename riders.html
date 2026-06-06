@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Riders — Stirrup</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Inter',sans-serif;background:#f9f8f5;color:#1a1a18;min-height:100vh}
@@ -31,7 +33,6 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2
 .filter-btns{display:flex;gap:6px}
 .filter-btn{font-size:12px;padding:6px 12px;border-radius:20px;border:1px solid #d4d2cb;background:#fff;color:#5a5a55;cursor:pointer;font-family:'Inter',sans-serif;transition:all .15s}
 .filter-btn.active{background:#f0efe9;color:#1a1a18;border-color:#c8c6bf;font-weight:500}
-.section-label{font-size:11px;font-weight:500;color:#8a8a85;margin:1rem 0 6px;letter-spacing:.03em;text-transform:uppercase}
 .rider-card{background:#fff;border:1px solid #e8e6e0;border-radius:10px;padding:.875rem 1.25rem;margin-bottom:8px;display:flex;align-items:center;gap:12px;cursor:pointer;transition:background .15s}
 .rider-card:hover{background:#f9f8f5}
 .av{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;flex-shrink:0}
@@ -42,12 +43,12 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2
 .pill{font-size:11px;padding:2px 8px;border-radius:20px;font-weight:500}
 .pill-green{background:#e0f5ed;color:#0f6e47}
 .pill-amber{background:#faeeda;color:#633806}
-.pill-gray{background:#f0efe9;color:#5a5a55}
 .chevron{font-size:14px;color:#8a8a85}
 .empty{text-align:center;padding:3rem 1rem}
 .empty-icon{font-size:32px;margin-bottom:12px}
 .empty-title{font-size:15px;font-weight:500;color:#1a1a18;margin-bottom:6px}
 .empty-sub{font-size:13px;color:#5a5a55;margin-bottom:1.25rem}
+.loading{text-align:center;padding:3rem;color:#8a8a85;font-size:14px}
 </style>
 </head>
 <body>
@@ -66,15 +67,15 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2
   </div>
 
   <div class="summary">
-    <div class="sum"><div class="sum-label">Total riders</div><div class="sum-val" id="total-riders">0</div></div>
-    <div class="sum"><div class="sum-label">Lessons this week</div><div class="sum-val" id="total-lessons">0</div></div>
-    <div class="sum"><div class="sum-label">Unpaid balances</div><div class="sum-val" id="total-unpaid">0</div></div>
+    <div class="sum"><div class="sum-label">Total riders</div><div class="sum-val" id="total-riders">—</div></div>
+    <div class="sum"><div class="sum-label">Lessons booked</div><div class="sum-val" id="total-lessons">—</div></div>
+    <div class="sum"><div class="sum-label">Unpaid balances</div><div class="sum-val" id="total-unpaid">—</div></div>
   </div>
 
   <div class="toolbar">
     <div class="search-wrap">
       <span class="search-icon">🔍</span>
-      <input type="text" id="search" placeholder="Search riders…" oninput="renderRiders()">
+      <input type="text" id="search" placeholder="Search riders…" oninput="filterRiders()">
     </div>
     <div class="filter-btns">
       <button class="filter-btn active" id="f-all" onclick="setFilter('all')">All</button>
@@ -82,88 +83,81 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2
     </div>
   </div>
 
-  <div id="rider-list"></div>
+  <div id="rider-list"><div class="loading">Loading riders…</div></div>
 </div>
 
 <script>
-const avColors = [
-  {bg:'#e0f5ed',fg:'#0f6e47'},
-  {bg:'#faeeda',fg:'#633806'},
-  {bg:'#eeedfe',fg:'#3c3489'},
-  {bg:'#faece7',fg:'#712b13'},
-  {bg:'#e6f0fb',fg:'#0c447c'},
-];
+const avColors=[{bg:'#e0f5ed',fg:'#0f6e47'},{bg:'#faeeda',fg:'#633806'},{bg:'#eeedfe',fg:'#3c3489'},{bg:'#faece7',fg:'#712b13'},{bg:'#e6f0fb',fg:'#0c447c'}];
+let allRiders = [];
 let activeFilter = 'all';
-
-function getInitials(name){
-  const parts = name.trim().split(' ');
-  return (parts[0]?.[0]||'') + (parts[1]?.[0]||'');
-}
 
 function setFilter(f){
   activeFilter = f;
-  ['all','unpaid'].forEach(x=>{
-    document.getElementById('f-'+x).classList.toggle('active', x===f);
-  });
-  renderRiders();
+  ['all','unpaid'].forEach(x=>document.getElementById('f-'+x).classList.toggle('active',x===f));
+  filterRiders();
 }
 
-function renderRiders(){
-  const riders = JSON.parse(localStorage.getItem('stirrup_riders') || '[]');
-  const bookings = JSON.parse(localStorage.getItem('stirrup_bookings') || '[]');
+function filterRiders(){
   const q = document.getElementById('search').value.toLowerCase();
-  const list = document.getElementById('rider-list');
-
-  document.getElementById('total-riders').textContent = riders.length;
-  document.getElementById('total-lessons').textContent = bookings.length;
-
-  let filtered = riders.filter(r=>{
-    const name = (r.firstName + ' ' + r.lastName).toLowerCase();
-    const matchQ = name.includes(q) || (r.level||'').toLowerCase().includes(q);
-    const matchF = activeFilter === 'all' || r.paymentStatus === 'unpaid';
+  let filtered = allRiders.filter(r=>{
+    const name = (r.first_name+' '+r.last_name).toLowerCase();
+    const matchQ = name.includes(q)||(r.level||'').toLowerCase().includes(q);
+    const matchF = activeFilter==='all'||r.payment_status==='unpaid';
     return matchQ && matchF;
   });
+  renderRiders(filtered);
+}
 
-  const unpaid = riders.filter(r=>r.paymentStatus==='unpaid');
-  document.getElementById('total-unpaid').textContent = unpaid.length;
+function renderRiders(riders){
+  const list = document.getElementById('rider-list');
+  document.getElementById('total-riders').textContent = allRiders.length;
+  document.getElementById('total-unpaid').textContent = allRiders.filter(r=>r.payment_status==='unpaid').length;
 
-  list.innerHTML = '';
-
-  if(filtered.length === 0){
-    list.innerHTML = `
-      <div class="empty">
-        <div class="empty-icon">🐴</div>
-        <div class="empty-title">${riders.length===0?'No riders yet':'No riders match your search'}</div>
-        <div class="empty-sub">${riders.length===0?'Add your first rider to get started.':'Try a different search or filter.'}</div>
-        ${riders.length===0?'<a href="add-rider.html" class="btn btn-primary">Add first rider</a>':''}
-      </div>`;
+  if(riders.length===0){
+    list.innerHTML = `<div class="empty">
+      <div class="empty-icon">🐴</div>
+      <div class="empty-title">${allRiders.length===0?'No riders yet':'No riders match'}</div>
+      <div class="empty-sub">${allRiders.length===0?'Add your first rider to get started.':'Try a different search.'}</div>
+      ${allRiders.length===0?'<a href="add-rider.html" class="btn btn-primary">Add first rider</a>':''}
+    </div>`;
     return;
   }
 
-  filtered.forEach((r,i)=>{
-    const color = avColors[i % avColors.length];
-    const initials = getInitials(r.firstName + ' ' + r.lastName).toUpperCase();
-    const card = document.createElement('div');
-    card.className = 'rider-card';
-    card.onclick = ()=>{ localStorage.setItem('stirrup_viewing_rider', JSON.stringify(r)); window.location.href='rider.html'; };
-    const pill = r.paymentStatus === 'unpaid'
-      ? '<span class="pill pill-amber">unpaid</span>'
-      : '<span class="pill pill-green">paid</span>';
-    card.innerHTML = `
-      <div class="av" style="background:${color.bg};color:${color.fg}">${initials||'?'}</div>
+  list.innerHTML='';
+  riders.forEach((r,i)=>{
+    const c=avColors[i%avColors.length];
+    const initials=((r.first_name?.[0]||'')+(r.last_name?.[0]||'')).toUpperCase();
+    const card=document.createElement('div');
+    card.className='rider-card';
+    card.onclick=()=>{localStorage.setItem('stirrup_viewing_rider',JSON.stringify(r));window.location.href='rider.html';};
+    card.innerHTML=`
+      <div class="av" style="background:${c.bg};color:${c.fg}">${initials}</div>
       <div class="rider-info">
-        <div class="rider-name">${r.firstName} ${r.lastName}</div>
-        <div class="rider-meta">${r.level||'No level set'} · ${r.lessonType||'No lesson type'}</div>
+        <div class="rider-name">${r.first_name} ${r.last_name}</div>
+        <div class="rider-meta">${r.level||'No level'} · ${r.lesson_type||'No type'}</div>
       </div>
       <div class="rider-right">
-        ${pill}
+        ${r.payment_status==='unpaid'?'<span class="pill pill-amber">unpaid</span>':'<span class="pill pill-green">paid</span>'}
         <span class="chevron">→</span>
       </div>`;
     list.appendChild(card);
   });
 }
 
-renderRiders();
+async function load(){
+  try {
+    const user = await getUser();
+    if(!user){ window.location.href='login.html'; return; }
+    allRiders = await getRiders();
+    const bookings = await getBookings();
+    document.getElementById('total-lessons').textContent = bookings.length;
+    filterRiders();
+  } catch(err){
+    document.getElementById('rider-list').innerHTML='<div class="loading">Error loading riders. Please refresh.</div>';
+  }
+}
+
+load();
 </script>
 </body>
 </html>
