@@ -31,8 +31,9 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2
 .card-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem}
 .card-title{font-size:14px;font-weight:600;color:#1a1a18}
 .card-link{font-size:12px;color:#1D9E75;text-decoration:none;cursor:pointer}
-.pay-row{display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid #f0efe9}
+.pay-row{display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid #f0efe9;cursor:pointer;transition:background .15s;margin:0 -1.25rem;padding-left:1.25rem;padding-right:1.25rem}
 .pay-row:last-child{border-bottom:none}
+.pay-row:hover{background:#f9f8f5}
 .pay-name{font-size:13px;font-weight:500;color:#1a1a18}
 .pay-meta{font-size:11px;color:#5a5a55;margin-top:1px}
 .pill{font-size:11px;padding:2px 8px;border-radius:20px;font-weight:500;white-space:nowrap;display:inline-block}
@@ -168,6 +169,11 @@ const SUPABASE_URL = 'https://mfinlbqfowymmklhkuhb.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_PcwbX1YoncwnrHobFmpAIA_L39K4XfK';
 const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
+function openBooking(bk){
+  localStorage.setItem('stirrup_viewing_booking', JSON.stringify(bk));
+  window.location.href='booking.html';
+}
+
 async function load(){
   const { data: { user } } = await db.auth.getUser();
   if(!user){ window.location.href='login.html'; return; }
@@ -223,12 +229,16 @@ async function load(){
     b.slice(0,5).forEach(bk=>{
       const row=document.createElement('div');
       row.className='pay-row';
+      row.onclick=()=>openBooking(bk);
       row.innerHTML=`
         <div>
           <div class="pay-name">${bk.rider_name}</div>
           <div class="pay-meta">${bk.lesson_type}${bk.horse_name?' · '+bk.horse_name:''} · ${bk.date} ${bk.time}</div>
         </div>
-        <span class="pill ${bk.payment_status==='paid'?'pill-green':'pill-amber'}">${bk.payment_status}</span>`;
+        <div style="display:flex;align-items:center;gap:8px">
+          <span class="pill ${bk.payment_status==='paid'?'pill-green':'pill-amber'}">${bk.payment_status}</span>
+          <span style="font-size:13px;color:#8a8a85">→</span>
+        </div>`;
       rb.appendChild(row);
     });
   }
@@ -240,6 +250,7 @@ async function load(){
     paid.slice(0,4).forEach(bk=>{
       const row=document.createElement('div');
       row.className='pay-row';
+      row.onclick=()=>openBooking(bk);
       row.innerHTML=`
         <div>
           <div class="pay-name">${bk.rider_name}</div>
