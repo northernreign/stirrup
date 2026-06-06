@@ -9,7 +9,7 @@
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Inter',sans-serif;background:#f9f8f5;color:#1a1a18;min-height:100vh}
 nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2rem;background:#fff;border-bottom:1px solid #e8e6e0}
-.logo{font-size:18px;font-weight:600;color:#1a1a18}
+.logo{font-size:18px;font-weight:600;color:#1a1a18;text-decoration:none}
 .nav-right{display:flex;align-items:center;gap:12px}
 .free-badge{font-size:12px;padding:4px 10px;border-radius:20px;background:#f0efe9;color:#5a5a55;border:1px solid #e8e6e0}
 .free-badge strong{color:#1a1a18}
@@ -77,10 +77,11 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2
 </head>
 <body>
 <nav>
-  <div class="logo">Stirrup</div>
+  <a href="dashboard.html" class="logo">Stirrup</a>
   <div class="nav-right">
     <div class="free-badge"><strong id="bookings-left">10</strong> bookings left</div>
     <a href="riders.html" class="btn btn-ghost">Riders</a>
+    <a href="settings.html" class="btn btn-ghost">Settings</a>
     <a href="book.html" class="btn btn-primary">+ Book lesson</a>
   </div>
 </nav>
@@ -101,101 +102,4 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2
       <div class="metric-sub">in your roster</div>
     </div>
     <div class="metric">
-      <div class="metric-label">Collected</div>
-      <div class="metric-val">$0</div>
-      <div class="metric-sub">payments via Square</div>
-    </div>
-  </div>
-
-  <div class="checklist" id="checklist">
-    <div class="cl-title">Finish setting up your barn</div>
-    <div class="cl-sub">1 of 5 complete</div>
-    <div class="cl-prog"><div class="cl-fill"></div></div>
-    <div class="cl-row">
-      <div class="cl-check done">✓</div>
-      <div class="cl-text done">Create your account</div>
-    </div>
-    <div class="cl-row" onclick="window.location.href='riders.html'">
-      <div class="cl-check"></div>
-      <div class="cl-text">Add your first rider</div>
-      <div class="cl-arrow">→</div>
-    </div>
-    <div class="cl-row" onclick="window.location.href='book.html'">
-      <div class="cl-check"></div>
-      <div class="cl-text">Book your first lesson</div>
-      <div class="cl-arrow">→</div>
-    </div>
-    <div class="cl-row">
-      <div class="cl-check"></div>
-      <div class="cl-text">Connect Square to accept payments</div>
-      <div class="cl-arrow">→</div>
-    </div>
-    <div class="cl-row">
-      <div class="cl-check"></div>
-      <div class="cl-text">Customize lesson types & pricing</div>
-      <div class="cl-arrow">→</div>
-    </div>
-  </div>
-
-  <div class="grid2">
-    <div class="card">
-      <div class="card-head">
-        <div class="card-title">This week</div>
-        <span class="card-link" onclick="window.location.href='book.html'">+ Book lesson</span>
-      </div>
-      <div class="week">
-        <div><div class="day-label">Mon</div><div class="day-col"><div class="slot slot-open" onclick="window.location.href='book.html'">+</div></div></div>
-        <div><div class="day-label">Tue</div><div class="day-col"><div class="slot slot-open" onclick="window.location.href='book.html'">+</div></div></div>
-        <div><div class="day-label">Wed</div><div class="day-col"><div class="slot slot-open" onclick="window.location.href='book.html'">+</div></div></div>
-        <div><div class="day-label">Thu</div><div class="day-col"><div class="slot slot-open" onclick="window.location.href='book.html'">+</div></div></div>
-        <div><div class="day-label">Fri</div><div class="day-col"><div class="slot slot-open" onclick="window.location.href='book.html'">+</div></div></div>
-        <div><div class="day-label">Sat</div><div class="day-col"><div class="slot slot-open" onclick="window.location.href='book.html'">+</div></div></div>
-        <div><div class="day-label">Sun</div><div class="day-col"><div class="slot slot-open" onclick="window.location.href='book.html'">+</div></div></div>
-      </div>
-      <div class="legend">
-        <span><span class="legend-dot" style="background:#e0f5ed"></span>booked</span>
-        <span><span class="legend-dot" style="background:#faeeda"></span>pending</span>
-        <span><span class="legend-dot" style="background:#f0efe9"></span>open</span>
-      </div>
-    </div>
-
-    <div class="card">
-      <div class="card-head">
-        <div class="card-title">Recent payments</div>
-      </div>
-      <div style="text-align:center;padding:2rem 0;color:#8a8a85;font-size:13px">
-        <div style="font-size:24px;margin-bottom:8px">💳</div>
-        No payments yet.<br>Connect Square to get started.
-      </div>
-    </div>
-  </div>
-
-  <div class="sq-notice">
-    <div style="font-size:20px">◼</div>
-    <div class="sq-notice-body">
-      <div class="sq-notice-title">Connect Square to accept payments</div>
-      <div class="sq-notice-text">Payment links won't send until Square is connected. Takes about 60 seconds — just sign in with your Square account.</div>
-      <button class="btn-sq">Connect Square →</button>
-    </div>
-  </div>
-</div>
-
-<script>
-window.onload = function(){
-  const user = JSON.parse(localStorage.getItem('stirrup_user') || '{}');
-  const name = user.name || '';
-  const barn = user.barn || 'your barn';
-  const hour = new Date().getHours();
-  const greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
-  document.getElementById('greeting').textContent = greeting + (name ? ', ' + name : '');
-  document.getElementById('greeting-sub').textContent = "Here's what's happening at " + barn + ".";
-  const riders = JSON.parse(localStorage.getItem('stirrup_riders') || '[]');
-  const bookings = JSON.parse(localStorage.getItem('stirrup_bookings') || '[]');
-  document.getElementById('m-riders').textContent = riders.length;
-  document.getElementById('m-lessons').textContent = bookings.length;
-  const left = Math.max(0, 10 - bookings.length);
-  document.getElementById('bookings-left').textContent = left;
-};
-</script>
-</body>
-</html>
+      <div class="metric-label">Collected</d
