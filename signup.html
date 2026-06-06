@@ -11,7 +11,6 @@ body{font-family:'Inter',sans-serif;background:#f9f8f5;color:#1a1a18;min-height:
 nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2rem;background:#fff;border-bottom:1px solid #e8e6e0}
 .logo{font-size:18px;font-weight:600;color:#1a1a18;text-decoration:none}
 .nav-link{font-size:14px;color:#5a5a55;text-decoration:none}
-.nav-link:hover{color:#1a1a18}
 .main{flex:1;display:flex;align-items:center;justify-content:center;padding:2rem}
 .card{background:#fff;border:1px solid #e8e6e0;border-radius:16px;padding:2rem;width:100%;max-width:420px}
 .card-title{font-size:22px;font-weight:600;margin-bottom:6px}
@@ -55,8 +54,11 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2
   </div>
 </div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="supabase.js"></script>
 <script>
+const SUPABASE_URL = 'https://mfinlbqfowymmklhkuhb.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_PcwbX1YoncwnrHobFmpAIA_L39K4XfK';
+const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
 async function handleSignup(){
   const fname = document.getElementById('fname').value.trim();
   const lname = document.getElementById('lname').value.trim();
@@ -83,7 +85,15 @@ async function handleSignup(){
   btn.textContent = 'Creating account…';
 
   try {
-    await signUp(email, password, fname + ' ' + lname, barn);
+    const { data, error } = await db.auth.signUp({ email, password });
+    if(error) throw error;
+    if(data.user){
+      await db.from('trainers').insert({
+        id: data.user.id,
+        name: fname + ' ' + lname,
+        barn_name: barn
+      });
+    }
     localStorage.setItem('stirrup_user', JSON.stringify({ name: fname, barn: barn, email: email }));
     window.location.href = 'onboarding.html';
   } catch(err) {
