@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Book lesson — Stirrup</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Inter',sans-serif;background:#f9f8f5;color:#1a1a18;min-height:100vh;display:flex;flex-direction:column}
+nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2rem;background:#fff;border-bottom:1px solid #e8e6e0}
+.logo{font-size:18px;font-weight:600;color:#1a1a18;text-decoration:none}
+.back-link{font-size:14px;color:#5a5a55;text-decoration:none}
+.back-link:hover{color:#1a1a18}
+.main{flex:1;display:flex;align-items:flex-start;justify-content:center;padding:2rem}
+.card{background:#fff;border:1px solid #e8e6e0;border-radius:16px;padding:2rem;width:100%;max-width:480px}
+.progress{display:flex;gap:6px;margin-bottom:2rem}
+.prog-bar{flex:1;height:4px;border-radius:2px;background:#e8e6e0;transition:background .3s}
+.prog-bar.done{background:#1D9E75}
+.prog-bar.active{background:#1D9E75;opacity:.5}
+.step{display:none}
+.step.active{display:block}
+.step-title{font-size:20px;font-weight:600;margin-bottom:6px}
+.step-sub{font-size:14px;color:#5a5a55;margin-bottom:1.5rem;line-height:1.5}
+.field{margin-bottom:14px}
+.field label{display:block;font-size:13px;font-weight:500;color:#3a3a35;margin-bottom:5px}
+.field input,.field select,.field textarea{width:100%;padding:10px 12px;border:1px solid #d4d2cb;border-radius:8px;font-size:14px;font-family:'Inter',sans-serif;background:#fff;color:#1a1a18;outline:none;transition:border .15s}
+.field input:focus,.field select:focus{border-color:#1D9E75}
+.field textarea{height:72px;resize:none}
+.rider-list{display:flex;flex-direction:column;gap:6px;margin-bottom:14px}
+.rider-btn{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;border:1px solid #d4d2cb;background:#fff;cursor:pointer;text-align:left;transition:all .15s;font-family:'Inter',sans-serif;width:100%}
+.rider-btn.sel{background:#e0f5ed;border-color:#1D9E75}
+.rider-btn:hover{background:#f0efe9}
+.av{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;flex-shrink:0}
+.rider-name{font-size:13px;font-weight:500;color:#1a1a18}
+.rider-meta{font-size:11px;color:#5a5a55}
+.type-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px}
+.type-btn{display:flex;align-items:center;gap:8px;padding:10px 12px;border-radius:10px;border:1px solid #d4d2cb;background:#fff;cursor:pointer;transition:all .15s;font-family:'Inter',sans-serif;width:100%}
+.type-btn.sel{background:#e0f5ed;border-color:#1D9E75}
+.type-btn:hover{background:#f0efe9}
+.type-icon{width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
+.type-name{font-size:12px;font-weight:500;color:#1a1a18}
+.type-price{font-size:11px;color:#5a5a55}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:12px}
+.cal-label{font-size:11px;color:#8a8a85;text-align:center;padding-bottom:4px}
+.cal-day{height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:12px;cursor:pointer;border:1px solid transparent;transition:all .15s;background:#f0efe9;color:#1a1a18}
+.cal-day:hover{border-color:#d4d2cb}
+.cal-day.sel{background:#e0f5ed;color:#0f6e47;border-color:#1D9E75;font-weight:600}
+.cal-day.off{background:transparent;color:#d4d2cb;cursor:default}
+.time-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:14px}
+.time-btn{padding:9px;border-radius:8px;font-size:12px;text-align:center;border:1px solid #d4d2cb;background:#fff;cursor:pointer;color:#1a1a18;transition:all .15s;font-family:'Inter',sans-serif}
+.time-btn.sel{background:#e0f5ed;border-color:#1D9E75;color:#0f6e47;font-weight:500}
+.time-btn:hover{background:#f0efe9}
+.time-btn.taken{background:#f0efe9;color:#c8c6bf;cursor:default;text-decoration:line-through}
+.pay-opts{display:flex;flex-direction:column;gap:8px;margin-bottom:14px}
+.pay-opt{display:flex;align-items:flex-start;gap:10px;padding:10px 12px;border-radius:10px;border:1px solid #d4d2cb;background:#fff;cursor:pointer;transition:all .15s}
+.pay-opt.sel{background:#e0f5ed;border-color:#1D9E75}
+.pay-radio{width:16px;height:16px;border-radius:50%;border:1.5px solid #d4d2cb;flex-shrink:0;margin-top:2px;transition:all .15s}
+.pay-radio.sel{background:#1D9E75;border-color:#1D9E75}
+.pay-opt-title{font-size:13px;font-weight:500;color:#1a1a18}
+.pay-opt-sub{font-size:11px;color:#5a5a55;margin-top:2px;line-height:1.4}
+.summary-card{background:#f9f8f5;border-radius:10px;padding:1rem;margin-bottom:1rem}
+.sum-row{display:flex;justify-content:space-between;font-size:13px;padding:5px 0;border-bottom:1px solid #e8e6e0}
+.sum-row:last-child{border-bottom:none}
+.sum-label{color:#5a5a55}
+.sum-val{font-weight:500;color:#1a1a18}
+.actions{display:flex;align-items:center;justify-content:space-between;margin-top:1.5rem}
+.btn-back{padding:8px 18px;background:transparent;border:1px solid #d4d2cb;border-radius:8px;font-size:14px;font-weight:500;cursor:pointer;color:#5a5a55;font-family:'Inter',sans-serif}
+.btn-back:hover{background:#f0efe9}
+.btn-next{padding:8px 22px;background:#1D9E75;border:none;border-radius:8px;font-size:14px;font-weight:500;cursor:pointer;color:#fff;font-family:'Inter',sans-serif}
+.btn-next:hover{background:#178a64}
+.done-wrap{text-align:center;padding:1rem 0}
+.done-icon{width:56px;height:56px;border-radius:50%;background:#e0f5ed;display:flex;align-items:center;justify-content:center;font-size:26px;margin:0 auto 1rem}
+.empty-riders{text-align:center;padding:2rem;color:#5a5a55;font-size:13px}
+</style>
+</head>
+<body>
+<nav>
+  <a href="dashboard.html" class="logo">Stirrup</a>
+  <a href="dashboard.html" class="back-link">← Dashboard</a>
+</nav>
+<div class="main">
+  <div class="card">
+    <div class="progress" id="progress"></div>
+
+    <div class="step active" id="step-1">
+      <div class="step-title">Who's the lesson for?</div>
+      <div class="step-sub">Pick a rider or add a new one.</div>
+      <div id="rider-list"></div>
+      <a href="add-rider.html" style="font-size:13px;color:#1D9E75;text-decoration:none;display:block;margin-top:4px">+ Add new rider</a>
+      <div class="actions"><span></span><button class="btn-next" onclick="go(2)">Continue →</button></div>
+    </div>
+
+    <div class="step" id="step-2">
+      <div class="step-title">What kind of lesson?</div>
+      <div class="step-sub">Choose a type and duration.</div>
+      <div class="type-grid">
+        <button class="type-btn sel" id="lt-private" onclick="selType('private','$75')"><div class="type-icon" style="background:#e0f5ed">🧑‍🏫</div><div><div class="type-name">Private</div><div class="type-price">$75</div></div></button>
+        <button class="type-btn" id="lt-group" onclick="selType('group','$40')"><div class="type-icon" style="background:#eeedfe">👥</div><div><div class="type-name">Group</div><div class="type-price">$40</div></div></button>
+        <button class="type-btn" id="lt-jumping" onclick="selType('jumping','$85')"><div class="type-icon" style="background:#faeeda">🏇</div><div><div class="type-name">Jumping</div><div class="type-price">$85</div></div></button>
+        <button class="type-btn" id="lt-dressage" onclick="selType('dressage','$85')"><div class="type-icon" style="background:#faece7">🎯</div><div><div class="type-name">Dressage</div><div class="type-price">$85</div></div></button>
+      </div>
+      <div class="field"><label>Duration</label>
+        <select id="duration" style="width:180px">
+          <option>30 minutes</option><option selected>45 minutes</option><option>60 minutes</option><option>90 minutes</option>
+        </select>
+      </div>
+      <div class="field"><label>Notes (optional)</label><textarea id="notes" placeholder="e.g. focus on canter transitions…"></textarea></div>
+      <div class="actions"><button class="btn-back" onclick="go(1)">← Back</button><button class="btn-next" onclick="go(3)">Continue →</button></div>
+    </div>
+
+    <div class="step" id="step-3">
+      <div class="step-title">Pick a date & time</div>
+      <div class="step-sub">Showing available slots for this month.</div>
+      <div class="cal-grid" id="cal"></div>
+      <div style="font-size:12px;color:#5a5a55;margin-bottom:8px" id="time-label">Select a date to see times</div>
+      <div class="time-grid" id="times"></div>
+      <div class="actions"><button class="btn-back" onclick="go(2)">← Back</button><button class="btn-next" onclick="go(4)">Continue →</button></div>
+    </div>
+
+    <div class="step" id="step-4">
+      <div class="step-title">Confirm & payment</div>
+      <div class="step-sub">Review the details and choose how to handle payment.</div>
+      <div class="summary-card" id="summary"></div>
+      <div style="font-size:13px;font-weight:500;color:#3a3a35;margin-bottom:8px">Payment</div>
+      <div class="pay-opts">
+        <div class="pay-opt sel" id="po-0" onclick="selPay(0)">
+          <div class="pay-radio sel" id="pr-0"></div>
+          <div><div class="pay-opt-title">Send Square payment link</div><div class="pay-opt-sub">Rider gets a link to pay online. Marked paid when done.</div></div>
+        </div>
+        <div class="pay-opt" id="po-1" onclick="selPay(1)">
+          <div class="pay-radio" id="pr-1"></div>
+          <div><div class="pay-opt-title">Mark as paid manually</div><div class="pay-opt-sub">Cash, Venmo, or already collected.</div></div>
+        </div>
+        <div class="pay-opt" id="po-2" onclick="selPay(2)">
+          <div class="pay-radio" id="pr-2"></div>
+          <div><div class="pay-opt-title">Send link later</div><div class="pay-opt-sub">Book now, send payment link from the dashboard.</div></div>
+        </div>
+      </div>
+      <div class="actions"><button class="btn-back" onclick="go(3)">← Back</button><button class="btn-next" onclick="saveBooking()">Book lesson ✓</button></div>
+    </div>
+
+    <div class="step" id="step-5">
+      <div class="done-wrap">
+        <div class="done-icon">✓</div>
+        <div style="font-size:20px;font-weight:600;margin-bottom:6px">Lesson booked</div>
+        <div style="font-size:14px;color:#5a5a55;margin-bottom:1.5rem" id="done-sub">Your lesson has been scheduled.</div>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <button class="btn-next" style="width:100%;padding:11px" onclick="window.location.href='dashboard.html'">Back to dashboard →</button>
+          <button class="btn-back" style="width:100%;padding:11px;text-align:center" onclick="resetForm()">Book another lesson</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+let cur = 1;
+let selRiderIdx = 0;
+let selTypeVal = 'private';
+let selTypePrice = '$75';
+let selDay = null;
+let selTime = null;
+let selPayIdx = 0;
+const avColors=[{bg:'#e0f5ed',fg:'#0f6e47'},{bg:'#faeeda',fg:'#633806'},{bg:'#eeedfe',fg:'#3c3489'},{bg:'#faece7',fg:'#712b13'},{bg:'#e6f0fb',fg:'#0c447c'}];
+const times=['8:00 AM','9:00 AM','10:00 AM','11:00 AM','1:00 PM','2:00 PM','3:00 PM','4:00 PM','5:00 PM'];
+const taken=['10:00 AM','3:00 PM'];
+const days=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+
+function renderProgress(){
+  const p=document.getElementById('progress');
+  p.innerHTML='';
+  for(let i=1;i<=4;i++){
+    const b=document.createElement('div');
+    b.className='prog-bar'+(i<cur?' done':i===cur?' active':'');
+    p.appendChild(b);
+  }
+}
+
+function renderRiders(){
+  const riders=JSON.parse(localStorage.getItem('stirrup_riders')||'[]');
+  const list=document.getElementById('rider-list');
+  if(riders.length===0){
+    list.innerHTML='<div class="empty-riders">No riders yet. Add one first.</div>';
+    return;
+  }
+  list.innerHTML='';
+  riders.forEach((r,i)=>{
+    const c=avColors[i%avColors.length];
+    const initials=((r.firstName?.[0]||'')+(r.lastName?.[0]||'')).toUpperCase();
+    const btn=document.createElement('button');
+    btn.className='rider-btn'+(i===selRiderIdx?' sel':'');
+    btn.innerHTML=`<div class="av" style="background:${c.bg};color:${c.fg}">${initials}</div><div><div class="rider-name">${r.firstName} ${r.lastName}</div><div class="rider-meta">${r.level||''} · ${r.lessonType||''}</div></div>`;
+    btn.onclick=()=>{selRiderIdx=i;renderRiders();};
+    list.appendChild(btn);
+  });
+}
+
+function selType(t,p){
+  selTypeVal=t;selTypePrice=p;
+  ['private','group','jumping','dressage'].forEach(x=>document.getElementById('lt-'+x).classList.toggle('sel',x===t));
+}
+
+function renderCal(){
+  const g=document.getElementById('cal');
+  g.innerHTML='';
+  days.forEach(d=>{const l=document.createElement('div');l.className='cal-label';l.textContent=d;g.appendChild(l);});
+  const now=new Date();
+  const year=now.getFullYear();
+  const month=now.getMonth();
+  const firstDay=new Date(year,month,1).getDay();
+  const daysInMonth=new Date(year,month+1,0).getDate();
+  const offset=(firstDay+6)%7;
+  for(let i=0;i<offset;i++){const e=document.createElement('div');e.className='cal-day off';g.appendChild(e);}
+  for(let d=1;d<=daysInMonth;d++){
+    const dow=(offset+d-1)%7;
+    const isAvail=dow<5;
+    const el=document.createElement('div');
+    el.className='cal-day'+(isAvail?'':' off')+(d===selDay?' sel':'');
+    el.textContent=d;
+    if(isAvail){el.onclick=()=>{selDay=d;selTime=null;renderCal();renderTimes();document.getElementById('time-label').textContent=`Available times for ${now.toLocaleString('default',{month:'long'})} ${d}`;};} 
+    g.appendChild(el);
+  }
+}
+
+function renderTimes(){
+  const g=document.getElementById('times');
+  g.innerHTML='';
+  if(!selDay){return;}
+  times.forEach(t=>{
+    const isTaken=taken.includes(t);
+    const btn=document.createElement('button');
+    btn.className='time-btn'+(isTaken?' taken':t===selTime?' sel':'');
+    btn.textContent=t;
+    if(!isTaken)btn.onclick=()=>{selTime=t;renderTimes();};
+    else btn.disabled=true;
+    g.appendChild(btn);
+  });
+}
+
+function selPay(i){
+  selPayIdx=i;
+  [0,1,2].forEach(j=>{
+    document.getElementById('po-'+j).classList.toggle('sel',j===i);
+    document.getElementById('pr-'+j).classList.toggle('sel',j===i);
+  });
+}
+
+function buildSummary(){
+  const riders=JSON.parse(localStorage.getItem('stirrup_riders')||'[]');
+  const rider=riders[selRiderIdx];
+  const now=new Date();
+  const dateStr=selDay?`${now.toLocaleString('default',{month:'long'})} ${selDay}`:'No date selected';
+  const timeStr=selTime||'No time selected';
+  const s=document.getElementById('summary');
+  s.innerHTML=`
+    <div class="sum-row"><span class="sum-label">Rider</span><span class="sum-val">${rider?rider.firstName+' '+rider.lastName:'—'}</span></div>
+    <div class="sum-row"><span class="sum-label">Lesson type</span><span class="sum-val">${selTypeVal.charAt(0).toUpperCase()+selTypeVal.slice(1)}</span></div>
+    <div class="sum-row"><span class="sum-label">Date & time</span><span class="sum-val">${dateStr} · ${timeStr}</span></div>
+    <div class="sum-row"><span class="sum-label">Duration</span><span class="sum-val">${document.getElementById('duration').value}</span></div>
+    <div class="sum-row"><span class="sum-label">Amount</span><span class="sum-val">${selTypePrice}</span></div>`;
+}
+
+function go(n){
+  if(n===4)buildSummary();
+  document.getElementById('step-'+cur).classList.remove('active');
+  cur=n;
+  document.getElementById('step-'+cur).classList.add('active');
+  renderProgress();
+}
+
+function saveBooking(){
+  const riders=JSON.parse(localStorage.getItem('stirrup_riders')||'[]');
+  const rider=riders[selRiderIdx];
+  if(!rider){alert('Please select a rider.');go(1);return;}
+  if(!selDay||!selTime){alert('Please select a date and time.');go(3);return;}
+  const now=new Date();
+  const booking={
+    id:Date.now().toString(),
+    riderId:rider.id,
+    riderName:rider.firstName+' '+rider.lastName,
+    lessonType:selTypeVal,
+    price:selTypePrice,
+    duration:document.getElementById('duration').value,
+    notes:document.getElementById('notes').value,
+    date:`${now.toLocaleString('default',{month:'long'})} ${selDay}`,
+    time:selTime,
+    paymentOption:['square_link','manual','later'][selPayIdx],
+    paymentStatus:selPayIdx===1?'paid':'unpaid',
+    createdAt:new Date().toISOString()
+  };
+  const bookings=JSON.parse(localStorage.getItem('stirrup_bookings')||'[]');
+  bookings.push(booking);
+  localStorage.setItem('stirrup_bookings',JSON.stringify(bookings));
+  document.getElementById('done-sub').textContent=`${rider.firstName} ${rider.lastName} · ${selTypeVal} · ${booking.date} at ${selTime}`;
+  go(5);
+}
+
+function resetForm(){
+  selDay=null;selTime=null;selPayIdx=0;cur=1;
+  document.getElementById('step-5').classList.remove('active');
+  document.getElementById('step-1').classList.add('active');
+  renderProgress();renderRiders();
+}
+
+renderProgress();
+renderRiders();
+renderCal();
+</script>
+</body>
+</html>
