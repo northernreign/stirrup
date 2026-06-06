@@ -39,6 +39,7 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2
 .pill{font-size:11px;padding:2px 8px;border-radius:20px;font-weight:500;white-space:nowrap;display:inline-block}
 .pill-green{background:#e0f5ed;color:#0f6e47}
 .pill-amber{background:#faeeda;color:#633806}
+.pill-blue{background:#e6f0fb;color:#0c447c}
 .checklist{background:#fff;border:1px solid #e8e6e0;border-radius:12px;padding:1rem 1.25rem;margin-bottom:1.5rem}
 .cl-title{font-size:14px;font-weight:600;margin-bottom:4px}
 .cl-sub{font-size:12px;color:#5a5a55;margin-bottom:.75rem}
@@ -63,7 +64,7 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2
 <nav>
   <a href="dashboard.html" class="logo">Stirrup</a>
   <div class="nav-right">
-    <div class="free-badge"><strong id="bookings-left">10</strong> bookings left</div>
+    <div class="free-badge"><strong id="bookings-left">20</strong> bookings left</div>
     <a href="horses.html" class="btn btn-ghost">Horses</a>
     <a href="riders.html" class="btn btn-ghost">Riders</a>
     <a href="trainers.html" class="btn btn-ghost">Trainers</a>
@@ -93,9 +94,9 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2
       <div class="metric-sub">in your barn</div>
     </div>
     <div class="metric">
-      <div class="metric-label">Collected</div>
-      <div class="metric-val">$0</div>
-      <div class="metric-sub">payments via Square</div>
+      <div class="metric-label">Awaiting payment</div>
+      <div class="metric-val" id="m-unpaid">—</div>
+      <div class="metric-sub">past lessons unpaid</div>
     </div>
   </div>
 
@@ -145,10 +146,10 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2
       </div>
     </div>
     <div class="card">
-      <div class="card-head"><div class="card-title">Recent payments</div></div>
-      <div id="recent-payments">
+      <div class="card-head"><div class="card-title">Awaiting payment</div></div>
+      <div id="awaiting-payment">
         <div style="text-align:center;padding:2rem 0;color:#8a8a85;font-size:13px">
-          <div style="font-size:24px;margin-bottom:8px">💳</div>No payments yet.
+          <div style="font-size:24px;margin-bottom:8px">💳</div>No payments due.
         </div>
       </div>
     </div>
@@ -169,63 +170,66 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2
 const SUPABASE_URL = 'https://mfinlbqfowymmklhkuhb.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_PcwbX1YoncwnrHobFmpAIA_L39K4XfK';
 const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+const today=new Date();
+today.setHours(0,0,0,0);
+
+function pillFor(bk){
+  if(bk.payment_status==='paid') return '<span class="pill pill-green">paid</span>';
+  if(bk.payment_status==='upcoming') return '<span class="pill pill-blue">upcoming</span>';
+  return '<span class="pill pill-amber">'+bk.payment_status+'</span>';
+}
+
+function lessonPassed(bk){
+  if(!bk.scheduled_date) return false;
+  const d=new Date(bk.scheduled_date);
+  d.setHours(0,0,0,0);
+  return d<today;
+}
 
 function openBooking(bk){
-  localStorage.setItem('stirrup_viewing_booking', JSON.stringify(bk));
+  localStorage.setItem('stirrup_viewing_booking',JSON.stringify(bk));
   window.location.href='booking.html';
 }
 
 async function load(){
-  const { data: { user } } = await db.auth.getUser();
-  if(!user){ window.location.href='login.html'; return; }
+  const { data: { user } }=await db.auth.getUser();
+  if(!user){window.location.href='login.html';return;}
 
-  const { data: trainer } = await db.from('trainers').select('*').eq('id', user.id).single();
-  const name = trainer?.name?.split(' ')[0] || '';
-  const barn = trainer?.barn_name || 'your barn';
-  const hour = new Date().getHours();
-  const greeting = hour<12?'Good morning':hour<17?'Good afternoon':'Good evening';
-  document.getElementById('greeting').textContent = greeting+(name?', '+name:'');
-  document.getElementById('greeting-sub').textContent = "Here's what's happening at "+barn+".";
+  const { data: trainer }=await db.from('trainers').select('*').eq('id',user.id).single();
+  const name=trainer?.name?.split(' ')[0]||'';
+  const barn=trainer?.barn_name||'your barn';
+  const hour=new Date().getHours();
+  const greeting=hour<12?'Good morning':hour<17?'Good afternoon':'Good evening';
+  document.getElementById('greeting').textContent=greeting+(name?', '+name:'');
+  document.getElementById('greeting-sub').textContent="Here's what's happening at "+barn+".";
 
-  const [{ data: riders },{ data: bookings },{ data: horses }] = await Promise.all([
-    db.from('riders').select('*').eq('trainer_id', user.id),
-    db.from('bookings').select('*').eq('trainer_id', user.id).order('created_at',{ascending:false}),
-    db.from('horses').select('*').eq('trainer_id', user.id).eq('active', true)
+  const [{ data: riders },{ data: bookings },{ data: horses }]=await Promise.all([
+    db.from('riders').select('*').eq('trainer_id',user.id),
+    db.from('bookings').select('*').eq('trainer_id',user.id).order('created_at',{ascending:false}),
+    db.from('horses').select('*').eq('trainer_id',user.id).eq('active',true)
   ]);
 
-  const r = riders||[];
-  const b = bookings||[];
-  const h = horses||[];
+  const r=riders||[];
+  const b=bookings||[];
+  const h=horses||[];
 
-  document.getElementById('m-riders').textContent = r.length;
-  document.getElementById('m-lessons').textContent = b.length;
-  document.getElementById('m-horses').textContent = h.length;
-  document.getElementById('bookings-left').textContent = Math.max(0, 10 - b.length);
+  document.getElementById('m-riders').textContent=r.length;
+  document.getElementById('m-lessons').textContent=b.length;
+  document.getElementById('m-horses').textContent=h.length;
+  document.getElementById('bookings-left').textContent=Math.max(0,20-b.length);
 
-  let done = 1;
-  if(h.length > 0){
-    done++;
-    document.getElementById('ck-horses').className='cl-check done';
-    document.getElementById('ck-horses').textContent='✓';
-    document.getElementById('ct-horses').className='cl-text done';
-  }
-  if(r.length > 0){
-    done++;
-    document.getElementById('ck-rider').className='cl-check done';
-    document.getElementById('ck-rider').textContent='✓';
-    document.getElementById('ct-rider').className='cl-text done';
-  }
-  if(b.length > 0){
-    done++;
-    document.getElementById('ck-booking').className='cl-check done';
-    document.getElementById('ck-booking').textContent='✓';
-    document.getElementById('ct-booking').className='cl-text done';
-  }
-  document.getElementById('cl-sub').textContent = done+' of 6 complete';
-  document.getElementById('cl-fill').style.width = (done/6*100)+'%';
+  const awaitingPayment=b.filter(bk=>lessonPassed(bk)&&bk.payment_status!=='paid');
+  document.getElementById('m-unpaid').textContent=awaitingPayment.length;
 
-  if(b.length > 0){
-    const rb = document.getElementById('recent-bookings');
+  let done=1;
+  if(h.length>0){done++;document.getElementById('ck-horses').className='cl-check done';document.getElementById('ck-horses').textContent='✓';document.getElementById('ct-horses').className='cl-text done';}
+  if(r.length>0){done++;document.getElementById('ck-rider').className='cl-check done';document.getElementById('ck-rider').textContent='✓';document.getElementById('ct-rider').className='cl-text done';}
+  if(b.length>0){done++;document.getElementById('ck-booking').className='cl-check done';document.getElementById('ck-booking').textContent='✓';document.getElementById('ct-booking').className='cl-text done';}
+  document.getElementById('cl-sub').textContent=done+' of 6 complete';
+  document.getElementById('cl-fill').style.width=(done/6*100)+'%';
+
+  if(b.length>0){
+    const rb=document.getElementById('recent-bookings');
     rb.innerHTML='';
     b.slice(0,5).forEach(bk=>{
       const row=document.createElement('div');
@@ -234,21 +238,20 @@ async function load(){
       row.innerHTML=`
         <div>
           <div class="pay-name">${bk.rider_name}</div>
-          <div class="pay-meta">${bk.lesson_type}${bk.horse_name?' · '+bk.horse_name:''}${bk.staff_trainer_name?' · '+bk.staff_trainer_name:''} · ${bk.date} ${bk.time}</div>
+          <div class="pay-meta">${bk.lesson_type}${bk.horse_name?' · '+bk.horse_name:''} · ${bk.date} ${bk.time}</div>
         </div>
         <div style="display:flex;align-items:center;gap:8px">
-          <span class="pill ${bk.payment_status==='paid'?'pill-green':'pill-amber'}">${bk.payment_status}</span>
+          ${pillFor(bk)}
           <span style="font-size:13px;color:#8a8a85">→</span>
         </div>`;
       rb.appendChild(row);
     });
   }
 
-  const paid = b.filter(bk=>bk.payment_status==='paid');
-  if(paid.length > 0){
-    const rp = document.getElementById('recent-payments');
-    rp.innerHTML='';
-    paid.slice(0,4).forEach(bk=>{
+  if(awaitingPayment.length>0){
+    const ap=document.getElementById('awaiting-payment');
+    ap.innerHTML='';
+    awaitingPayment.slice(0,5).forEach(bk=>{
       const row=document.createElement('div');
       row.className='pay-row';
       row.onclick=()=>openBooking(bk);
@@ -259,9 +262,9 @@ async function load(){
         </div>
         <div style="text-align:right">
           <div style="font-size:13px;font-weight:500">${bk.price}</div>
-          <span class="pill pill-green">paid</span>
+          <span class="pill pill-amber">due</span>
         </div>`;
-      rp.appendChild(row);
+      ap.appendChild(row);
     });
   }
 }
