@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Dashboard — Stirrup</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Inter',sans-serif;background:#f9f8f5;color:#1a1a18;min-height:100vh}
@@ -38,24 +40,20 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2
 .slot-booked{background:#e0f5ed;color:#0f6e47}
 .slot-open{background:#f0efe9;color:#8a8a85;text-align:center;cursor:pointer}
 .slot-open:hover{background:#e8e6e0}
-.slot-pending{background:#faeeda;color:#633806}
 .legend{display:flex;gap:12px;font-size:11px;color:#8a8a85}
 .legend-dot{width:8px;height:8px;border-radius:2px;display:inline-block;margin-right:4px}
 .pay-row{display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid #f0efe9}
 .pay-row:last-child{border-bottom:none}
 .pay-name{font-size:13px;font-weight:500;color:#1a1a18}
 .pay-meta{font-size:11px;color:#5a5a55;margin-top:1px}
-.pay-amt{font-size:13px;font-weight:500;color:#1a1a18;text-align:right}
-.pay-fee{font-size:11px;color:#8a8a85}
-.pill{font-size:11px;padding:2px 8px;border-radius:20px;font-weight:500;white-space:nowrap;display:inline-block;margin-top:3px}
+.pill{font-size:11px;padding:2px 8px;border-radius:20px;font-weight:500;white-space:nowrap;display:inline-block}
 .pill-green{background:#e0f5ed;color:#0f6e47}
 .pill-amber{background:#faeeda;color:#633806}
-.pill-red{background:#fcebeb;color:#791f1f}
 .checklist{background:#fff;border:1px solid #e8e6e0;border-radius:12px;padding:1rem 1.25rem;margin-bottom:1.5rem}
 .cl-title{font-size:14px;font-weight:600;margin-bottom:4px}
 .cl-sub{font-size:12px;color:#5a5a55;margin-bottom:.75rem}
 .cl-prog{height:4px;border-radius:2px;background:#e8e6e0;margin-bottom:1rem;overflow:hidden}
-.cl-fill{height:100%;border-radius:2px;background:#1D9E75;width:20%}
+.cl-fill{height:100%;border-radius:2px;background:#1D9E75;transition:width .3s}
 .cl-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid #f0efe9;cursor:pointer}
 .cl-row:last-child{border-bottom:none}
 .cl-check{width:20px;height:20px;border-radius:50%;border:1px solid #d4d2cb;display:flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0}
@@ -68,11 +66,7 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2
 .sq-notice-title{font-size:13px;font-weight:600;color:#0c447c;margin-bottom:3px}
 .sq-notice-text{font-size:12px;color:#185fa5;line-height:1.5}
 .btn-sq{font-size:12px;padding:5px 12px;border-radius:8px;border:1px solid #85b7eb;background:transparent;color:#0c447c;cursor:pointer;margin-top:8px;font-family:'Inter',sans-serif}
-.btn-sq:hover{background:#e6f0fb}
-@media(max-width:700px){
-  .grid2{grid-template-columns:1fr}
-  .metrics{grid-template-columns:1fr 1fr}
-}
+@media(max-width:700px){.grid2{grid-template-columns:1fr}.metrics{grid-template-columns:1fr 1fr}}
 </style>
 </head>
 <body>
@@ -92,14 +86,165 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2
 
   <div class="metrics">
     <div class="metric">
-      <div class="metric-label">This week</div>
-      <div class="metric-val" id="m-lessons">0</div>
+      <div class="metric-label">Total bookings</div>
+      <div class="metric-val" id="m-lessons">—</div>
       <div class="metric-sub">lessons scheduled</div>
     </div>
     <div class="metric">
       <div class="metric-label">Riders</div>
-      <div class="metric-val" id="m-riders">0</div>
+      <div class="metric-val" id="m-riders">—</div>
       <div class="metric-sub">in your roster</div>
     </div>
     <div class="metric">
-      <div class="metric-label">Collected</d
+      <div class="metric-label">Collected</div>
+      <div class="metric-val">$0</div>
+      <div class="metric-sub">payments via Square</div>
+    </div>
+  </div>
+
+  <div class="checklist">
+    <div class="cl-title">Finish setting up your barn</div>
+    <div class="cl-sub" id="cl-sub">1 of 5 complete</div>
+    <div class="cl-prog"><div class="cl-fill" id="cl-fill" style="width:20%"></div></div>
+    <div class="cl-row">
+      <div class="cl-check done">✓</div>
+      <div class="cl-text done">Create your account</div>
+    </div>
+    <div class="cl-row" id="cl-rider" onclick="window.location.href='riders.html'">
+      <div class="cl-check" id="ck-rider"></div>
+      <div class="cl-text" id="ct-rider">Add your first rider</div>
+      <div class="cl-arrow">→</div>
+    </div>
+    <div class="cl-row" id="cl-booking" onclick="window.location.href='book.html'">
+      <div class="cl-check" id="ck-booking"></div>
+      <div class="cl-text" id="ct-booking">Book your first lesson</div>
+      <div class="cl-arrow">→</div>
+    </div>
+    <div class="cl-row" onclick="window.location.href='settings.html'">
+      <div class="cl-check"></div>
+      <div class="cl-text">Connect Square to accept payments</div>
+      <div class="cl-arrow">→</div>
+    </div>
+    <div class="cl-row" onclick="window.location.href='settings.html'">
+      <div class="cl-check"></div>
+      <div class="cl-text">Customize lesson types & pricing</div>
+      <div class="cl-arrow">→</div>
+    </div>
+  </div>
+
+  <div class="grid2">
+    <div class="card">
+      <div class="card-head">
+        <div class="card-title">Recent bookings</div>
+        <span class="card-link" onclick="window.location.href='book.html'">+ Book lesson</span>
+      </div>
+      <div id="recent-bookings">
+        <div style="text-align:center;padding:2rem 0;color:#8a8a85;font-size:13px">No bookings yet.</div>
+      </div>
+      <div class="legend" style="margin-top:.75rem">
+        <span><span class="legend-dot" style="background:#e0f5ed"></span>paid</span>
+        <span><span class="legend-dot" style="background:#faeeda"></span>unpaid</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><div class="card-title">Recent payments</div></div>
+      <div id="recent-payments">
+        <div style="text-align:center;padding:2rem 0;color:#8a8a85;font-size:13px">
+          <div style="font-size:24px;margin-bottom:8px">💳</div>
+          No payments yet.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sq-notice">
+    <div style="font-size:20px">◼</div>
+    <div class="sq-notice-body">
+      <div class="sq-notice-title">Connect Square to accept payments</div>
+      <div class="sq-notice-text">Payment links won't send until Square is connected. Takes about 60 seconds.</div>
+      <button class="btn-sq" onclick="window.location.href='settings.html'">Connect Square →</button>
+    </div>
+  </div>
+</div>
+
+<script>
+async function load(){
+  const user = await getUser();
+  if(!user){ window.location.href='login.html'; return; }
+
+  const trainer = await getTrainer();
+  const name = trainer?.name || '';
+  const barn = trainer?.barn_name || 'your barn';
+  const hour = new Date().getHours();
+  const greeting = hour<12?'Good morning':hour<17?'Good afternoon':'Good evening';
+  document.getElementById('greeting').textContent = greeting+(name?', '+name.split(' ')[0]:'');
+  document.getElementById('greeting-sub').textContent = "Here's what's happening at "+barn+".";
+
+  const [riders, bookings] = await Promise.all([getRiders(), getBookings()]);
+
+  document.getElementById('m-riders').textContent = riders.length;
+  document.getElementById('m-lessons').textContent = bookings.length;
+  const left = Math.max(0, 10 - bookings.length);
+  document.getElementById('bookings-left').textContent = left;
+
+  // Checklist
+  let done = 1;
+  if(riders.length > 0){
+    done++;
+    document.getElementById('ck-rider').className='cl-check done';
+    document.getElementById('ck-rider').textContent='✓';
+    document.getElementById('ct-rider').className='cl-text done';
+  }
+  if(bookings.length > 0){
+    done++;
+    document.getElementById('ck-booking').className='cl-check done';
+    document.getElementById('ck-booking').textContent='✓';
+    document.getElementById('ct-booking').className='cl-text done';
+  }
+  document.getElementById('cl-sub').textContent = done+' of 5 complete';
+  document.getElementById('cl-fill').style.width = (done/5*100)+'%';
+
+  // Recent bookings
+  if(bookings.length > 0){
+    const rb = document.getElementById('recent-bookings');
+    rb.innerHTML = '';
+    bookings.slice(0,5).forEach(b=>{
+      const row = document.createElement('div');
+      row.className = 'pay-row';
+      row.innerHTML = `
+        <div>
+          <div class="pay-name">${b.rider_name}</div>
+          <div class="pay-meta">${b.lesson_type} · ${b.date} ${b.time}</div>
+        </div>
+        <span class="pill ${b.payment_status==='paid'?'pill-green':'pill-amber'}">${b.payment_status}</span>`;
+      rb.appendChild(row);
+    });
+  }
+
+  // Recent paid payments
+  const paid = bookings.filter(b=>b.payment_status==='paid');
+  if(paid.length > 0){
+    const rp = document.getElementById('recent-payments');
+    rp.innerHTML = '';
+    paid.slice(0,4).forEach(b=>{
+      const row = document.createElement('div');
+      row.className = 'pay-row';
+      row.innerHTML = `
+        <div>
+          <div class="pay-name">${b.rider_name}</div>
+          <div class="pay-meta">${b.lesson_type} · ${b.date}</div>
+        </div>
+        <div style="text-align:right">
+          <div style="font-size:13px;font-weight:500">${b.price}</div>
+          <span class="pill pill-green">paid</span>
+        </div>`;
+      rp.appendChild(row);
+    });
+  }
+}
+
+load();
+</script>
+</body>
+</html>
