@@ -10,10 +10,10 @@
 body{font-family:'Inter',sans-serif;background:#f9f8f5;color:#1a1a18;min-height:100vh}
 nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2rem;background:#fff;border-bottom:1px solid #e8e6e0}
 .logo{font-size:18px;font-weight:600;color:#1a1a18;text-decoration:none}
-.nav-right{display:flex;align-items:center;gap:12px}
+.nav-right{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 .free-badge{font-size:12px;padding:4px 10px;border-radius:20px;background:#f0efe9;color:#5a5a55;border:1px solid #e8e6e0}
 .free-badge strong{color:#1a1a18}
-.btn{padding:7px 16px;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;text-decoration:none;display:inline-block;font-family:'Inter',sans-serif}
+.btn{padding:7px 14px;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;text-decoration:none;display:inline-block;font-family:'Inter',sans-serif}
 .btn-primary{background:#1D9E75;border:1px solid #1D9E75;color:#fff}
 .btn-primary:hover{background:#178a64}
 .btn-ghost{background:transparent;border:1px solid #d4d2cb;color:#1a1a18}
@@ -66,6 +66,7 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2
     <div class="free-badge"><strong id="bookings-left">10</strong> bookings left</div>
     <a href="horses.html" class="btn btn-ghost">Horses</a>
     <a href="riders.html" class="btn btn-ghost">Riders</a>
+    <a href="trainers.html" class="btn btn-ghost">Trainers</a>
     <a href="settings.html" class="btn btn-ghost">Settings</a>
     <a href="book.html" class="btn btn-primary">+ Book lesson</a>
   </div>
@@ -233,7 +234,7 @@ async function load(){
       row.innerHTML=`
         <div>
           <div class="pay-name">${bk.rider_name}</div>
-          <div class="pay-meta">${bk.lesson_type}${bk.horse_name?' · '+bk.horse_name:''} · ${bk.date} ${bk.time}</div>
+          <div class="pay-meta">${bk.lesson_type}${bk.horse_name?' · '+bk.horse_name:''}${bk.staff_trainer_name?' · '+bk.staff_trainer_name:''} · ${bk.date} ${bk.time}</div>
         </div>
         <div style="display:flex;align-items:center;gap:8px">
           <span class="pill ${bk.payment_status==='paid'?'pill-green':'pill-amber'}">${bk.payment_status}</span>
