@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Get started — Stirrup</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Inter',sans-serif;background:#f9f8f5;color:#1a1a18;min-height:100vh;display:flex;flex-direction:column}
+nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2rem;background:#fff;border-bottom:1px solid #e8e6e0}
+.logo{font-size:18px;font-weight:600;color:#1a1a18;text-decoration:none}
+.step-counter{font-size:13px;color:#8a8a85}
+.main{flex:1;display:flex;align-items:center;justify-content:center;padding:2rem}
+.card{background:#fff;border:1px solid #e8e6e0;border-radius:16px;padding:2rem;width:100%;max-width:480px}
+.progress{display:flex;gap:6px;margin-bottom:2rem}
+.prog-bar{flex:1;height:4px;border-radius:2px;background:#e8e6e0;transition:background .3s}
+.prog-bar.done{background:#1D9E75}
+.prog-bar.active{background:#1D9E75;opacity:.5}
+.step{display:none}
+.step.active{display:block}
+.step-title{font-size:20px;font-weight:600;margin-bottom:6px}
+.step-sub{font-size:14px;color:#5a5a55;margin-bottom:1.5rem;line-height:1.5}
+.field{margin-bottom:14px}
+.field label{display:block;font-size:13px;font-weight:500;color:#3a3a35;margin-bottom:5px}
+.field input,.field select{width:100%;padding:10px 12px;border:1px solid #d4d2cb;border-radius:8px;font-size:14px;font-family:'Inter',sans-serif;background:#fff;color:#1a1a18;outline:none;transition:border .15s}
+.field input:focus,.field select:focus{border-color:#1D9E75}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.day-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-bottom:1rem}
+.day-btn{padding:8px 0;border-radius:8px;font-size:12px;text-align:center;cursor:pointer;border:1px solid #d4d2cb;background:#fff;color:#5a5a55;transition:all .15s;font-family:'Inter',sans-serif}
+.day-btn.sel{background:#e0f5ed;border-color:#1D9E75;color:#0f6e47;font-weight:500}
+.type-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:1rem}
+.type-btn{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;border:1px solid #d4d2cb;background:#fff;cursor:pointer;text-align:left;transition:all .15s;font-family:'Inter',sans-serif}
+.type-btn.sel{background:#e0f5ed;border-color:#1D9E75}
+.type-icon{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.type-name{font-size:13px;font-weight:500;color:#1a1a18}
+.type-price{font-size:11px;color:#5a5a55}
+.actions{display:flex;align-items:center;justify-content:space-between;margin-top:1.5rem}
+.btn-back{padding:8px 18px;background:transparent;border:1px solid #d4d2cb;border-radius:8px;font-size:14px;font-weight:500;cursor:pointer;color:#5a5a55;font-family:'Inter',sans-serif}
+.btn-back:hover{background:#f0efe9}
+.btn-next{padding:8px 22px;background:#1D9E75;border:none;border-radius:8px;font-size:14px;font-weight:500;cursor:pointer;color:#fff;font-family:'Inter',sans-serif}
+.btn-next:hover{background:#178a64}
+.done-wrap{text-align:center;padding:1rem 0}
+.done-icon{width:56px;height:56px;border-radius:50%;background:#e0f5ed;display:flex;align-items:center;justify-content:center;font-size:26px;margin:0 auto 1rem}
+.done-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:1.25rem 0}
+.done-stat{background:#f9f8f5;border-radius:10px;padding:10px;font-size:11px;color:#5a5a55;text-align:center}
+.done-stat strong{display:block;font-size:16px;font-weight:600;color:#1a1a18;margin-bottom:2px}
+</style>
+</head>
+<body>
+<nav>
+  <a href="index.html" class="logo">Stirrup</a>
+  <span class="step-counter" id="step-counter">Step 1 of 4</span>
+</nav>
+<div class="main">
+  <div class="card">
+    <div class="progress" id="progress"></div>
+
+    <div class="step active" id="step-1">
+      <div class="step-title">Tell us about your barn</div>
+      <div class="step-sub">This takes about 2 minutes. You can change everything later.</div>
+      <div class="row2">
+        <div class="field"><label>First name</label><input type="text" id="fname" placeholder="Claire"></div>
+        <div class="field"><label>Last name</label><input type="text" id="lname" placeholder="Morgan"></div>
+      </div>
+      <div class="field"><label>Barn or program name</label><input type="text" id="barn" placeholder="Ridgeview Equestrian"></div>
+      <div class="field"><label>Time zone</label>
+        <select id="timezone">
+          <option>Eastern Time (ET)</option>
+          <option>Central Time (CT)</option>
+          <option>Mountain Time (MT)</option>
+          <option>Pacific Time (PT)</option>
+        </select>
+      </div>
+      <div class="actions"><span></span><button class="btn-next" onclick="go(2)">Continue →</button></div>
+    </div>
+
+    <div class="step" id="step-2">
+      <div class="step-title">When do you teach?</div>
+      <div class="step-sub">Pick the days you're generally available. You can adjust individual lessons later.</div>
+      <div class="day-grid" id="day-grid"></div>
+      <div class="row2">
+        <div class="field"><label>Earliest start</label>
+          <select id="start-time">
+            <option>7:00 AM</option><option>8:00 AM</option><option selected>9:00 AM</option><option>10:00 AM</option><option>11:00 AM</option>
+          </select>
+        </div>
+        <div class="field"><label>Latest end</label>
+          <select id="end-time">
+            <option>3:00 PM</option><option>4:00 PM</option><option selected>5:00 PM</option><option>6:00 PM</option><option>7:00 PM</option>
+          </select>
+        </div>
+      </div>
+      <div class="actions">
+        <button class="btn-back" onclick="go(1)">← Back</button>
+        <button class="btn-next" onclick="go(3)">Continue →</button>
+      </div>
+    </div>
+
+    <div class="step" id="step-3">
+      <div class="step-title">What kinds of lessons do you offer?</div>
+      <div class="step-sub">Select all that apply. You can customize prices after setup.</div>
+      <div class="type-grid" id="type-grid"></div>
+      <div class="actions">
+        <button class="btn-back" onclick="go(2)">← Back</button>
+        <button class="btn-next" onclick="go(4)">Continue →</button>
+      </div>
+    </div>
+
+    <div class="step" id="step-4">
+      <div class="step-title">Set your default lesson price</div>
+      <div class="step-sub">You can set different prices per lesson type in settings.</div>
+      <div class="row2">
+        <div class="field"><label>Default price ($)</label><input type="number" id="price" placeholder="75"></div>
+        <div class="field"><label>Default duration</label>
+          <select id="duration">
+            <option>30 minutes</option><option selected>45 minutes</option><option>60 minutes</option><option>90 minutes</option>
+          </select>
+        </div>
+      </div>
+      <div style="background:#e6f0fb;border-radius:10px;padding:12px;font-size:12px;color:#185fa5;line-height:1.6;margin-top:4px">
+        💳 Payment links are sent via Square after each booking. Square charges 2.9% + 30¢ per transaction — separate from your Stirrup plan.
+      </div>
+      <div class="actions">
+        <button class="btn-back" onclick="go(3)">← Back</button>
+        <button class="btn-next" onclick="finish()">Finish setup →</button>
+      </div>
+    </div>
+
+    <div class="step" id="step-5">
+      <div class="done-wrap">
+        <div class="done-icon">✓</div>
+        <div style="font-size:20px;font-weight:600;margin-bottom:6px">You're all set, <span id="done-name">there</span>!</div>
+        <div style="font-size:14px;color:#5a5a55;line-height:1.6">Your barn is ready. You're on the free plan — up to 10 bookings a month.</div>
+        <div class="done-stats">
+          <div class="done-stat"><strong id="done-barn">—</strong>Barn</div>
+          <div class="done-stat"><strong>10</strong>Free bookings</div>
+          <div class="done-stat"><strong id="done-price">—</strong>Default price</div>
+        </div>
+        <button class="btn-next" style="width:100%;padding:12px;font-size:15px" onclick="window.location.href='dashboard.html'">Go to dashboard →</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const days = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+const selDays = new Set([0,1,2,3,4]);
+const types = [
+  {icon:'🧑‍🏫',name:'Private',price:'$75',bg:'#e0f5ed'},
+  {icon:'👥',name:'Group',price:'$40',bg:'#eeedfe'},
+  {icon:'🏇',name:'Jumping',price:'$85',bg:'#faeeda'},
+  {icon:'🎯',name:'Dressage',price:'$85',bg:'#faece7'},
+];
+const selTypes = new Set([0,1]);
+let cur = 1;
+
+function renderProgress(){
+  const p = document.getElementById('progress');
+  p.innerHTML = '';
+  for(let i=1;i<=4;i++){
+    const b = document.createElement('div');
+    b.className = 'prog-bar' + (i<cur?' done':i===cur?' active':'');
+    p.appendChild(b);
+  }
+  document.getElementById('step-counter').textContent = cur <= 4 ? `Step ${cur} of 4` : 'Done';
+}
+
+function renderDays(){
+  const g = document.getElementById('day-grid');
+  g.innerHTML = '';
+  days.forEach((d,i)=>{
+    const b = document.createElement('button');
+    b.className = 'day-btn' + (selDays.has(i)?' sel':'');
+    b.textContent = d;
+    b.onclick = ()=>{ selDays.has(i)?selDays.delete(i):selDays.add(i); renderDays(); };
+    g.appendChild(b);
+  });
+}
+
+function renderTypes(){
+  const g = document.getElementById('type-grid');
+  g.innerHTML = '';
+  types.forEach((t,i)=>{
+    const b = document.createElement('button');
+    b.className = 'type-btn' + (selTypes.has(i)?' sel':'');
+    b.innerHTML = `<div class="type-icon" style="background:${t.bg}">${t.icon}</div><div><div class="type-name">${t.name}</div><div class="type-price">${t.price}</div></div>`;
+    b.onclick = ()=>{ selTypes.has(i)?selTypes.delete(i):selTypes.add(i); renderTypes(); };
+    g.appendChild(b);
+  });
+}
+
+function go(n){
+  document.getElementById('step-'+cur).classList.remove('active');
+  cur = n;
+  document.getElementById('step-'+cur).classList.add('active');
+  renderProgress();
+}
+
+function finish(){
+  const name = document.getElementById('fname').value || 'there';
+  const barn = document.getElementById('barn').value || '—';
+  const price = document.getElementById('price').value;
+  // Save to localStorage
+  const user = JSON.parse(localStorage.getItem('stirrup_user') || '{}');
+  user.name = name;
+  user.barn = barn;
+  user.price = price || '75';
+  localStorage.setItem('stirrup_user', JSON.stringify(user));
+  document.getElementById('done-name').textContent = name;
+  document.getElementById('done-barn').textContent = barn;
+  document.getElementById('done-price').textContent = price ? '$'+price : '$75';
+  go(5);
+}
+
+// Pre-fill from signup if available
+window.onload = function(){
+  const user = JSON.parse(localStorage.getItem('stirrup_user') || '{}');
+  if(user.name) document.getElementById('fname').value = user.name;
+  if(user.barn) document.getElementById('barn').value = user.barn;
+  renderProgress();
+  renderDays();
+  renderTypes();
+};
+</script>
+</body>
+</html>
