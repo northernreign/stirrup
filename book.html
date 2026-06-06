@@ -47,6 +47,7 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2
 .cal-day:hover{border-color:#d4d2cb}
 .cal-day.sel{background:#e0f5ed;color:#0f6e47;border-color:#1D9E75;font-weight:600}
 .cal-day.off{background:transparent;color:#d4d2cb;cursor:default}
+.cal-day.booked{background:#fcebeb;color:#c0392b;cursor:not-allowed}
 .time-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:14px}
 .time-btn{padding:9px;border-radius:8px;font-size:12px;text-align:center;border:1px solid #d4d2cb;background:#fff;cursor:pointer;color:#1a1a18;transition:all .15s;font-family:'Inter',sans-serif}
 .time-btn.sel{background:#e0f5ed;border-color:#1D9E75;color:#0f6e47;font-weight:500}
@@ -73,6 +74,7 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2
 .done-wrap{text-align:center;padding:1rem 0}
 .done-icon{width:56px;height:56px;border-radius:50%;background:#e0f5ed;display:flex;align-items:center;justify-content:center;font-size:26px;margin:0 auto 1rem}
 .error{background:#fcebeb;color:#c0392b;font-size:13px;padding:10px 12px;border-radius:8px;margin-bottom:14px;display:none}
+.warning{background:#faeeda;color:#633806;font-size:12px;padding:8px 12px;border-radius:8px;margin-bottom:10px;display:none}
 </style>
 </head>
 <body>
@@ -84,6 +86,7 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2
   <div class="card">
     <div class="progress" id="progress"></div>
     <div class="error" id="error"></div>
+
     <div class="step active" id="step-1">
       <div class="step-title">Who's the lesson for?</div>
       <div class="step-sub">Pick a rider or add a new one.</div>
@@ -91,15 +94,17 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2
       <a href="add-rider.html" style="font-size:13px;color:#1D9E75;text-decoration:none;display:block;margin-top:4px">+ Add new rider</a>
       <div class="actions"><span></span><button class="btn-next" onclick="go(2)">Continue →</button></div>
     </div>
+
     <div class="step" id="step-2">
       <div class="step-title">What kind of lesson?</div>
-      <div class="step-sub">Choose a type and duration.</div>
+      <div class="step-sub">Choose a type, horse, and duration.</div>
       <div class="type-grid">
         <button class="type-btn sel" id="lt-private" onclick="selType('private','$75')"><div class="type-icon" style="background:#e0f5ed">🧑‍🏫</div><div><div class="type-name">Private</div><div class="type-price">$75</div></div></button>
         <button class="type-btn" id="lt-group" onclick="selType('group','$40')"><div class="type-icon" style="background:#eeedfe">👥</div><div><div class="type-name">Group</div><div class="type-price">$40</div></div></button>
         <button class="type-btn" id="lt-jumping" onclick="selType('jumping','$85')"><div class="type-icon" style="background:#faeeda">🏇</div><div><div class="type-name">Jumping</div><div class="type-price">$85</div></div></button>
         <button class="type-btn" id="lt-dressage" onclick="selType('dressage','$85')"><div class="type-icon" style="background:#faece7">🎯</div><div><div class="type-name">Dressage</div><div class="type-price">$85</div></div></button>
       </div>
+      <div class="field"><label>Horse</label><select id="horse-select"><option value="">No horse selected</option></select></div>
       <div class="field"><label>Duration</label>
         <select id="duration" style="width:180px">
           <option>30 minutes</option><option selected>45 minutes</option><option>60 minutes</option><option>90 minutes</option>
@@ -108,14 +113,17 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2
       <div class="field"><label>Notes (optional)</label><textarea id="notes" placeholder="e.g. focus on canter transitions…"></textarea></div>
       <div class="actions"><button class="btn-back" onclick="go(1)">← Back</button><button class="btn-next" onclick="go(3)">Continue →</button></div>
     </div>
+
     <div class="step" id="step-3">
       <div class="step-title">Pick a date & time</div>
       <div class="step-sub">Showing available slots for this month.</div>
+      <div class="warning" id="horse-warning"></div>
       <div class="cal-grid" id="cal"></div>
       <div style="font-size:12px;color:#5a5a55;margin-bottom:8px" id="time-label">Select a date to see times</div>
       <div class="time-grid" id="times"></div>
       <div class="actions"><button class="btn-back" onclick="go(2)">← Back</button><button class="btn-next" onclick="go(4)">Continue →</button></div>
     </div>
+
     <div class="step" id="step-4">
       <div class="step-title">Confirm & payment</div>
       <div class="step-sub">Review the details and choose how to handle payment.</div>
@@ -137,6 +145,7 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2
       </div>
       <div class="actions"><button class="btn-back" onclick="go(3)">← Back</button><button class="btn-next" id="book-btn" onclick="saveBooking()">Book lesson ✓</button></div>
     </div>
+
     <div class="step" id="step-5">
       <div class="done-wrap">
         <div class="done-icon">✓</div>
@@ -150,16 +159,16 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2
     </div>
   </div>
 </div>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 const SUPABASE_URL = 'https://mfinlbqfowymmklhkuhb.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_PcwbX1YoncwnrHobFmpAIA_L39K4XfK';
 const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 let cur=1,selRiderIdx=0,selTypeVal='private',selTypePrice='$75',selDay=null,selTime=null,selPayIdx=0;
-let allRiders=[];
+let allRiders=[],allHorses=[],allBookings=[];
 const avColors=[{bg:'#e0f5ed',fg:'#0f6e47'},{bg:'#faeeda',fg:'#633806'},{bg:'#eeedfe',fg:'#3c3489'},{bg:'#faece7',fg:'#712b13'},{bg:'#e6f0fb',fg:'#0c447c'}];
 const times=['8:00 AM','9:00 AM','10:00 AM','11:00 AM','1:00 PM','2:00 PM','3:00 PM','4:00 PM','5:00 PM'];
-const taken=['10:00 AM','3:00 PM'];
 const days=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
 
 function renderProgress(){
@@ -190,9 +199,25 @@ function renderRiders(){
   });
 }
 
+function renderHorseDropdown(){
+  const sel=document.getElementById('horse-select');
+  sel.innerHTML='<option value="">No horse assigned</option>';
+  allHorses.forEach(h=>{
+    const opt=document.createElement('option');
+    opt.value=h.id;
+    opt.textContent=h.name+(h.breed?' ('+h.breed+')':'');
+    sel.appendChild(opt);
+  });
+}
+
 function selType(t,p){
   selTypeVal=t;selTypePrice=p;
   ['private','group','jumping','dressage'].forEach(x=>document.getElementById('lt-'+x).classList.toggle('sel',x===t));
+}
+
+function isHorseBooked(horseId, dateStr, timeStr){
+  if(!horseId) return false;
+  return allBookings.some(b=>b.horse_id===horseId && b.date===dateStr && b.time===timeStr);
 }
 
 function renderCal(){
@@ -219,15 +244,32 @@ function renderTimes(){
   const g=document.getElementById('times');
   g.innerHTML='';
   if(!selDay)return;
+  const now=new Date();
+  const dateStr=`${now.toLocaleString('default',{month:'long'})} ${selDay}`;
+  const horseId=document.getElementById('horse-select').value;
+  const warning=document.getElementById('horse-warning');
+
   times.forEach(t=>{
-    const isTaken=taken.includes(t);
+    const horseConflict=isHorseBooked(horseId,dateStr,t);
     const btn=document.createElement('button');
-    btn.className='time-btn'+(isTaken?' taken':t===selTime?' sel':'');
-    btn.textContent=t;
-    if(!isTaken)btn.onclick=()=>{selTime=t;renderTimes();};
+    btn.className='time-btn'+(horseConflict?' taken':t===selTime?' sel':'');
+    btn.textContent=t+(horseConflict?' (horse booked)':'');
+    if(!horseConflict)btn.onclick=()=>{selTime=t;renderTimes();};
     else btn.disabled=true;
     g.appendChild(btn);
   });
+
+  if(horseId){
+    const conflicts=times.filter(t=>isHorseBooked(horseId,dateStr,t));
+    if(conflicts.length>0){
+      warning.textContent=`This horse is already booked at ${conflicts.join(', ')} on this date.`;
+      warning.style.display='block';
+    } else {
+      warning.style.display='none';
+    }
+  } else {
+    warning.style.display='none';
+  }
 }
 
 function selPay(i){
@@ -242,9 +284,12 @@ function buildSummary(){
   const rider=allRiders[selRiderIdx];
   const now=new Date();
   const dateStr=selDay?`${now.toLocaleString('default',{month:'long'})} ${selDay}`:'No date selected';
+  const horseId=document.getElementById('horse-select').value;
+  const horse=allHorses.find(h=>h.id===horseId);
   document.getElementById('summary').innerHTML=`
     <div class="sum-row"><span class="sum-label">Rider</span><span class="sum-val">${rider?rider.first_name+' '+rider.last_name:'—'}</span></div>
     <div class="sum-row"><span class="sum-label">Lesson type</span><span class="sum-val">${selTypeVal.charAt(0).toUpperCase()+selTypeVal.slice(1)}</span></div>
+    <div class="sum-row"><span class="sum-label">Horse</span><span class="sum-val">${horse?horse.name:'None assigned'}</span></div>
     <div class="sum-row"><span class="sum-label">Date & time</span><span class="sum-val">${dateStr} · ${selTime||'No time selected'}</span></div>
     <div class="sum-row"><span class="sum-label">Duration</span><span class="sum-val">${document.getElementById('duration').value}</span></div>
     <div class="sum-row"><span class="sum-label">Amount</span><span class="sum-val">${selTypePrice}</span></div>`;
@@ -266,6 +311,18 @@ async function saveBooking(){
   btn.disabled=true;btn.textContent='Saving…';
   const { data: { user } } = await db.auth.getUser();
   const now=new Date();
+  const dateStr=`${now.toLocaleString('default',{month:'long'})} ${selDay}`;
+  const horseId=document.getElementById('horse-select').value;
+  const horse=allHorses.find(h=>h.id===horseId);
+
+  // Double-booking check
+  if(horseId && isHorseBooked(horseId,dateStr,selTime)){
+    document.getElementById('error').textContent='This horse is already booked at that time. Please choose a different time or horse.';
+    document.getElementById('error').style.display='block';
+    btn.disabled=false;btn.textContent='Book lesson ✓';
+    return;
+  }
+
   const { error } = await db.from('bookings').insert({
     trainer_id: user.id,
     rider_id: rider.id,
@@ -274,18 +331,21 @@ async function saveBooking(){
     price: selTypePrice,
     duration: document.getElementById('duration').value,
     notes: document.getElementById('notes').value,
-    date: `${now.toLocaleString('default',{month:'long'})} ${selDay}`,
+    date: dateStr,
     time: selTime,
+    horse_id: horseId||null,
+    horse_name: horse?horse.name:null,
     payment_option: ['square_link','manual','later'][selPayIdx],
     payment_status: selPayIdx===1?'paid':'unpaid'
   });
+
   if(error){
     document.getElementById('error').textContent=error.message;
     document.getElementById('error').style.display='block';
     btn.disabled=false;btn.textContent='Book lesson ✓';
     return;
   }
-  document.getElementById('done-sub').textContent=`${rider.first_name} ${rider.last_name} · ${selTypeVal} · ${now.toLocaleString('default',{month:'long'})} ${selDay} at ${selTime}`;
+  document.getElementById('done-sub').textContent=`${rider.first_name} ${rider.last_name} · ${selTypeVal}${horse?' · '+horse.name:''} · ${dateStr} at ${selTime}`;
   go(5);
 }
 
@@ -300,16 +360,29 @@ async function load(){
   const { data: { user } } = await db.auth.getUser();
   if(!user){window.location.href='login.html';return;}
 
-  // Check booking limit
   const { data: bookings } = await db.from('bookings').select('id').eq('trainer_id', user.id);
   if((bookings||[]).length >= 10){
     window.location.href='paywall.html';
     return;
   }
 
-  const { data: riders } = await db.from('riders').select('*').eq('trainer_id', user.id).order('created_at',{ascending:false});
-  allRiders = riders || [];
-  renderProgress();renderRiders();renderCal();
+  const [{ data: riders },{ data: horses },{ data: allB }] = await Promise.all([
+    db.from('riders').select('*').eq('trainer_id', user.id).order('created_at',{ascending:false}),
+    db.from('horses').select('*').eq('trainer_id', user.id).eq('active',true).order('name',{ascending:true}),
+    db.from('bookings').select('horse_id,date,time').eq('trainer_id', user.id)
+  ]);
+
+  allRiders = riders||[];
+  allHorses = horses||[];
+  allBookings = allB||[];
+
+  renderProgress();
+  renderRiders();
+  renderHorseDropdown();
+  renderCal();
+
+  // Update horse dropdown when selection changes to refresh time availability
+  document.getElementById('horse-select').onchange = ()=>{ if(selDay) renderTimes(); };
 }
 
 load();
