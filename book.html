@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Book lesson — Stirrup</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Inter',sans-serif;background:#f9f8f5;color:#1a1a18;min-height:100vh;display:flex;flex-direction:column}
@@ -69,9 +71,11 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2
 .btn-back:hover{background:#f0efe9}
 .btn-next{padding:8px 22px;background:#1D9E75;border:none;border-radius:8px;font-size:14px;font-weight:500;cursor:pointer;color:#fff;font-family:'Inter',sans-serif}
 .btn-next:hover{background:#178a64}
+.btn-next:disabled{background:#9ad4be;cursor:not-allowed}
 .done-wrap{text-align:center;padding:1rem 0}
 .done-icon{width:56px;height:56px;border-radius:50%;background:#e0f5ed;display:flex;align-items:center;justify-content:center;font-size:26px;margin:0 auto 1rem}
-.empty-riders{text-align:center;padding:2rem;color:#5a5a55;font-size:13px}
+.error{background:#fcebeb;color:#c0392b;font-size:13px;padding:10px 12px;border-radius:8px;margin-bottom:14px;display:none}
+.loading{text-align:center;padding:2rem;color:#8a8a85;font-size:13px}
 </style>
 </head>
 <body>
@@ -82,11 +86,12 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2
 <div class="main">
   <div class="card">
     <div class="progress" id="progress"></div>
+    <div class="error" id="error"></div>
 
     <div class="step active" id="step-1">
       <div class="step-title">Who's the lesson for?</div>
       <div class="step-sub">Pick a rider or add a new one.</div>
-      <div id="rider-list"></div>
+      <div id="rider-list"><div class="loading">Loading riders…</div></div>
       <a href="add-rider.html" style="font-size:13px;color:#1D9E75;text-decoration:none;display:block;margin-top:4px">+ Add new rider</a>
       <div class="actions"><span></span><button class="btn-next" onclick="go(2)">Continue →</button></div>
     </div>
@@ -126,7 +131,7 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2
       <div class="pay-opts">
         <div class="pay-opt sel" id="po-0" onclick="selPay(0)">
           <div class="pay-radio sel" id="pr-0"></div>
-          <div><div class="pay-opt-title">Send Square payment link</div><div class="pay-opt-sub">Rider gets a link to pay online. Marked paid when done.</div></div>
+          <div><div class="pay-opt-title">Send Square payment link</div><div class="pay-opt-sub">Rider gets a link to pay online.</div></div>
         </div>
         <div class="pay-opt" id="po-1" onclick="selPay(1)">
           <div class="pay-radio" id="pr-1"></div>
@@ -134,10 +139,10 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2
         </div>
         <div class="pay-opt" id="po-2" onclick="selPay(2)">
           <div class="pay-radio" id="pr-2"></div>
-          <div><div class="pay-opt-title">Send link later</div><div class="pay-opt-sub">Book now, send payment link from the dashboard.</div></div>
+          <div><div class="pay-opt-title">Send link later</div><div class="pay-opt-sub">Book now, send payment link later.</div></div>
         </div>
       </div>
-      <div class="actions"><button class="btn-back" onclick="go(3)">← Back</button><button class="btn-next" onclick="saveBooking()">Book lesson ✓</button></div>
+      <div class="actions"><button class="btn-back" onclick="go(3)">← Back</button><button class="btn-next" id="book-btn" onclick="saveBooking()">Book lesson ✓</button></div>
     </div>
 
     <div class="step" id="step-5">
@@ -155,13 +160,8 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2
 </div>
 
 <script>
-let cur = 1;
-let selRiderIdx = 0;
-let selTypeVal = 'private';
-let selTypePrice = '$75';
-let selDay = null;
-let selTime = null;
-let selPayIdx = 0;
+let cur=1,selRiderIdx=0,selTypeVal='private',selTypePrice='$75',selDay=null,selTime=null,selPayIdx=0;
+let allRiders=[];
 const avColors=[{bg:'#e0f5ed',fg:'#0f6e47'},{bg:'#faeeda',fg:'#633806'},{bg:'#eeedfe',fg:'#3c3489'},{bg:'#faece7',fg:'#712b13'},{bg:'#e6f0fb',fg:'#0c447c'}];
 const times=['8:00 AM','9:00 AM','10:00 AM','11:00 AM','1:00 PM','2:00 PM','3:00 PM','4:00 PM','5:00 PM'];
 const taken=['10:00 AM','3:00 PM'];
@@ -178,19 +178,18 @@ function renderProgress(){
 }
 
 function renderRiders(){
-  const riders=JSON.parse(localStorage.getItem('stirrup_riders')||'[]');
   const list=document.getElementById('rider-list');
-  if(riders.length===0){
-    list.innerHTML='<div class="empty-riders">No riders yet. Add one first.</div>';
+  if(allRiders.length===0){
+    list.innerHTML='<div style="text-align:center;padding:1rem;color:#5a5a55;font-size:13px">No riders yet. <a href="add-rider.html" style="color:#1D9E75">Add one first</a>.</div>';
     return;
   }
   list.innerHTML='';
-  riders.forEach((r,i)=>{
+  allRiders.forEach((r,i)=>{
     const c=avColors[i%avColors.length];
-    const initials=((r.firstName?.[0]||'')+(r.lastName?.[0]||'')).toUpperCase();
+    const initials=((r.first_name?.[0]||'')+(r.last_name?.[0]||'')).toUpperCase();
     const btn=document.createElement('button');
     btn.className='rider-btn'+(i===selRiderIdx?' sel':'');
-    btn.innerHTML=`<div class="av" style="background:${c.bg};color:${c.fg}">${initials}</div><div><div class="rider-name">${r.firstName} ${r.lastName}</div><div class="rider-meta">${r.level||''} · ${r.lessonType||''}</div></div>`;
+    btn.innerHTML=`<div class="av" style="background:${c.bg};color:${c.fg}">${initials}</div><div><div class="rider-name">${r.first_name} ${r.last_name}</div><div class="rider-meta">${r.level||''} · ${r.lesson_type||''}</div></div>`;
     btn.onclick=()=>{selRiderIdx=i;renderRiders();};
     list.appendChild(btn);
   });
@@ -206,10 +205,8 @@ function renderCal(){
   g.innerHTML='';
   days.forEach(d=>{const l=document.createElement('div');l.className='cal-label';l.textContent=d;g.appendChild(l);});
   const now=new Date();
-  const year=now.getFullYear();
-  const month=now.getMonth();
-  const firstDay=new Date(year,month,1).getDay();
-  const daysInMonth=new Date(year,month+1,0).getDate();
+  const firstDay=new Date(now.getFullYear(),now.getMonth(),1).getDay();
+  const daysInMonth=new Date(now.getFullYear(),now.getMonth()+1,0).getDate();
   const offset=(firstDay+6)%7;
   for(let i=0;i<offset;i++){const e=document.createElement('div');e.className='cal-day off';g.appendChild(e);}
   for(let d=1;d<=daysInMonth;d++){
@@ -226,7 +223,7 @@ function renderCal(){
 function renderTimes(){
   const g=document.getElementById('times');
   g.innerHTML='';
-  if(!selDay){return;}
+  if(!selDay)return;
   times.forEach(t=>{
     const isTaken=taken.includes(t);
     const btn=document.createElement('button');
@@ -247,16 +244,13 @@ function selPay(i){
 }
 
 function buildSummary(){
-  const riders=JSON.parse(localStorage.getItem('stirrup_riders')||'[]');
-  const rider=riders[selRiderIdx];
+  const rider=allRiders[selRiderIdx];
   const now=new Date();
   const dateStr=selDay?`${now.toLocaleString('default',{month:'long'})} ${selDay}`:'No date selected';
-  const timeStr=selTime||'No time selected';
-  const s=document.getElementById('summary');
-  s.innerHTML=`
-    <div class="sum-row"><span class="sum-label">Rider</span><span class="sum-val">${rider?rider.firstName+' '+rider.lastName:'—'}</span></div>
+  document.getElementById('summary').innerHTML=`
+    <div class="sum-row"><span class="sum-label">Rider</span><span class="sum-val">${rider?rider.first_name+' '+rider.last_name:'—'}</span></div>
     <div class="sum-row"><span class="sum-label">Lesson type</span><span class="sum-val">${selTypeVal.charAt(0).toUpperCase()+selTypeVal.slice(1)}</span></div>
-    <div class="sum-row"><span class="sum-label">Date & time</span><span class="sum-val">${dateStr} · ${timeStr}</span></div>
+    <div class="sum-row"><span class="sum-label">Date & time</span><span class="sum-val">${dateStr} · ${selTime||'No time selected'}</span></div>
     <div class="sum-row"><span class="sum-label">Duration</span><span class="sum-val">${document.getElementById('duration').value}</span></div>
     <div class="sum-row"><span class="sum-label">Amount</span><span class="sum-val">${selTypePrice}</span></div>`;
 }
@@ -269,31 +263,33 @@ function go(n){
   renderProgress();
 }
 
-function saveBooking(){
-  const riders=JSON.parse(localStorage.getItem('stirrup_riders')||'[]');
-  const rider=riders[selRiderIdx];
+async function saveBooking(){
+  const rider=allRiders[selRiderIdx];
   if(!rider){alert('Please select a rider.');go(1);return;}
   if(!selDay||!selTime){alert('Please select a date and time.');go(3);return;}
+  const btn=document.getElementById('book-btn');
+  btn.disabled=true;btn.textContent='Saving…';
   const now=new Date();
-  const booking={
-    id:Date.now().toString(),
-    riderId:rider.id,
-    riderName:rider.firstName+' '+rider.lastName,
-    lessonType:selTypeVal,
-    price:selTypePrice,
-    duration:document.getElementById('duration').value,
-    notes:document.getElementById('notes').value,
-    date:`${now.toLocaleString('default',{month:'long'})} ${selDay}`,
-    time:selTime,
-    paymentOption:['square_link','manual','later'][selPayIdx],
-    paymentStatus:selPayIdx===1?'paid':'unpaid',
-    createdAt:new Date().toISOString()
-  };
-  const bookings=JSON.parse(localStorage.getItem('stirrup_bookings')||'[]');
-  bookings.push(booking);
-  localStorage.setItem('stirrup_bookings',JSON.stringify(bookings));
-  document.getElementById('done-sub').textContent=`${rider.firstName} ${rider.lastName} · ${selTypeVal} · ${booking.date} at ${selTime}`;
-  go(5);
+  try{
+    await addBooking({
+      rider_id:rider.id,
+      rider_name:rider.first_name+' '+rider.last_name,
+      lesson_type:selTypeVal,
+      price:selTypePrice,
+      duration:document.getElementById('duration').value,
+      notes:document.getElementById('notes').value,
+      date:`${now.toLocaleString('default',{month:'long'})} ${selDay}`,
+      time:selTime,
+      payment_option:['square_link','manual','later'][selPayIdx],
+      payment_status:selPayIdx===1?'paid':'unpaid'
+    });
+    document.getElementById('done-sub').textContent=`${rider.first_name} ${rider.last_name} · ${selTypeVal} · ${now.toLocaleString('default',{month:'long'})} ${selDay} at ${selTime}`;
+    go(5);
+  }catch(err){
+    document.getElementById('error').textContent=err.message||'Failed to save booking.';
+    document.getElementById('error').style.display='block';
+    btn.disabled=false;btn.textContent='Book lesson ✓';
+  }
 }
 
 function resetForm(){
@@ -303,9 +299,14 @@ function resetForm(){
   renderProgress();renderRiders();
 }
 
-renderProgress();
-renderRiders();
-renderCal();
+async function load(){
+  const user=await getUser();
+  if(!user){window.location.href='login.html';return;}
+  allRiders=await getRiders();
+  renderProgress();renderRiders();renderCal();
+}
+
+load();
 </script>
 </body>
 </html>
