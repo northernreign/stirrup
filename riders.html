@@ -82,6 +82,7 @@ let allRiders=[],allBookings=[];
 function getRiderBadge(createdAt){
   if(!createdAt)return'🌱';
   const months=(Date.now()-new Date(createdAt).getTime())/(1000*60*60*24*30.44);
+  if(months>=24)return'⭐';
   if(months>=18)return'🥇';
   if(months>=12)return'🥈';
   if(months>=6)return'🥉';
