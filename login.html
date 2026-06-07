@@ -7,85 +7,63 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'Inter',sans-serif;background:#f9f8f5;color:#1a1a18;min-height:100vh;display:flex;flex-direction:column}
-nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2rem;background:#fff;border-bottom:1px solid #e8e6e0}
-.logo{font-size:18px;font-weight:600;color:#1a1a18;text-decoration:none}
-.nav-link{font-size:14px;color:#5a5a55;text-decoration:none}
-.nav-link:hover{color:#1a1a18}
-.main{flex:1;display:flex;align-items:center;justify-content:center;padding:2rem}
-.card{background:#fff;border:1px solid #e8e6e0;border-radius:16px;padding:2rem;width:100%;max-width:400px}
-.card-title{font-size:22px;font-weight:600;margin-bottom:6px}
-.card-sub{font-size:14px;color:#5a5a55;margin-bottom:1.75rem}
-.field{margin-bottom:14px}
-.field label{display:block;font-size:13px;font-weight:500;color:#3a3a35;margin-bottom:5px}
-.field input{width:100%;padding:10px 12px;border:1px solid #d4d2cb;border-radius:8px;font-size:14px;font-family:'Inter',sans-serif;background:#fff;color:#1a1a18;outline:none;transition:border .15s}
+body{font-family:'Inter',sans-serif;background:#f9f8f5;color:#1a1a18;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:2rem}
+.card{background:#fff;border:1px solid #e8e6e0;border-radius:16px;padding:2rem;width:100%;max-width:420px}
+.logo{font-size:18px;font-weight:600;color:#1a1a18;text-align:center;margin-bottom:1.5rem}
+.title{font-size:20px;font-weight:600;margin-bottom:6px}
+.sub{font-size:14px;color:#5a5a55;margin-bottom:1.5rem;line-height:1.5}
+.field{margin-bottom:12px}
+.field label{display:block;font-size:12px;font-weight:500;color:#3a3a35;margin-bottom:4px}
+.field input{width:100%;padding:10px 12px;border:1px solid #d4d2cb;border-radius:8px;font-size:14px;font-family:'Inter',sans-serif;outline:none;background:#fff;color:#1a1a18;transition:border .15s}
 .field input:focus{border-color:#1D9E75}
-.btn-submit{width:100%;padding:11px;background:#1D9E75;border:none;border-radius:8px;color:#fff;font-size:15px;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif}
-.btn-submit:hover{background:#178a64}
-.btn-submit:disabled{background:#9ad4be;cursor:not-allowed}
-.signup-link{text-align:center;font-size:13px;color:#5a5a55;margin-top:1rem}
-.signup-link a{color:#1D9E75;text-decoration:none;font-weight:500}
+.forgot{display:block;text-align:right;font-size:12px;color:#1D9E75;text-decoration:none;margin-top:-8px;margin-bottom:12px}
+.btn-primary{width:100%;padding:11px;background:#1D9E75;border:none;border-radius:8px;font-size:14px;font-weight:500;cursor:pointer;color:#fff;font-family:'Inter',sans-serif;margin-top:4px}
+.btn-primary:hover{background:#178a64}
+.btn-primary:disabled{background:#9ad4be;cursor:not-allowed}
 .error{background:#fcebeb;color:#c0392b;font-size:13px;padding:10px 12px;border-radius:8px;margin-bottom:14px;display:none}
+.footer{text-align:center;font-size:13px;color:#5a5a55;margin-top:1.25rem}
+.footer a{color:#1D9E75;text-decoration:none}
 </style>
 </head>
 <body>
-<nav>
-  <a href="index.html" class="logo">Stirrup</a>
-  <a href="signup.html" class="nav-link">Don't have an account? Sign up free</a>
-</nav>
-<div class="main">
-  <div class="card">
-    <div class="card-title">Welcome back</div>
-    <div class="card-sub">Log in to your Stirrup account.</div>
-    <div class="error" id="error"></div>
-    <div class="field"><label>Email</label><input type="email" placeholder="claire@ridgeview.com" id="email"></div>
-    <div class="field"><label>Password</label><input type="password" placeholder="••••••••" id="password"></div>
-    <button class="btn-submit" id="submit-btn" onclick="handleLogin()">Log in →</button>
-    <div class="signup-link">Don't have an account? <a href="signup.html">Sign up free</a></div>
-  </div>
+<div class="card">
+  <div class="logo">Stirrup</div>
+  <div class="title">Welcome back</div>
+  <div class="sub">Log in to your Stirrup account.</div>
+  <div class="error" id="error"></div>
+  <div class="field"><label>Email</label><input type="email" id="email" placeholder="you@example.com"></div>
+  <div class="field"><label>Password</label><input type="password" id="password" placeholder="Your password"></div>
+  <a href="forgot-password.html" class="forgot">Forgot password?</a>
+  <button class="btn-primary" id="login-btn" onclick="handleLogin()">Log in →</button>
+  <div class="footer">Don't have an account? <a href="signup.html">Sign up free</a></div>
 </div>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-const SUPABASE_URL = 'https://mfinlbqfowymmklhkuhb.supabase.co';
-const SUPABASE_KEY = 'sb_publishable_PcwbX1YoncwnrHobFmpAIA_L39K4XfK';
-const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+const SUPABASE_URL='https://mfinlbqfowymmklhkuhb.supabase.co';
+const SUPABASE_KEY='sb_publishable_PcwbX1YoncwnrHobFmpAIA_L39K4XfK';
+const db=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
 
 async function handleLogin(){
-  const email = document.getElementById('email').value.trim();
-  const password = document.getElementById('password').value;
-  const errorEl = document.getElementById('error');
-  const btn = document.getElementById('submit-btn');
-
-  errorEl.style.display = 'none';
-
-  if(!email || !password){
-    errorEl.textContent = 'Please enter your email and password.';
-    errorEl.style.display = 'block';
-    return;
+  const email=document.getElementById('email').value.trim();
+  const password=document.getElementById('password').value;
+  if(!email||!password){
+    document.getElementById('error').textContent='Please enter your email and password.';
+    document.getElementById('error').style.display='block';return;
   }
-
-  btn.disabled = true;
-  btn.textContent = 'Logging in…';
-
-  try {
-    const { data, error } = await db.auth.signInWithPassword({ email, password });
-    if(error) throw error;
-    const { data: trainer } = await db.from('trainers').select('*').eq('id', data.user.id).single();
-    if(trainer){
-      localStorage.setItem('stirrup_user', JSON.stringify({
-        name: trainer.name,
-        barn: trainer.barn_name,
-        email: data.user.email
-      }));
-    }
-    window.location.href = 'dashboard.html';
-  } catch(err) {
-    errorEl.textContent = err.message || 'Invalid email or password.';
-    errorEl.style.display = 'block';
-    btn.disabled = false;
-    btn.textContent = 'Log in →';
+  const btn=document.getElementById('login-btn');
+  btn.disabled=true;btn.textContent='Logging in…';
+  const {error}=await db.auth.signInWithPassword({email,password});
+  if(error){
+    document.getElementById('error').textContent=error.message;
+    document.getElementById('error').style.display='block';
+    btn.disabled=false;btn.textContent='Log in →';return;
   }
+  window.location.href='dashboard.html';
 }
+
+// Allow Enter key to submit
+document.addEventListener('keydown',e=>{if(e.key==='Enter')handleLogin();});
 </script>
 </body>
 </html>
