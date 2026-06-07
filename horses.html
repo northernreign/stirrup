@@ -23,15 +23,27 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2
 .sum{background:#fff;border:1px solid #e8e6e0;border-radius:10px;padding:.75rem 1rem}
 .sum-label{font-size:11px;color:#5a5a55;margin-bottom:3px}
 .sum-val{font-size:20px;font-weight:600;color:#1a1a18}
-.horse-card{background:#fff;border:1px solid #e8e6e0;border-radius:10px;padding:1rem 1.25rem;margin-bottom:8px;display:flex;align-items:center;gap:12px;transition:background .15s}
+.horse-card{background:#fff;border:1px solid #e8e6e0;border-radius:10px;padding:1rem 1.25rem;margin-bottom:8px;transition:background .15s}
 .horse-card:hover{background:#f9f8f5}
+.horse-top{display:flex;align-items:center;gap:12px}
 .horse-icon{width:40px;height:40px;border-radius:50%;background:#faeeda;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
 .horse-info{flex:1;min-width:0}
 .horse-name{font-size:14px;font-weight:500;color:#1a1a18}
 .horse-meta{font-size:12px;color:#5a5a55;margin-top:1px}
 .horse-right{display:flex;align-items:center;gap:8px;flex-shrink:0}
-.btn-remove{font-size:12px;padding:4px 10px;border-radius:6px;border:1px solid #e8c5c5;background:transparent;color:#c0392b;cursor:pointer;font-family:'Inter',sans-serif}
-.btn-remove:hover{background:#fcebeb}
+.status-badge{font-size:11px;padding:2px 8px;border-radius:20px;font-weight:500}
+.status-active{background:#e0f5ed;color:#0f6e47}
+.status-resting{background:#fcebeb;color:#791f1f}
+.status-partial{background:#faeeda;color:#633806}
+.horse-actions{display:flex;gap:6px;margin-top:10px;padding-top:10px;border-top:1px solid #f0efe9;flex-wrap:wrap}
+.btn-sm{font-size:12px;padding:4px 10px;border-radius:6px;cursor:pointer;font-family:'Inter',sans-serif;border:1px solid #d4d2cb;background:transparent;color:#1a1a18}
+.btn-sm:hover{background:#f0efe9}
+.btn-sm-danger{font-size:12px;padding:4px 10px;border-radius:6px;cursor:pointer;font-family:'Inter',sans-serif;border:1px solid #e8c5c5;background:transparent;color:#c0392b}
+.btn-sm-danger:hover{background:#fcebeb}
+.rest-list{margin-top:8px;font-size:12px;color:#5a5a55}
+.rest-item{display:flex;align-items:center;justify-content:space-between;padding:4px 0;border-bottom:1px solid #f0efe9}
+.rest-item:last-child{border-bottom:none}
+.btn-remove-rest{font-size:11px;padding:2px 6px;border-radius:4px;cursor:pointer;font-family:'Inter',sans-serif;border:1px solid #e8c5c5;background:transparent;color:#c0392b}
 .empty{text-align:center;padding:3rem 1rem}
 .empty-icon{font-size:32px;margin-bottom:12px}
 .empty-title{font-size:15px;font-weight:500;color:#1a1a18;margin-bottom:6px}
@@ -39,14 +51,14 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2
 .loading{text-align:center;padding:3rem;color:#8a8a85;font-size:14px}
 .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:100;align-items:center;justify-content:center}
 .modal-overlay.open{display:flex}
-.modal{background:#fff;border-radius:16px;padding:1.5rem;width:100%;max-width:420px;margin:1rem}
+.modal{background:#fff;border-radius:16px;padding:1.5rem;width:100%;max-width:440px;margin:1rem;max-height:90vh;overflow-y:auto}
 .modal-title{font-size:18px;font-weight:600;margin-bottom:6px}
 .modal-sub{font-size:14px;color:#5a5a55;margin-bottom:1.25rem}
 .field{margin-bottom:12px}
 .field label{display:block;font-size:12px;font-weight:500;color:#3a3a35;margin-bottom:4px}
-.field input,.field textarea{width:100%;padding:9px 12px;border:1px solid #d4d2cb;border-radius:8px;font-size:14px;font-family:'Inter',sans-serif;outline:none;background:#fff;color:#1a1a18}
-.field input:focus,.field textarea:focus{border-color:#1D9E75}
-.field textarea{height:72px;resize:none}
+.field input,.field textarea,.field select{width:100%;padding:9px 12px;border:1px solid #d4d2cb;border-radius:8px;font-size:14px;font-family:'Inter',sans-serif;outline:none;background:#fff;color:#1a1a18}
+.field input:focus,.field textarea:focus,.field select:focus{border-color:#1D9E75}
+.field textarea{height:60px;resize:none}
 .optional{font-size:11px;color:#8a8a85;margin-left:4px}
 .row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .modal-actions{display:flex;gap:8px;margin-top:1.25rem}
@@ -55,6 +67,13 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2
 .btn-save:hover{background:#178a64}
 .btn-save:disabled{background:#9ad4be;cursor:not-allowed}
 .error{background:#fcebeb;color:#c0392b;font-size:13px;padding:10px 12px;border-radius:8px;margin-bottom:14px;display:none}
+.section-title{font-size:13px;font-weight:600;color:#1a1a18;margin-bottom:8px;margin-top:14px}
+.day-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:8px}
+.day-btn{padding:6px 0;border-radius:6px;font-size:11px;text-align:center;cursor:pointer;border:1px solid #d4d2cb;background:#fff;color:#5a5a55;font-family:'Inter',sans-serif}
+.day-btn.sel{background:#e0f5ed;border-color:#1D9E75;color:#0f6e47;font-weight:500}
+.period-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:12px}
+.period-btn{padding:8px;border-radius:8px;font-size:12px;text-align:center;cursor:pointer;border:1px solid #d4d2cb;background:#fff;color:#5a5a55;font-family:'Inter',sans-serif}
+.period-btn.sel{background:#e0f5ed;border-color:#1D9E75;color:#0f6e47;font-weight:500}
 </style>
 </head>
 <body>
@@ -62,30 +81,31 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2
   <a href="dashboard.html" class="logo">Stirrup</a>
   <div class="nav-right">
     <a href="dashboard.html" class="btn btn-ghost">Dashboard</a>
-    <button class="btn btn-primary" onclick="openModal()">+ Add horse</button>
+    <button class="btn btn-primary" onclick="openModal('add')">+ Add horse</button>
   </div>
 </nav>
 
 <div class="wrap">
   <div class="page-head">
     <div class="page-title">Horses</div>
-    <button class="btn btn-primary" onclick="openModal()">+ Add horse</button>
+    <button class="btn btn-primary" onclick="openModal('add')">+ Add horse</button>
   </div>
 
   <div class="summary">
     <div class="sum"><div class="sum-label">Total horses</div><div class="sum-val" id="total-horses">—</div></div>
     <div class="sum"><div class="sum-label">Active</div><div class="sum-val" id="active-horses">—</div></div>
-    <div class="sum"><div class="sum-label">Total bookings</div><div class="sum-val" id="total-bookings">—</div></div>
+    <div class="sum"><div class="sum-label">Resting</div><div class="sum-val" id="resting-horses">—</div></div>
   </div>
 
   <div id="horse-list"><div class="loading">Loading horses…</div></div>
 </div>
 
-<div class="modal-overlay" id="modal">
+<!-- Add horse modal -->
+<div class="modal-overlay" id="modal-add">
   <div class="modal">
     <div class="modal-title">Add a horse</div>
-    <div class="modal-sub">This horse will appear in lesson booking and rider preference dropdowns.</div>
-    <div class="error" id="error"></div>
+    <div class="modal-sub">This horse will appear in lesson booking dropdowns.</div>
+    <div class="error" id="add-error"></div>
     <div class="field"><label>Horse name</label><input type="text" id="h-name" placeholder="e.g. Willow"></div>
     <div class="row2">
       <div class="field"><label>Breed <span class="optional">optional</span></label><input type="text" id="h-breed" placeholder="e.g. Quarter Horse"></div>
@@ -93,114 +113,311 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2
     </div>
     <div class="field"><label>Notes <span class="optional">optional</span></label><textarea id="h-notes" placeholder="e.g. beginner friendly, no jumping…"></textarea></div>
     <div class="modal-actions">
-      <button class="btn-cancel" onclick="closeModal()">Cancel</button>
-      <button class="btn-save" id="save-btn" onclick="saveHorse()">Add horse</button>
+      <button class="btn-cancel" onclick="closeModal('add')">Cancel</button>
+      <button class="btn-save" id="add-btn" onclick="saveHorse()">Add horse</button>
+    </div>
+  </div>
+</div>
+
+<!-- Rest period modal -->
+<div class="modal-overlay" id="modal-rest">
+  <div class="modal">
+    <div class="modal-title">Add rest period</div>
+    <div class="modal-sub" id="rest-horse-name">Set a one-time rest period for this horse.</div>
+    <div class="error" id="rest-error"></div>
+
+    <div class="section-title">One-time rest</div>
+    <div class="row2">
+      <div class="field"><label>Start date</label><input type="date" id="rest-start"></div>
+      <div class="field"><label>End date</label><input type="date" id="rest-end"></div>
+    </div>
+    <div class="field"><label>Notes <span class="optional">optional</span></label><input type="text" id="rest-notes" placeholder="e.g. recovering from shoe reset"></div>
+    <button class="btn-save" style="width:100%;padding:9px;margin-bottom:1rem" id="rest-btn" onclick="saveRestPeriod()">Add rest period</button>
+
+    <div class="section-title">Recurring rest schedule</div>
+    <div style="font-size:12px;color:#5a5a55;margin-bottom:8px">Select days this horse rests every week</div>
+    <div class="day-grid" id="sched-days"></div>
+    <div style="font-size:12px;color:#5a5a55;margin-bottom:6px">Rest period</div>
+    <div class="period-grid">
+      <button class="period-btn sel" id="p-morning" onclick="selPeriod('morning')">🌅 Morning</button>
+      <button class="period-btn" id="p-afternoon" onclick="selPeriod('afternoon')">☀️ Afternoon</button>
+      <button class="period-btn" id="p-full" onclick="selPeriod('full')">🌙 Full day</button>
+    </div>
+    <button class="btn-save" style="width:100%;padding:9px" id="sched-btn" onclick="saveRestSchedule()">Add recurring schedule</button>
+
+    <div class="modal-actions" style="margin-top:1rem">
+      <button class="btn-cancel" onclick="closeModal('rest')">Done</button>
     </div>
   </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-const SUPABASE_URL = 'https://mfinlbqfowymmklhkuhb.supabase.co';
-const SUPABASE_KEY = 'sb_publishable_PcwbX1YoncwnrHobFmpAIA_L39K4XfK';
-const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-let allHorses = [];
+const SUPABASE_URL='https://mfinlbqfowymmklhkuhb.supabase.co';
+const SUPABASE_KEY='sb_publishable_PcwbX1YoncwnrHobFmpAIA_L39K4XfK';
+const db=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+let allHorses=[],allRestPeriods=[],allRestSchedules=[];
+let currentHorseId=null;
+let selPeriodVal='morning';
+const selDays=new Set();
+const dayNames=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+let userId=null;
 
-function openModal(){
-  document.getElementById('h-name').value='';
-  document.getElementById('h-breed').value='';
-  document.getElementById('h-color').value='';
-  document.getElementById('h-notes').value='';
-  document.getElementById('error').style.display='none';
-  document.getElementById('save-btn').disabled=false;
-  document.getElementById('save-btn').textContent='Add horse';
-  document.getElementById('modal').classList.add('open');
+function openModal(name){
+  if(name==='add'){
+    document.getElementById('h-name').value='';
+    document.getElementById('h-breed').value='';
+    document.getElementById('h-color').value='';
+    document.getElementById('h-notes').value='';
+    document.getElementById('add-error').style.display='none';
+    document.getElementById('add-btn').disabled=false;
+    document.getElementById('add-btn').textContent='Add horse';
+  }
+  document.getElementById('modal-'+name).classList.add('open');
 }
 
-function closeModal(){
-  document.getElementById('modal').classList.remove('open');
+function closeModal(name){
+  document.getElementById('modal-'+name).classList.remove('open');
+  if(name==='rest'){currentHorseId=null;selDays.clear();renderSchedDays();}
+}
+
+function openRestModal(horseId,horseName){
+  currentHorseId=horseId;
+  document.getElementById('rest-horse-name').textContent=`Set rest periods for ${horseName}.`;
+  document.getElementById('rest-error').style.display='none';
+  const today=new Date().toISOString().split('T')[0];
+  document.getElementById('rest-start').value=today;
+  document.getElementById('rest-end').value=today;
+  document.getElementById('rest-notes').value='';
+  selDays.clear();
+  selPeriodVal='morning';
+  renderSchedDays();
+  ['morning','afternoon','full'].forEach(p=>document.getElementById('p-'+p).classList.toggle('sel',p===selPeriodVal));
+  document.getElementById('modal-rest').classList.add('open');
+}
+
+function renderSchedDays(){
+  const g=document.getElementById('sched-days');
+  g.innerHTML='';
+  dayNames.forEach((d,i)=>{
+    const b=document.createElement('button');
+    b.className='day-btn'+(selDays.has(i)?' sel':'');
+    b.textContent=d;
+    b.onclick=()=>{selDays.has(i)?selDays.delete(i):selDays.add(i);renderSchedDays();};
+    g.appendChild(b);
+  });
+}
+
+function selPeriod(p){
+  selPeriodVal=p;
+  ['morning','afternoon','full'].forEach(x=>document.getElementById('p-'+x).classList.toggle('sel',x===p));
 }
 
 async function saveHorse(){
-  const name = document.getElementById('h-name').value.trim();
+  const name=document.getElementById('h-name').value.trim();
   if(!name){
-    document.getElementById('error').textContent='Please enter a horse name.';
-    document.getElementById('error').style.display='block';
+    document.getElementById('add-error').textContent='Please enter a horse name.';
+    document.getElementById('add-error').style.display='block';
     return;
   }
-  const btn = document.getElementById('save-btn');
+  const btn=document.getElementById('add-btn');
   btn.disabled=true;btn.textContent='Saving…';
-  const { data: { user } } = await db.auth.getUser();
-  const { error } = await db.from('horses').insert({
-    trainer_id: user.id,
-    name: name,
-    breed: document.getElementById('h-breed').value.trim(),
-    color: document.getElementById('h-color').value.trim(),
-    notes: document.getElementById('h-notes').value.trim(),
-    active: true
+  const { error }=await db.from('horses').insert({
+    trainer_id:userId,name,
+    breed:document.getElementById('h-breed').value.trim(),
+    color:document.getElementById('h-color').value.trim(),
+    notes:document.getElementById('h-notes').value.trim(),
+    active:true
   });
   if(error){
-    document.getElementById('error').textContent=error.message;
-    document.getElementById('error').style.display='block';
+    document.getElementById('add-error').textContent=error.message;
+    document.getElementById('add-error').style.display='block';
     btn.disabled=false;btn.textContent='Add horse';
     return;
   }
-  closeModal();
+  closeModal('add');
+  load();
+}
+
+async function saveRestPeriod(){
+  const start=document.getElementById('rest-start').value;
+  const end=document.getElementById('rest-end').value;
+  if(!start||!end){
+    document.getElementById('rest-error').textContent='Please select start and end dates.';
+    document.getElementById('rest-error').style.display='block';
+    return;
+  }
+  if(end<start){
+    document.getElementById('rest-error').textContent='End date must be after start date.';
+    document.getElementById('rest-error').style.display='block';
+    return;
+  }
+  const btn=document.getElementById('rest-btn');
+  btn.disabled=true;btn.textContent='Saving…';
+  const { error }=await db.from('horse_rest_periods').insert({
+    horse_id:currentHorseId,trainer_id:userId,
+    start_date:start,end_date:end,
+    notes:document.getElementById('rest-notes').value.trim()
+  });
+  btn.disabled=false;btn.textContent='Add rest period';
+  if(error){
+    document.getElementById('rest-error').textContent=error.message;
+    document.getElementById('rest-error').style.display='block';
+    return;
+  }
+  document.getElementById('rest-error').style.display='none';
+  load();
+}
+
+async function saveRestSchedule(){
+  if(selDays.size===0){
+    document.getElementById('rest-error').textContent='Please select at least one day.';
+    document.getElementById('rest-error').style.display='block';
+    return;
+  }
+  const btn=document.getElementById('sched-btn');
+  btn.disabled=true;btn.textContent='Saving…';
+  const inserts=[...selDays].map(d=>({
+    horse_id:currentHorseId,trainer_id:userId,
+    day_of_week:d,period:selPeriodVal
+  }));
+  const { error }=await db.from('horse_rest_schedules').insert(inserts);
+  btn.disabled=false;btn.textContent='Add recurring schedule';
+  if(error){
+    document.getElementById('rest-error').textContent=error.message;
+    document.getElementById('rest-error').style.display='block';
+    return;
+  }
+  document.getElementById('rest-error').style.display='none';
+  selDays.clear();
+  renderSchedDays();
+  load();
+}
+
+async function removeRestPeriod(id){
+  await db.from('horse_rest_periods').delete().eq('id',id);
+  load();
+}
+
+async function removeRestSchedule(id){
+  await db.from('horse_rest_schedules').delete().eq('id',id);
   load();
 }
 
 async function removeHorse(id){
-  if(!confirm('Remove this horse from your roster?')) return;
+  if(!confirm('Remove this horse from your roster?'))return;
   await db.from('horses').update({active:false}).eq('id',id);
   load();
 }
 
+function getHorseStatus(horse){
+  const today=new Date();
+  today.setHours(0,0,0,0);
+  const periods=allRestPeriods.filter(r=>r.horse_id===horse.id);
+  const activeRest=periods.find(r=>{
+    const s=new Date(r.start_date);const e=new Date(r.end_date);
+    return today>=s&&today<=e;
+  });
+  if(activeRest){
+    const end=new Date(activeRest.end_date);
+    const endStr=end.toLocaleString('default',{month:'short',day:'numeric'});
+    return {label:`Resting until ${endStr}`,cls:'status-resting'};
+  }
+  const schedules=allRestSchedules.filter(r=>r.horse_id===horse.id);
+  if(schedules.length>0) return {label:'Partial schedule',cls:'status-partial'};
+  return {label:'Active',cls:'status-active'};
+}
+
+function formatDate(str){
+  const d=new Date(str);
+  return d.toLocaleString('default',{month:'short',day:'numeric',year:'numeric'});
+}
+
 function renderHorses(){
-  const list = document.getElementById('horse-list');
-  const active = allHorses.filter(h=>h.active);
-  document.getElementById('total-horses').textContent = allHorses.length;
-  document.getElementById('active-horses').textContent = active.length;
+  const list=document.getElementById('horse-list');
+  const active=allHorses.filter(h=>h.active);
+  document.getElementById('total-horses').textContent=allHorses.length;
+  document.getElementById('active-horses').textContent=active.length;
+  const resting=active.filter(h=>getHorseStatus(h).cls==='status-resting').length;
+  document.getElementById('resting-horses').textContent=resting;
 
   if(active.length===0){
     list.innerHTML=`<div class="empty">
       <div class="empty-icon">🐴</div>
       <div class="empty-title">No horses yet</div>
-      <div class="empty-sub">Add your horses so they appear in lesson booking and rider profiles.</div>
-      <button class="btn btn-primary" onclick="openModal()">Add first horse</button>
+      <div class="empty-sub">Add your horses so they appear in lesson booking.</div>
+      <button class="btn btn-primary" onclick="openModal('add')">Add first horse</button>
     </div>`;
     return;
   }
 
   list.innerHTML='';
   active.forEach(h=>{
-    const card = document.createElement('div');
+    const status=getHorseStatus(h);
+    const periods=allRestPeriods.filter(r=>r.horse_id===h.id);
+    const schedules=allRestSchedules.filter(r=>r.horse_id===h.id);
+    const card=document.createElement('div');
     card.className='horse-card';
+
+    let restHtml='';
+    if(periods.length>0){
+      restHtml+=`<div style="font-size:12px;font-weight:500;color:#3a3a35;margin-bottom:4px">Rest periods</div><div class="rest-list">`;
+      periods.forEach(r=>{
+        restHtml+=`<div class="rest-item"><span>${formatDate(r.start_date)} – ${formatDate(r.end_date)}${r.notes?' · '+r.notes:''}</span><button class="btn-remove-rest" onclick="removeRestPeriod('${r.id}')">Remove</button></div>`;
+      });
+      restHtml+='</div>';
+    }
+    if(schedules.length>0){
+      restHtml+=`<div style="font-size:12px;font-weight:500;color:#3a3a35;margin-bottom:4px;margin-top:8px">Recurring rest</div><div class="rest-list">`;
+      schedules.forEach(s=>{
+        const day=dayNames[s.day_of_week];
+        const period=s.period.charAt(0).toUpperCase()+s.period.slice(1);
+        restHtml+=`<div class="rest-item"><span>${day} · ${period}</span><button class="btn-remove-rest" onclick="removeRestSchedule('${s.id}')">Remove</button></div>`;
+      });
+      restHtml+='</div>';
+    }
+
     card.innerHTML=`
-      <div class="horse-icon">🐴</div>
-      <div class="horse-info">
-        <div class="horse-name">${h.name}</div>
-        <div class="horse-meta">${[h.breed,h.color].filter(Boolean).join(' · ')||'No details added'}${h.notes?' · '+h.notes:''}</div>
+      <div class="horse-top">
+        <div class="horse-icon">🐴</div>
+        <div class="horse-info">
+          <div class="horse-name">${h.name}</div>
+          <div class="horse-meta">${[h.breed,h.color].filter(Boolean).join(' · ')||'No details'}${h.notes?' · '+h.notes:''}</div>
+        </div>
+        <div class="horse-right">
+          <span class="status-badge ${status.cls}">${status.label}</span>
+        </div>
       </div>
-      <div class="horse-right">
-        <button class="btn-remove" onclick="removeHorse('${h.id}')">Remove</button>
+      ${restHtml?`<div style="margin-top:10px;padding-top:10px;border-top:1px solid #f0efe9">${restHtml}</div>`:''}
+      <div class="horse-actions">
+        <button class="btn-sm" onclick="openRestModal('${h.id}','${h.name}')">+ Add rest</button>
+        <button class="btn-sm-danger" onclick="removeHorse('${h.id}')">Remove horse</button>
       </div>`;
     list.appendChild(card);
   });
 }
 
 async function load(){
-  const { data: { user } } = await db.auth.getUser();
-  if(!user){ window.location.href='login.html'; return; }
-  const [{ data: horses },{ data: bookings }] = await Promise.all([
-    db.from('horses').select('*').eq('trainer_id', user.id).order('name',{ascending:true}),
-    db.from('bookings').select('id').eq('trainer_id', user.id)
+  const [{ data: horses },{ data: periods },{ data: schedules }]=await Promise.all([
+    db.from('horses').select('*').eq('trainer_id',userId).order('name',{ascending:true}),
+    db.from('horse_rest_periods').select('*').eq('trainer_id',userId),
+    db.from('horse_rest_schedules').select('*').eq('trainer_id',userId)
   ]);
-  allHorses = horses || [];
-  document.getElementById('total-bookings').textContent = (bookings||[]).length;
+  allHorses=horses||[];
+  allRestPeriods=periods||[];
+  allRestSchedules=schedules||[];
   renderHorses();
+  renderSchedDays();
 }
 
-load();
+async function init(){
+  const { data: { user } }=await db.auth.getUser();
+  if(!user){window.location.href='login.html';return;}
+  userId=user.id;
+  load();
+}
+
+init();
 </script>
 </body>
 </html>
