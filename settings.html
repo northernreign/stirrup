@@ -25,6 +25,8 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2
 .plan-right{margin-left:auto;display:flex;flex-direction:column;align-items:flex-end;gap:6px}
 .badge{font-size:11px;padding:2px 8px;border-radius:20px;font-weight:500}
 .badge-free{background:#f0efe9;color:#5a5a55}
+.badge-pro{background:#e0f5ed;color:#0f6e47}
+.badge-barn{background:#faeeda;color:#633806}
 .section{margin-bottom:1.75rem}
 .section-label{font-size:11px;font-weight:500;color:#8a8a85;letter-spacing:.04em;text-transform:uppercase;margin-bottom:8px}
 .card{background:#fff;border:1px solid #e8e6e0;border-radius:12px;overflow:hidden}
@@ -45,6 +47,7 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2
 .lesson-type-row{display:flex;align-items:center;gap:10px;padding:10px 16px;border-bottom:1px solid #f0efe9}
 .lesson-type-row:last-child{border-bottom:none}
 .lt-name{font-size:13px;font-weight:500;color:#1a1a18;flex:1}
+.lt-locked{font-size:11px;color:#8a8a85;margin-left:4px}
 .lt-price{font-size:13px;color:#5a5a55;width:60px;text-align:right}
 .lt-duration{font-size:11px;color:#8a8a85;width:80px;text-align:right}
 .btn-edit-lt{font-size:11px;padding:3px 8px;border-radius:6px;border:1px solid #d4d2cb;background:transparent;color:#5a5a55;cursor:pointer;font-family:'Inter',sans-serif}
@@ -59,7 +62,7 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2
 .modal-sub{font-size:14px;color:#5a5a55;margin-bottom:1.25rem;line-height:1.5}
 .field{margin-bottom:12px}
 .field label{display:block;font-size:12px;font-weight:500;color:#3a3a35;margin-bottom:4px}
-.field input,.field select,.field textarea{width:100%;padding:9px 12px;border:1px solid #d4d2cb;border-radius:8px;font-size:14px;font-family:'Inter',sans-serif;outline:none;background:#fff;color:#1a1a18}
+.field input,.field select{width:100%;padding:9px 12px;border:1px solid #d4d2cb;border-radius:8px;font-size:14px;font-family:'Inter',sans-serif;outline:none;background:#fff;color:#1a1a18}
 .field input:focus,.field select:focus{border-color:#1D9E75}
 .row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .modal-actions{display:flex;gap:8px;margin-top:1.25rem}
@@ -71,6 +74,7 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2
 .price-prefix{position:relative}
 .price-prefix input{padding-left:22px}
 .price-prefix::before{content:'$';position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:14px;color:#5a5a55;pointer-events:none}
+.system-note{font-size:11px;color:#8a8a85;background:#f9f8f5;border-radius:6px;padding:6px 10px;margin-bottom:12px}
 </style>
 </head>
 <body>
@@ -87,12 +91,12 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2
   <div class="plan-card">
     <div class="plan-icon">⭐</div>
     <div>
-      <div class="plan-name">Stirrup Free</div>
+      <div class="plan-name" id="plan-name">Stirrup Free</div>
       <div class="plan-meta" id="plan-meta">Up to 20 bookings/month</div>
     </div>
     <div class="plan-right">
-      <span class="badge badge-free" id="plan-badge">Free</span>
-      <a href="paywall.html" class="btn btn-primary" style="font-size:12px;padding:5px 12px">Upgrade</a>
+      <span class="badge" id="plan-badge">Free</span>
+      <a href="paywall.html" class="btn btn-primary" style="font-size:12px;padding:5px 12px" id="upgrade-btn">Upgrade</a>
     </div>
   </div>
 
@@ -157,6 +161,11 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2
         <div class="row-icon" style="background:#fcebeb">⚠️</div>
         <div class="row-body"><div class="row-title">Late payment warnings</div><div class="row-sub">Text riders with unpaid lessons after 10 days</div></div>
         <button class="toggle on" id="t-overdue" onclick="tog('overdue')" aria-label="Toggle late payment warnings"></button>
+      </div>
+      <div class="row">
+        <div class="row-icon" style="background:#e6f0fb">💳</div>
+        <div class="row-body"><div class="row-title">Auto-send Square payment link</div><div class="row-sub">Automatically send payment link when lesson date passes · Requires Square</div></div>
+        <button class="toggle off" id="t-autopay" onclick="tog('autopay')" aria-label="Toggle auto payment"></button>
       </div>
     </div>
   </div>
@@ -252,21 +261,19 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2
 <div class="modal-overlay" id="modal-lt">
   <div class="modal">
     <div class="modal-title" id="lt-modal-title">Add lesson type</div>
-    <div class="modal-sub">This will appear as an option when booking a lesson.</div>
-    <div class="field"><label>Name</label><input type="text" id="lt-name" placeholder="e.g. Training ride, Pony party, Semi-private…"></div>
+    <div class="modal-sub" id="lt-modal-sub">This will appear as an option when booking a lesson.</div>
+    <div class="system-note" id="lt-system-note" style="display:none">🔒 This is a system lesson type. The name cannot be changed, but you can update the price.</div>
+    <div class="field"><label>Name</label><input type="text" id="lt-name" placeholder="e.g. Training ride, Pony party…"></div>
     <div class="row2">
       <div class="field"><label>Price</label><div class="price-prefix"><input type="number" id="lt-price" placeholder="75" min="0" step="0.01"></div></div>
       <div class="field"><label>Default duration</label>
         <select id="lt-duration">
-          <option>30 minutes</option>
-          <option selected>45 minutes</option>
-          <option>60 minutes</option>
-          <option>90 minutes</option>
-          <option>120 minutes</option>
+          <option>30 minutes</option><option selected>45 minutes</option>
+          <option>60 minutes</option><option>90 minutes</option><option>120 minutes</option>
         </select>
       </div>
     </div>
-    <div class="field"><label>Description (optional)</label><input type="text" id="lt-description" placeholder="e.g. One-on-one flatwork session"></div>
+    <div class="field" id="lt-desc-field"><label>Description (optional)</label><input type="text" id="lt-description" placeholder="e.g. One-on-one flatwork session"></div>
     <div class="modal-actions">
       <button class="btn-cancel" onclick="closeModal('lt')">Cancel</button>
       <button class="btn-save" id="lt-save-btn" onclick="saveLessonType()">Save</button>
@@ -291,9 +298,8 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2
 const SUPABASE_URL='https://mfinlbqfowymmklhkuhb.supabase.co';
 const SUPABASE_KEY='sb_publishable_PcwbX1YoncwnrHobFmpAIA_L39K4XfK';
 const db=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
-const toggleStates={reminder:true,horse:true,overdue:true};
-let editingLtId=null;
-let userId=null;
+const toggleStates={reminder:true,horse:true,overdue:true,autopay:false};
+let editingLtId=null,editingLtIsSystem=false,userId=null;
 
 function generateTimeOptions(){
   const times=[];
@@ -343,12 +349,16 @@ function openModal(name){
     closeSel.value=window._barnClose||'18:00';
   }
   if(name==='lt'){
-    editingLtId=null;
+    editingLtId=null;editingLtIsSystem=false;
     document.getElementById('lt-modal-title').textContent='Add lesson type';
+    document.getElementById('lt-modal-sub').textContent='This will appear as an option when booking a lesson.';
+    document.getElementById('lt-system-note').style.display='none';
     document.getElementById('lt-name').value='';
+    document.getElementById('lt-name').disabled=false;
     document.getElementById('lt-price').value='';
     document.getElementById('lt-duration').value='45 minutes';
     document.getElementById('lt-description').value='';
+    document.getElementById('lt-desc-field').style.display='block';
     document.getElementById('lt-save-btn').textContent='Add lesson type';
   }
   document.getElementById('modal-'+name).classList.add('open');
@@ -356,11 +366,16 @@ function openModal(name){
 
 function openEditLt(lt){
   editingLtId=lt.id;
+  editingLtIsSystem=lt.is_system===true;
   document.getElementById('lt-modal-title').textContent='Edit lesson type';
+  document.getElementById('lt-modal-sub').textContent='Update this lesson type.';
+  document.getElementById('lt-system-note').style.display=editingLtIsSystem?'block':'none';
   document.getElementById('lt-name').value=lt.name;
+  document.getElementById('lt-name').disabled=editingLtIsSystem;
   document.getElementById('lt-price').value=lt.price;
   document.getElementById('lt-duration').value=lt.duration;
   document.getElementById('lt-description').value=lt.description||'';
+  document.getElementById('lt-desc-field').style.display=editingLtIsSystem?'none':'block';
   document.getElementById('lt-save-btn').textContent='Save changes';
   document.getElementById('modal-lt').classList.add('open');
 }
@@ -387,25 +402,39 @@ async function saveHours(){
   const barn_close=document.getElementById('edit-close').value;
   if(barn_open>=barn_close){alert('Closing time must be after opening time.');return;}
   await db.from('trainers').update({barn_open,barn_close}).eq('id',userId);
+  await db.from('activity_log').insert({
+    trainer_id:userId,action:'barn_hours_changed',entity_type:'settings',
+    meta:{barn_open,barn_close}
+  });
   window._barnOpen=barn_open;window._barnClose=barn_close;
   closeModal('hours');loadSettings();
 }
 
 async function saveLessonType(){
-  const name=document.getElementById('lt-name').value.trim();
+  const name=editingLtIsSystem
+    ?document.getElementById('lt-name').value
+    :document.getElementById('lt-name').value.trim();
   const price=parseFloat(document.getElementById('lt-price').value);
-  if(!name||isNaN(price)){alert('Please enter a name and price.');return;}
+  if((!editingLtIsSystem&&!name)||isNaN(price)){alert('Please enter a name and price.');return;}
   const btn=document.getElementById('lt-save-btn');
   btn.disabled=true;btn.textContent='Saving…';
-  const payload={
-    name,price,
-    duration:document.getElementById('lt-duration').value,
-    description:document.getElementById('lt-description').value.trim()
-  };
+  const payload={price,duration:document.getElementById('lt-duration').value};
+  if(!editingLtIsSystem){
+    payload.name=name;
+    payload.description=document.getElementById('lt-description').value.trim();
+  }
   if(editingLtId){
     await db.from('lesson_types').update(payload).eq('id',editingLtId);
+    await db.from('activity_log').insert({
+      trainer_id:userId,action:'lesson_type_edited',
+      entity_type:'lesson_type',entity_name:name
+    });
   } else {
-    await db.from('lesson_types').insert({...payload,trainer_id:userId,active:true});
+    await db.from('lesson_types').insert({...payload,name,trainer_id:userId,active:true,is_system:false});
+    await db.from('activity_log').insert({
+      trainer_id:userId,action:'lesson_type_added',
+      entity_type:'lesson_type',entity_name:name
+    });
   }
   btn.disabled=false;
   closeModal('lt');
@@ -422,15 +451,24 @@ async function loadLessonTypes(){
   const {data:types}=await db.from('lesson_types').select('*').eq('trainer_id',userId).eq('active',true).order('sort_order',{ascending:true});
   const card=document.getElementById('lesson-types-card');
   card.innerHTML='';
+  if(types&&types.length>0){
+    const sysNote=document.createElement('div');
+    sysNote.style.cssText='font-size:11px;color:#8a8a85;padding:8px 16px;border-bottom:1px solid #f0efe9;';
+    sysNote.textContent='🔒 Private lesson and Group lesson are system types — name locked, price editable.';
+    card.appendChild(sysNote);
+  }
   (types||[]).forEach(lt=>{
     const row=document.createElement('div');
     row.className='lesson-type-row';
+    const isSystem=lt.is_system===true;
     row.innerHTML=`
-      <div class="lt-name">${lt.name}${lt.description?'<div style="font-size:11px;color:#8a8a85;margin-top:1px">'+lt.description+'</div>':''}</div>
+      <div class="lt-name">${lt.name}${isSystem?'<span class="lt-locked">🔒</span>':''}
+        ${lt.description&&!isSystem?'<div style="font-size:11px;color:#8a8a85;margin-top:1px">'+lt.description+'</div>':''}
+      </div>
       <div class="lt-duration">${lt.duration}</div>
       <div class="lt-price">$${parseFloat(lt.price).toFixed(0)}</div>
       <button class="btn-edit-lt" onclick='openEditLt(${JSON.stringify(lt)})'>Edit</button>
-      <button class="btn-remove-lt" onclick="removeLessonType('${lt.id}')">Remove</button>`;
+      ${!isSystem?`<button class="btn-remove-lt" onclick="removeLessonType('${lt.id}')">Remove</button>`:''}`;
     card.appendChild(row);
   });
   const addRow=document.createElement('div');
@@ -471,11 +509,21 @@ async function loadSettings(){
     window._barnOpen=trainer.barn_open||'09:00';
     window._barnClose=trainer.barn_close||'18:00';
     const tier=trainer.tier||'free';
+    const isLifetime=trainer.is_lifetime===true;
     const tierNames={free:'Stirrup Free',pro:'Stirrup Pro',barn:'Stirrup Barn'};
-    const tierMeta={free:'Up to 20 bookings/month',pro:'Unlimited bookings · Square payments',barn:'Unlimited bookings · Staff trainers · Square payments'};
-    document.getElementById('plan-badge').textContent=tier.charAt(0).toUpperCase()+tier.slice(1);
-    document.querySelector('.plan-name').textContent=tierNames[tier]||'Stirrup Free';
+    const tierMeta={
+      free:'Up to 20 bookings/month',
+      pro:'Unlimited bookings · Square payments',
+      barn:'Unlimited bookings · Staff trainers · Square payments'+(isLifetime?' · Lifetime':'')
+    };
+    const badgeClass={free:'badge-free',pro:'badge-pro',barn:'badge-barn'};
+    document.getElementById('plan-name').textContent=tierNames[tier]||'Stirrup Free';
     document.getElementById('plan-meta').textContent=tierMeta[tier]||'';
+    document.getElementById('plan-badge').textContent=isLifetime?'Lifetime Barn':(tier.charAt(0).toUpperCase()+tier.slice(1));
+    document.getElementById('plan-badge').className='badge '+(badgeClass[tier]||'badge-free');
+    if(tier==='barn'&&isLifetime){
+      document.getElementById('upgrade-btn').style.display='none';
+    }
   }
   loadLessonTypes();
 }
