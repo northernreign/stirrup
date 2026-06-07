@@ -22,7 +22,8 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2
 .greeting{font-size:22px;font-weight:600;margin-bottom:4px}
 .greeting-sub{font-size:14px;color:#5a5a55;margin-bottom:1.5rem}
 .metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-bottom:1.5rem}
-.metric{background:#fff;border:1px solid #e8e6e0;border-radius:12px;padding:1rem}
+.metric{background:#fff;border:1px solid #e8e6e0;border-radius:12px;padding:1rem;cursor:pointer;transition:border-color .15s}
+.metric:hover{border-color:#1D9E75}
 .metric-label{font-size:12px;color:#5a5a55;margin-bottom:6px}
 .metric-val{font-size:24px;font-weight:600;color:#1a1a18}
 .metric-sub{font-size:12px;color:#8a8a85;margin-top:3px}
@@ -37,7 +38,7 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2
 .cal-month{font-size:14px;font-weight:600;color:#1a1a18;min-width:120px;text-align:center}
 .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
 .cal-label{font-size:11px;color:#8a8a85;text-align:center;padding:4px 0;font-weight:500}
-.cal-day{min-height:80px;border-radius:6px;padding:4px;background:#f9f8f5;border:1px solid transparent;transition:border .15s;cursor:default;position:relative}
+.cal-day{min-height:80px;border-radius:6px;padding:4px;background:#f9f8f5;border:1px solid transparent;transition:border .15s;position:relative}
 .cal-day:hover{border-color:#e8e6e0}
 .cal-day.today{background:#e0f5ed;border-color:#1D9E75}
 .cal-day.other-month{background:transparent;opacity:.4}
@@ -50,9 +51,7 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2
 .ev-jumping{background:#fde8c0;color:#7a4500}
 .ev-dressage{background:#fad9d0;color:#6b1f10}
 .ev-other{background:#e8e6e0;color:#3a3a35}
-.ev-paid{opacity:.6}
 .more-events{font-size:10px;color:#8a8a85;padding:2px 4px;cursor:pointer}
-.more-events:hover{color:#1a1a18}
 .pay-row{display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid #f0efe9;cursor:pointer;transition:background .15s;margin:0 -1.25rem;padding-left:1.25rem;padding-right:1.25rem}
 .pay-row:last-child{border-bottom:none}
 .pay-row:hover{background:#f9f8f5}
@@ -74,6 +73,13 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2
 .cl-text{font-size:13px;color:#1a1a18;flex:1}
 .cl-text.done{color:#8a8a85;text-decoration:line-through}
 .cl-arrow{font-size:14px;color:#8a8a85}
+.activity-feed{background:#fff;border:1px solid #e8e6e0;border-radius:12px;padding:1rem 1.25rem;margin-bottom:1.5rem}
+.activity-item{display:flex;align-items:flex-start;gap:10px;padding:8px 0;border-bottom:1px solid #f0efe9}
+.activity-item:last-child{border-bottom:none}
+.activity-icon{width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
+.activity-body{flex:1;min-width:0}
+.activity-text{font-size:13px;color:#1a1a18;line-height:1.4}
+.activity-time{font-size:11px;color:#8a8a85;margin-top:2px}
 .sq-notice{background:#e6f0fb;border:1px solid #85b7eb;border-radius:12px;padding:1rem 1.25rem;display:flex;align-items:flex-start;gap:12px}
 .sq-notice-body{flex:1}
 .sq-notice-title{font-size:13px;font-weight:600;color:#0c447c;margin-bottom:3px}
@@ -103,22 +109,22 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2
   <div class="greeting-sub" id="greeting-sub">Here's what's happening at your barn.</div>
 
   <div class="metrics">
-    <div class="metric">
+    <div class="metric" onclick="window.location.href='book.html'">
       <div class="metric-label">Total bookings</div>
       <div class="metric-val" id="m-lessons">—</div>
       <div class="metric-sub">lessons scheduled</div>
     </div>
-    <div class="metric">
+    <div class="metric" onclick="window.location.href='riders.html'">
       <div class="metric-label">Riders</div>
       <div class="metric-val" id="m-riders">—</div>
       <div class="metric-sub">in your roster</div>
     </div>
-    <div class="metric">
+    <div class="metric" onclick="window.location.href='horses.html'">
       <div class="metric-label">Horses</div>
       <div class="metric-val" id="m-horses">—</div>
       <div class="metric-sub">in your barn</div>
     </div>
-    <div class="metric">
+    <div class="metric" onclick="document.getElementById('awaiting-section').scrollIntoView({behavior:'smooth'})">
       <div class="metric-label">Awaiting payment</div>
       <div class="metric-val" id="m-unpaid">—</div>
       <div class="metric-sub">past lessons unpaid</div>
@@ -167,13 +173,22 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2
       </div>
     </div>
 
-    <div class="card">
+    <div class="card" id="awaiting-section">
       <div class="card-head"><div class="card-title">Awaiting payment</div></div>
       <div id="awaiting-payment">
         <div style="text-align:center;padding:2rem 0;color:#8a8a85;font-size:13px">
           <div style="font-size:24px;margin-bottom:8px">💳</div>No payments due.
         </div>
       </div>
+    </div>
+  </div>
+
+  <div class="activity-feed">
+    <div class="card-head" style="margin-bottom:.75rem">
+      <div class="card-title">Recent activity</div>
+    </div>
+    <div id="activity-list">
+      <div style="text-align:center;padding:1.5rem;color:#8a8a85;font-size:13px">No activity yet.</div>
     </div>
   </div>
 
@@ -199,6 +214,39 @@ let allBookings=[];
 const dayLabels=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 const monthNames=['January','February','March','April','May','June','July','August','September','October','November','December'];
 
+const activityConfig={
+  booking_created:{icon:'🗓',bg:'#e0f5ed',label:(a)=>`Booking — ${a.entity_name}${a.meta?.lesson_type?' · '+a.meta.lesson_type:''}${a.meta?.date?' · '+a.meta.date:''}`},
+  booking_rescheduled:{icon:'✏️',bg:'#e6f0fb',label:(a)=>`Rescheduled — ${a.entity_name}${a.meta?.new_date?' → '+a.meta.new_date:''}`},
+  booking_cancelled:{icon:'✗',bg:'#fcebeb',label:(a)=>`Cancelled — ${a.entity_name}`},
+  payment_received:{icon:'✓',bg:'#e0f5ed',label:(a)=>`Payment received — ${a.entity_name}${a.meta?.amount?' · '+a.meta.amount:''}`},
+  payment_request_sent:{icon:'💳',bg:'#e6f0fb',label:(a)=>`Payment link sent — ${a.entity_name}${a.meta?.amount?' · '+a.meta.amount:''}`},
+  rider_added:{icon:'👤',bg:'#eeedfe',label:(a)=>`Rider added — ${a.entity_name}`},
+  horse_added:{icon:'🐴',bg:'#faeeda',label:(a)=>`Horse added — ${a.entity_name}`},
+  horse_edited:{icon:'✏️',bg:'#faeeda',label:(a)=>`Horse updated — ${a.entity_name}`},
+  horse_rest_added:{icon:'😴',bg:'#fcebeb',label:(a)=>`Rest period added — ${a.entity_name}${a.meta?.start_date?' · '+a.meta.start_date+' to '+a.meta.end_date:''}`},
+  horse_rest_removed:{icon:'✓',bg:'#e0f5ed',label:(a)=>`Rest period removed — ${a.entity_name}`},
+  horse_rest_schedule_added:{icon:'📅',bg:'#faeeda',label:(a)=>`Recurring rest added — ${a.entity_name}`},
+  horse_rest_schedule_removed:{icon:'📅',bg:'#f0efe9',label:(a)=>`Recurring rest removed — ${a.entity_name}`},
+  trainer_added:{icon:'👤',bg:'#e0f5ed',label:(a)=>`Staff trainer added — ${a.entity_name}`},
+  trainer_availability_changed:{icon:'📅',bg:'#e6f0fb',label:(a)=>`Availability updated — ${a.entity_name}`},
+  lesson_type_added:{icon:'📋',bg:'#eeedfe',label:(a)=>`Lesson type added — ${a.entity_name}`},
+  lesson_type_edited:{icon:'✏️',bg:'#eeedfe',label:(a)=>`Lesson type updated — ${a.entity_name}`},
+  barn_hours_changed:{icon:'🕐',bg:'#faeeda',label:(a)=>`Barn hours updated`},
+};
+
+function timeAgo(dateStr){
+  const d=new Date(dateStr);
+  const diff=Date.now()-d.getTime();
+  const mins=Math.floor(diff/60000);
+  const hours=Math.floor(diff/3600000);
+  const days=Math.floor(diff/86400000);
+  if(mins<1)return'just now';
+  if(mins<60)return`${mins}m ago`;
+  if(hours<24)return`${hours}h ago`;
+  if(days<7)return`${days}d ago`;
+  return d.toLocaleString('default',{month:'short',day:'numeric'});
+}
+
 function getEventClass(lessonType){
   const t=(lessonType||'').toLowerCase();
   if(t.includes('private'))return'ev-private';
@@ -206,12 +254,6 @@ function getEventClass(lessonType){
   if(t.includes('jump'))return'ev-jumping';
   if(t.includes('dressage'))return'ev-dressage';
   return'ev-other';
-}
-
-function pillFor(bk){
-  if(bk.payment_status==='paid')return'<span class="pill pill-green">paid</span>';
-  if(bk.payment_status==='upcoming')return'<span class="pill pill-blue">upcoming</span>';
-  return'<span class="pill pill-amber">'+bk.payment_status+'</span>';
 }
 
 function lessonPassed(bk){
@@ -236,57 +278,37 @@ function renderCalendar(){
   document.getElementById('cal-month').textContent=`${monthNames[calMonth]} ${calYear}`;
   const g=document.getElementById('cal-grid');
   g.innerHTML='';
-
-  // Day labels
   dayLabels.forEach(d=>{
-    const l=document.createElement('div');
-    l.className='cal-label';l.textContent=d;
-    g.appendChild(l);
+    const l=document.createElement('div');l.className='cal-label';l.textContent=d;g.appendChild(l);
   });
-
   const firstDay=new Date(calYear,calMonth,1).getDay();
   const daysInMonth=new Date(calYear,calMonth+1,0).getDate();
   const daysInPrevMonth=new Date(calYear,calMonth,0).getDate();
-
-  // Previous month padding
   for(let i=firstDay-1;i>=0;i--){
     const cell=document.createElement('div');
     cell.className='cal-day other-month';
     cell.innerHTML=`<div class="cal-day-num">${daysInPrevMonth-i}</div>`;
     g.appendChild(cell);
   }
-
-  // Current month days
   for(let d=1;d<=daysInMonth;d++){
     const date=new Date(calYear,calMonth,d);
     const isToday=date.toDateString()===new Date().toDateString();
     const dateStr=date.toISOString().split('T')[0];
-
-    // Find bookings for this day
-    const dayBookings=allBookings.filter(b=>{
-      if(b.scheduled_date) return b.scheduled_date===dateStr;
-      // fallback: parse text date
-      return false;
-    }).sort((a,b)=>a.time>b.time?1:-1);
-
+    const dayBookings=allBookings.filter(b=>b.scheduled_date===dateStr).sort((a,b)=>a.time>b.time?1:-1);
     const cell=document.createElement('div');
     cell.className='cal-day'+(isToday?' today':'');
     let html=`<div class="cal-day-num">${d}</div>`;
-
     const maxShow=3;
     dayBookings.slice(0,maxShow).forEach(bk=>{
-      const cls=getEventClass(bk.lesson_type)+(bk.payment_status==='paid'?' ev-paid':'');
+      const cls=getEventClass(bk.lesson_type);
       html+=`<div class="cal-event ${cls}" onclick="event.stopPropagation();openBooking(${JSON.stringify(bk).replace(/"/g,'&quot;')})" title="${bk.rider_name} · ${bk.time}">${bk.time} ${bk.rider_name.split(' ')[0]}</div>`;
     });
     if(dayBookings.length>maxShow){
       html+=`<div class="more-events">+${dayBookings.length-maxShow} more</div>`;
     }
-
     cell.innerHTML=html;
     g.appendChild(cell);
   }
-
-  // Next month padding
   const totalCells=firstDay+daysInMonth;
   const remaining=totalCells%7===0?0:7-(totalCells%7);
   for(let i=1;i<=remaining;i++){
@@ -295,6 +317,27 @@ function renderCalendar(){
     cell.innerHTML=`<div class="cal-day-num">${i}</div>`;
     g.appendChild(cell);
   }
+}
+
+function renderActivity(activities){
+  const list=document.getElementById('activity-list');
+  if(!activities||activities.length===0){
+    list.innerHTML='<div style="text-align:center;padding:1.5rem;color:#8a8a85;font-size:13px">No activity yet. Start by adding horses, riders, and booking lessons.</div>';
+    return;
+  }
+  list.innerHTML='';
+  activities.forEach(a=>{
+    const cfg=activityConfig[a.action]||{icon:'•',bg:'#f0efe9',label:()=>a.action};
+    const item=document.createElement('div');
+    item.className='activity-item';
+    item.innerHTML=`
+      <div class="activity-icon" style="background:${cfg.bg}">${cfg.icon}</div>
+      <div class="activity-body">
+        <div class="activity-text">${cfg.label(a)}</div>
+        <div class="activity-time">${timeAgo(a.created_at)}</div>
+      </div>`;
+    list.appendChild(item);
+  });
 }
 
 async function load(){
@@ -309,10 +352,11 @@ async function load(){
   document.getElementById('greeting').textContent=greeting+(name?', '+name:'');
   document.getElementById('greeting-sub').textContent="Here's what's happening at "+barn+".";
 
-  const [{data:riders},{data:bookings},{data:horses}]=await Promise.all([
+  const [{data:riders},{data:bookings},{data:horses},{data:activities}]=await Promise.all([
     db.from('riders').select('*').eq('trainer_id',user.id),
     db.from('bookings').select('*').eq('trainer_id',user.id).order('scheduled_date',{ascending:true}),
-    db.from('horses').select('*').eq('trainer_id',user.id).eq('active',true)
+    db.from('horses').select('*').eq('trainer_id',user.id).eq('active',true),
+    db.from('activity_log').select('*').eq('trainer_id',user.id).order('created_at',{ascending:false}).limit(10)
   ]);
 
   const r=riders||[];
@@ -336,6 +380,7 @@ async function load(){
   document.getElementById('cl-fill').style.width=(done/6*100)+'%';
 
   renderCalendar();
+  renderActivity(activities);
 
   if(awaitingPayment.length>0){
     const ap=document.getElementById('awaiting-payment');
