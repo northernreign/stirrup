@@ -31,7 +31,6 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2
 .horse-name{font-size:14px;font-weight:500;color:#1a1a18;display:flex;align-items:center;gap:6px}
 .horse-meta{font-size:12px;color:#5a5a55;margin-top:1px}
 .status-badge{font-size:16px;cursor:default}
-.status-label{font-size:11px;color:#5a5a55;background:#f0efe9;padding:2px 8px;border-radius:20px}
 .horse-actions{display:flex;gap:6px;margin-top:10px;padding-top:10px;border-top:1px solid #f0efe9;flex-wrap:wrap}
 .btn-sm{font-size:12px;padding:4px 10px;border-radius:6px;cursor:pointer;font-family:'Inter',sans-serif;border:1px solid #d4d2cb;background:transparent;color:#1a1a18}
 .btn-sm:hover{background:#f0efe9}
@@ -179,32 +178,38 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2
 const SUPABASE_URL='https://mfinlbqfowymmklhkuhb.supabase.co';
 const SUPABASE_KEY='sb_publishable_PcwbX1YoncwnrHobFmpAIA_L39K4XfK';
 const db=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
-let allHorses=[],allRestPeriods=[],allRestSchedules=[],todayBookings=[];
+let allHorses=[],allRestPeriods=[],allRestSchedules=[],todayBookings=[],allBookings=[];
 let currentHorseId=null,currentHorseName=null,editingHorseId=null;
 let selPeriodVal='morning';
 const selDays=new Set();
 const dayNames=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
 let userId=null,barnOpen='09:00',barnClose='18:00';
 
-function parseTimeToMinutes(timeStr){
-  // e.g. "9:00 AM", "1:30 PM"
-  const [timePart,ampm]=timeStr.split(' ');
-  let [h,m]=timePart.split(':').map(Number);
-  if(ampm==='PM'&&h!==12)h+=12;
-  if(ampm==='AM'&&h===12)h=0;
-  return h*60+m;
-}
+function isRetired(horse){
+  // No bookings in last 2 years
+  const twoYearsAgo=new Date();
+  twoYearsAgo.setFullYear(twoYearsAgo.getFullYear()-2);
+  const recentBooking=allBookings.find(b=>{
+    if(b.horse_id!==horse.id)return false;
+    return new Date(b.scheduled_date)>=twoYearsAgo;
+  });
+  if(recentBooking)return false;
 
-function parseDurationToMinutes(durationStr){
-  // e.g. "45 minutes", "1 hour", "90 minutes"
-  const match=durationStr.match(/(\d+)/);
-  if(!match)return 60;
-  const num=parseInt(match[1]);
-  if(durationStr.includes('hour'))return num*60;
-  return num;
+  // Has a rest period covering 365+ consecutive days
+  const periods=allRestPeriods.filter(r=>r.horse_id===horse.id);
+  const oneYear=365*24*60*60*1000;
+  const longRest=periods.find(r=>{
+    const start=new Date(r.start_date);
+    const end=new Date(r.end_date);
+    return(end-start)>=oneYear;
+  });
+  return!!longRest;
 }
 
 function getHorseStatus(horse){
+  // Check retirement first (silent easter egg)
+  if(isRetired(horse))return{badge:'😇',label:'',retired:true};
+
   const now=new Date();
   const currentMins=now.getHours()*60+now.getMinutes();
   const [oh,om]=barnOpen.split(':').map(Number);
@@ -213,7 +218,7 @@ function getHorseStatus(horse){
   const closeMins=ch*60+cm;
   const isBarnOpen=currentMins>=openMins&&currentMins<closeMins;
 
-  // Check one-time rest (highest priority)
+  // Check one-time rest
   const todayDate=new Date();todayDate.setHours(0,0,0,0);
   const periods=allRestPeriods.filter(r=>r.horse_id===horse.id);
   const activeRest=periods.find(r=>{
@@ -238,24 +243,32 @@ function getHorseStatus(horse){
     if(s.period==='afternoon'&&!isMorning)return{badge:'😴',label:'Resting this afternoon'};
   }
 
-  // Check if currently working (in an active lesson right now)
+  // Check if currently in a lesson
   const todayStr=now.toISOString().split('T')[0];
   const activeLesson=todayBookings.find(b=>{
     if(b.horse_id!==horse.id)return false;
     if(b.scheduled_date!==todayStr)return false;
     if(!b.time)return false;
-    const lessonStart=parseTimeToMinutes(b.time);
-    const duration=parseDurationToMinutes(b.duration||'60 minutes');
-    const lessonEnd=lessonStart+duration;
-    return currentMins>=lessonStart&&currentMins<lessonEnd;
+    const[timePart,ampm]=b.time.split(' ');
+    let[th,tm]=timePart.split(':').map(Number);
+    if(ampm==='PM'&&th!==12)th+=12;
+    if(ampm==='AM'&&th===12)th=0;
+    const lessonStart=th*60+tm;
+    const dur=parseDuration(b.duration||'60 minutes');
+    return currentMins>=lessonStart&&currentMins<lessonStart+dur;
   });
-  if(activeLesson){
-    return{badge:'🐴',label:`In a lesson · ${activeLesson.rider_name}`};
-  }
+  if(activeLesson)return{badge:'🐴',label:`In a lesson · ${activeLesson.rider_name}`};
 
-  // Sleeping or grazing
   if(!isBarnOpen)return{badge:'🌙',label:'Sleeping'};
   return{badge:'🍀',label:'Grazing'};
+}
+
+function parseDuration(dur){
+  const match=(dur||'').match(/(\d+)/);
+  if(!match)return 60;
+  const n=parseInt(match[1]);
+  if((dur||'').includes('hour'))return n*60;
+  return n;
 }
 
 function openModal(name){
@@ -489,22 +502,32 @@ function renderHorses(){
     card.className='horse-card';
 
     let restHtml='';
-    if(periods.length>0){
-      restHtml+=`<div style="font-size:12px;font-weight:500;color:#3a3a35;margin-bottom:4px">Rest periods</div><div class="rest-list">`;
-      periods.forEach(r=>{
-        restHtml+=`<div class="rest-item"><span>${formatDate(r.start_date)} – ${formatDate(r.end_date)}${r.notes?' · '+r.notes:''}</span><button class="btn-remove-rest" onclick="removeRestPeriod('${r.id}','${h.name}')">Remove</button></div>`;
-      });
-      restHtml+='</div>';
+    if(!status.retired){
+      if(periods.length>0){
+        restHtml+=`<div style="font-size:12px;font-weight:500;color:#3a3a35;margin-bottom:4px">Rest periods</div><div class="rest-list">`;
+        periods.forEach(r=>{
+          restHtml+=`<div class="rest-item"><span>${formatDate(r.start_date)} – ${formatDate(r.end_date)}${r.notes?' · '+r.notes:''}</span><button class="btn-remove-rest" onclick="removeRestPeriod('${r.id}','${h.name}')">Remove</button></div>`;
+        });
+        restHtml+='</div>';
+      }
+      if(schedules.length>0){
+        restHtml+=`<div style="font-size:12px;font-weight:500;color:#3a3a35;margin-bottom:4px;margin-top:8px">Recurring rest</div><div class="rest-list">`;
+        schedules.forEach(s=>{
+          const day=dayNames[s.day_of_week];
+          const period=s.period==='full'?'Full day':s.period.charAt(0).toUpperCase()+s.period.slice(1);
+          restHtml+=`<div class="rest-item"><span>${day} · ${period}</span><button class="btn-remove-rest" onclick="removeRestSchedule('${s.id}','${h.name}')">Remove</button></div>`;
+        });
+        restHtml+='</div>';
+      }
     }
-    if(schedules.length>0){
-      restHtml+=`<div style="font-size:12px;font-weight:500;color:#3a3a35;margin-bottom:4px;margin-top:8px">Recurring rest</div><div class="rest-list">`;
-      schedules.forEach(s=>{
-        const day=dayNames[s.day_of_week];
-        const period=s.period==='full'?'Full day':s.period.charAt(0).toUpperCase()+s.period.slice(1);
-        restHtml+=`<div class="rest-item"><span>${day} · ${period}</span><button class="btn-remove-rest" onclick="removeRestSchedule('${s.id}','${h.name}')">Remove</button></div>`;
-      });
-      restHtml+='</div>';
-    }
+
+    const actionsHtml=status.retired
+      ?`<div class="horse-actions"><button class="btn-sm-danger" onclick="removeHorse('${h.id}')">Remove from roster</button></div>`
+      :`<div class="horse-actions">
+          <button class="btn-sm" onclick='openEditModal(${JSON.stringify(h)})'>Edit</button>
+          <button class="btn-sm" onclick="openRestModal('${h.id}','${h.name}')">+ Add rest</button>
+          <button class="btn-sm-danger" onclick="removeHorse('${h.id}')">Remove horse</button>
+        </div>`;
 
     card.innerHTML=`
       <div class="horse-top">
@@ -512,18 +535,14 @@ function renderHorses(){
         <div class="horse-info">
           <div class="horse-name">
             ${h.name}
-            <span class="status-badge" title="${status.label}">${status.badge}</span>
-            <span class="status-label">${status.label}</span>
+            <span class="status-badge">${status.badge}</span>
+            ${status.label?`<span style="font-size:11px;color:#5a5a55;background:#f0efe9;padding:2px 8px;border-radius:20px">${status.label}</span>`:''}
           </div>
           <div class="horse-meta">${[h.breed,h.color].filter(Boolean).join(' · ')||'No details'}${h.notes?' · '+h.notes:''}</div>
         </div>
       </div>
-      ${restHtml?`<div style="margin-top:10px;padding-top:10px;border-top:1px solid #f0efe9">${restHtml}</div>`:''}
-      <div class="horse-actions">
-        <button class="btn-sm" onclick='openEditModal(${JSON.stringify(h)})'>Edit</button>
-        <button class="btn-sm" onclick="openRestModal('${h.id}','${h.name}')">+ Add rest</button>
-        <button class="btn-sm-danger" onclick="removeHorse('${h.id}')">Remove horse</button>
-      </div>`;
+      ${restHtml&&!status.retired?`<div style="margin-top:10px;padding-top:10px;border-top:1px solid #f0efe9">${restHtml}</div>`:''}
+      ${actionsHtml}`;
     list.appendChild(card);
   });
 }
@@ -536,16 +555,18 @@ async function load(){
   barnOpen=trainer?.barn_open||'09:00';
   barnClose=trainer?.barn_close||'18:00';
   const todayStr=new Date().toISOString().split('T')[0];
-  const [{data:horses},{data:periods},{data:schedules},{data:bookings}]=await Promise.all([
+  const [{data:horses},{data:periods},{data:schedules},{data:bookings},{data:allB}]=await Promise.all([
     db.from('horses').select('*').eq('trainer_id',userId).order('name',{ascending:true}),
     db.from('horse_rest_periods').select('*').eq('trainer_id',userId),
     db.from('horse_rest_schedules').select('*').eq('trainer_id',userId),
-    db.from('bookings').select('horse_id,rider_name,time,duration,scheduled_date').eq('trainer_id',userId).eq('scheduled_date',todayStr)
+    db.from('bookings').select('horse_id,rider_name,time,duration,scheduled_date').eq('trainer_id',userId).eq('scheduled_date',todayStr),
+    db.from('bookings').select('horse_id,scheduled_date').eq('trainer_id',userId).not('horse_id','is',null)
   ]);
   allHorses=horses||[];
   allRestPeriods=periods||[];
   allRestSchedules=schedules||[];
   todayBookings=bookings||[];
+  allBookings=allB||[];
   renderHorses();
   renderSchedDays();
 }
