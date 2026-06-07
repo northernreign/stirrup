@@ -34,7 +34,7 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2
 .tab-panel{display:none}
 .tab-panel.active{display:block}
 .card{background:#fff;border:1px solid #e8e6e0;border-radius:12px;padding:1rem 1.25rem;margin-bottom:1.25rem}
-.card-title{font-size:14px;font-weight:600;color:#1a1a18;margin-bottom:.75rem}
+.card-title{font-size:14px;font-weight:600;color:#1a1a18;margin-bottom:.75rem;display:flex;align-items:center;justify-content:space-between}
 .info-row{display:flex;justify-content:space-between;font-size:13px;padding:6px 0;border-bottom:1px solid #f0efe9}
 .info-row:last-child{border-bottom:none}
 .info-label{color:#5a5a55}
@@ -53,6 +53,30 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2
 .pill-blue{background:#e6f0fb;color:#0c447c}
 .empty{text-align:center;padding:2rem;color:#5a5a55;font-size:13px}
 .loading{text-align:center;padding:2rem;color:#8a8a85;font-size:13px}
+.btn-edit{font-size:12px;padding:4px 10px;border-radius:6px;border:1px solid #d4d2cb;background:transparent;color:#5a5a55;cursor:pointer;font-family:'Inter',sans-serif}
+.btn-edit:hover{background:#f0efe9}
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:100;align-items:center;justify-content:center}
+.modal-overlay.open{display:flex}
+.modal{background:#fff;border-radius:16px;padding:1.5rem;width:100%;max-width:480px;margin:1rem;max-height:90vh;overflow-y:auto}
+.modal-title{font-size:18px;font-weight:600;margin-bottom:6px}
+.modal-sub{font-size:14px;color:#5a5a55;margin-bottom:1.25rem}
+.field{margin-bottom:12px}
+.field label{display:block;font-size:12px;font-weight:500;color:#3a3a35;margin-bottom:4px}
+.field input,.field select,.field textarea{width:100%;padding:9px 12px;border:1px solid #d4d2cb;border-radius:8px;font-size:14px;font-family:'Inter',sans-serif;outline:none;background:#fff;color:#1a1a18}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:#1D9E75}
+.field textarea{height:72px;resize:none}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.optional{font-size:11px;color:#8a8a85;margin-left:4px}
+.divider{height:1px;background:#e8e6e0;margin:12px 0}
+.modal-actions{display:flex;gap:8px;margin-top:1.25rem}
+.btn-cancel{flex:1;padding:9px;background:transparent;border:1px solid #d4d2cb;border-radius:8px;font-size:13px;cursor:pointer;font-family:'Inter',sans-serif;color:#5a5a55}
+.btn-save{flex:1;padding:9px;background:#1D9E75;border:none;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif;color:#fff}
+.btn-save:hover{background:#178a64}
+.btn-save:disabled{background:#9ad4be;cursor:not-allowed}
+.error{background:#fcebeb;color:#c0392b;font-size:13px;padding:10px 12px;border-radius:8px;margin-bottom:14px;display:none}
+.level-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px}
+.level-btn{padding:8px;border-radius:8px;border:1px solid #d4d2cb;background:#fff;cursor:pointer;text-align:center;font-family:'Inter',sans-serif;font-size:12px;font-weight:500;color:#1a1a18}
+.level-btn.sel{background:#e0f5ed;border-color:#1D9E75;color:#0f6e47}
 </style>
 </head>
 <body>
@@ -86,7 +110,10 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2
 
   <div class="tab-panel active" id="panel-overview">
     <div class="card">
-      <div class="card-title">Contact & details</div>
+      <div class="card-title">
+        Contact & details
+        <button class="btn-edit" onclick="openEditModal()">Edit</button>
+      </div>
       <div class="info-row"><span class="info-label">Phone</span><span class="info-val" id="info-phone">—</span></div>
       <div class="info-row"><span class="info-label">Email</span><span class="info-val" id="info-email">—</span></div>
       <div class="info-row"><span class="info-label">Emergency contact</span><span class="info-val" id="info-ec">—</span></div>
@@ -95,7 +122,10 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2
       <div class="info-row"><span class="info-label">Preferred duration</span><span class="info-val" id="info-duration">—</span></div>
     </div>
     <div class="card">
-      <div class="card-title">Trainer notes</div>
+      <div class="card-title">
+        Trainer notes
+        <button class="btn-edit" onclick="openEditModal()">Edit</button>
+      </div>
       <div class="note-box" id="info-notes">No notes yet.</div>
     </div>
   </div>
@@ -108,12 +138,71 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2
   </div>
 </div>
 
+<!-- Edit rider modal -->
+<div class="modal-overlay" id="modal-edit">
+  <div class="modal">
+    <div class="modal-title">Edit rider</div>
+    <div class="modal-sub">Update this rider's information.</div>
+    <div class="error" id="edit-error"></div>
+    <div class="row2">
+      <div class="field"><label>First name</label><input type="text" id="e-fname"></div>
+      <div class="field"><label>Last name</label><input type="text" id="e-lname"></div>
+    </div>
+    <div class="row2">
+      <div class="field"><label>Phone</label><input type="tel" id="e-phone"></div>
+      <div class="field"><label>Email <span class="optional">optional</span></label><input type="email" id="e-email"></div>
+    </div>
+    <div class="divider"></div>
+    <div style="font-size:12px;font-weight:500;color:#3a3a35;margin-bottom:8px">Emergency contact</div>
+    <div class="row2">
+      <div class="field"><label>Name</label><input type="text" id="e-ec-name"></div>
+      <div class="field"><label>Phone</label><input type="tel" id="e-ec-phone"></div>
+    </div>
+    <div class="divider"></div>
+    <div style="font-size:12px;font-weight:500;color:#3a3a35;margin-bottom:8px">Experience level</div>
+    <div class="level-grid">
+      <button class="level-btn" id="el-beginner" onclick="selLevel('beginner')">🌱 Beginner</button>
+      <button class="level-btn" id="el-intermediate" onclick="selLevel('intermediate')">🐴 Intermediate</button>
+      <button class="level-btn" id="el-advanced" onclick="selLevel('advanced')">🏆 Advanced</button>
+    </div>
+    <div class="field"><label>Preferred horse <span class="optional">optional</span></label>
+      <select id="e-horse"><option value="">No preference</option></select>
+    </div>
+    <div class="row2">
+      <div class="field"><label>Preferred lesson type</label>
+        <select id="e-lesson-type">
+          <option value="private">Private</option>
+          <option value="group">Group</option>
+          <option value="jumping">Jumping</option>
+          <option value="dressage">Dressage</option>
+        </select>
+      </div>
+      <div class="field"><label>Preferred duration</label>
+        <select id="e-duration">
+          <option>30 min</option>
+          <option>45 min</option>
+          <option>60 min</option>
+          <option>90 min</option>
+        </select>
+      </div>
+    </div>
+    <div class="field"><label>Trainer notes <span class="optional">optional</span></label>
+      <textarea id="e-notes" placeholder="e.g. works on canter leads…"></textarea>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeEditModal()">Cancel</button>
+      <button class="btn-save" id="save-edit-btn" onclick="saveRider()">Save changes</button>
+    </div>
+  </div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 const SUPABASE_URL='https://mfinlbqfowymmklhkuhb.supabase.co';
 const SUPABASE_KEY='sb_publishable_PcwbX1YoncwnrHobFmpAIA_L39K4XfK';
 const db=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
 const avColors=[{bg:'#e0f5ed',fg:'#0f6e47'},{bg:'#faeeda',fg:'#633806'},{bg:'#eeedfe',fg:'#3c3489'},{bg:'#faece7',fg:'#712b13'},{bg:'#e6f0fb',fg:'#0c447c'}];
+let rider=null,allHorses=[],selLevelVal='intermediate';
 
 function showTab(name){
   ['overview','lessons'].forEach(t=>{
@@ -147,14 +236,104 @@ function getPaymentBadge(bookings){
   return'';
 }
 
+function selLevel(l){
+  selLevelVal=l;
+  ['beginner','intermediate','advanced'].forEach(x=>document.getElementById('el-'+x).classList.toggle('sel',x===l));
+}
+
+function openEditModal(){
+  document.getElementById('e-fname').value=rider.first_name||'';
+  document.getElementById('e-lname').value=rider.last_name||'';
+  document.getElementById('e-phone').value=rider.phone||'';
+  document.getElementById('e-email').value=rider.email||'';
+  document.getElementById('e-ec-name').value=rider.ec_name||'';
+  document.getElementById('e-ec-phone').value=rider.ec_phone||'';
+  document.getElementById('e-notes').value=rider.notes||'';
+  document.getElementById('e-lesson-type').value=rider.lesson_type||'private';
+  document.getElementById('e-duration').value=rider.duration||'45 min';
+  selLevelVal=rider.level||'intermediate';
+  ['beginner','intermediate','advanced'].forEach(x=>document.getElementById('el-'+x).classList.toggle('sel',x===selLevelVal));
+
+  // Set preferred horse
+  const horseSelect=document.getElementById('e-horse');
+  horseSelect.innerHTML='<option value="">No preference</option>';
+  allHorses.forEach(h=>{
+    const opt=document.createElement('option');
+    opt.value=h.name;opt.textContent=h.name;
+    if(h.name===rider.horse)opt.selected=true;
+    horseSelect.appendChild(opt);
+  });
+
+  document.getElementById('edit-error').style.display='none';
+  document.getElementById('save-edit-btn').disabled=false;
+  document.getElementById('save-edit-btn').textContent='Save changes';
+  document.getElementById('modal-edit').classList.add('open');
+}
+
+function closeEditModal(){
+  document.getElementById('modal-edit').classList.remove('open');
+}
+
+async function saveRider(){
+  const fname=document.getElementById('e-fname').value.trim();
+  const lname=document.getElementById('e-lname').value.trim();
+  if(!fname||!lname){
+    document.getElementById('edit-error').textContent='Please enter a first and last name.';
+    document.getElementById('edit-error').style.display='block';return;
+  }
+  const btn=document.getElementById('save-edit-btn');
+  btn.disabled=true;btn.textContent='Saving…';
+  const updates={
+    first_name:fname,last_name:lname,
+    phone:document.getElementById('e-phone').value.trim(),
+    email:document.getElementById('e-email').value.trim(),
+    ec_name:document.getElementById('e-ec-name').value.trim(),
+    ec_phone:document.getElementById('e-ec-phone').value.trim(),
+    level:selLevelVal,
+    lesson_type:document.getElementById('e-lesson-type').value,
+    duration:document.getElementById('e-duration').value,
+    horse:document.getElementById('e-horse').value,
+    notes:document.getElementById('e-notes').value.trim()
+  };
+  const {error}=await db.from('riders').update(updates).eq('id',rider.id);
+  if(error){
+    document.getElementById('edit-error').textContent=error.message;
+    document.getElementById('edit-error').style.display='block';
+    btn.disabled=false;btn.textContent='Save changes';return;
+  }
+  rider={...rider,...updates};
+  localStorage.setItem('stirrup_viewing_rider',JSON.stringify(rider));
+  closeEditModal();
+  renderProfile();
+}
+
+function renderProfile(){
+  document.getElementById('info-phone').textContent=rider.phone||'—';
+  document.getElementById('info-email').textContent=rider.email||'—';
+  document.getElementById('info-ec').textContent=rider.ec_name?(rider.ec_name+(rider.ec_phone?' · '+rider.ec_phone:'')):'—';
+  document.getElementById('info-level').textContent=rider.level?(rider.level.charAt(0).toUpperCase()+rider.level.slice(1)):'—';
+  document.getElementById('info-lesson').textContent=rider.lesson_type?(rider.lesson_type.charAt(0).toUpperCase()+rider.lesson_type.slice(1)):'—';
+  document.getElementById('info-duration').textContent=rider.duration||'—';
+  document.getElementById('info-notes').textContent=rider.notes||'No notes yet.';
+  document.getElementById('stat-horse').textContent=rider.horse||'No preference';
+  document.getElementById('rider-meta').textContent=(rider.level||'')+(rider.lesson_type?' · '+rider.lesson_type+' lessons':'');
+}
+
 async function load(){
   const {data:{user}}=await db.auth.getUser();
   if(!user){window.location.href='login.html';return;}
 
-  const rider=JSON.parse(localStorage.getItem('stirrup_viewing_rider')||'null');
+  rider=JSON.parse(localStorage.getItem('stirrup_viewing_rider')||'null');
   if(!rider){window.location.href='riders.html';return;}
 
-  const {data:riders}=await db.from('riders').select('id').eq('trainer_id',user.id);
+  const [{data:riders},{data:bookings},{data:horses}]=await Promise.all([
+    db.from('riders').select('id').eq('trainer_id',user.id),
+    db.from('bookings').select('*').eq('rider_id',rider.id).order('created_at',{ascending:false}),
+    db.from('horses').select('*').eq('trainer_id',user.id).eq('active',true).order('name',{ascending:true})
+  ]);
+
+  allHorses=horses||[];
+  const b=bookings||[];
   const idx=(riders||[]).findIndex(r=>r.id===rider.id);
   const color=avColors[Math.max(0,idx)%avColors.length];
   const initials=((rider.first_name?.[0]||'')+(rider.last_name?.[0]||'')).toUpperCase();
@@ -163,26 +342,16 @@ async function load(){
   document.getElementById('av').style.background=color.bg;
   document.getElementById('av').style.color=color.fg;
 
-  const {data:bookings}=await db.from('bookings').select('*').eq('rider_id',rider.id).order('created_at',{ascending:false});
-  const b=bookings||[];
-
   const badge=getPaymentBadge(b);
   document.getElementById('rider-name').innerHTML=rider.first_name+' '+rider.last_name+(badge?' '+badge:'');
-  document.getElementById('rider-meta').textContent=(rider.level||'')+(rider.lesson_type?' · '+rider.lesson_type+' lessons':'');
-  document.getElementById('stat-horse').textContent=rider.horse||'No preference';
   document.getElementById('stat-lessons').textContent=b.length;
-  document.getElementById('info-phone').textContent=rider.phone||'—';
-  document.getElementById('info-email').textContent=rider.email||'—';
-  document.getElementById('info-ec').textContent=rider.ec_name?(rider.ec_name+(rider.ec_phone?' · '+rider.ec_phone:'')):'—';
-  document.getElementById('info-level').textContent=rider.level?(rider.level.charAt(0).toUpperCase()+rider.level.slice(1)):'—';
-  document.getElementById('info-lesson').textContent=rider.lesson_type?(rider.lesson_type.charAt(0).toUpperCase()+rider.lesson_type.slice(1)):'—';
-  document.getElementById('info-duration').textContent=rider.duration||'—';
-  document.getElementById('info-notes').textContent=rider.notes||'No notes yet.';
 
   if(rider.created_at){
     const d=new Date(rider.created_at);
     document.getElementById('stat-since').textContent=d.toLocaleString('default',{month:'short',year:'numeric'});
   }
+
+  renderProfile();
 
   const list=document.getElementById('lesson-list');
   if(b.length===0){
