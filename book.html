@@ -51,6 +51,9 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2
 .cal-day.sel{background:#e0f5ed;color:#0f6e47;border-color:#1D9E75;font-weight:600}
 .cal-day.off{background:transparent;color:#d4d2cb;cursor:default}
 .cal-day.past{background:#f9f8f5;color:#c8c6bf;cursor:not-allowed}
+.cal-day.weekend{background:#f5f0fe;color:#5a4a8a}
+.cal-day.weekend:hover{border-color:#b8a8e8}
+.cal-day.weekend.sel{background:#eeedfe;border-color:#7c6fd4;color:#3c2f8a}
 .time-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:14px}
 .time-btn{padding:8px 4px;border-radius:8px;font-size:11px;text-align:center;border:1px solid #d4d2cb;background:#fff;cursor:pointer;color:#1a1a18;transition:all .15s;font-family:'Inter',sans-serif}
 .time-btn.sel{background:#e0f5ed;border-color:#1D9E75;color:#0f6e47;font-weight:500}
@@ -92,6 +95,7 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2
 .conflict-list{background:#fcebeb;border-radius:10px;padding:12px;font-size:13px;color:#c0392b;margin-bottom:14px;display:none}
 .conflict-list ul{margin-top:6px;padding-left:16px}
 .conflict-list li{margin-bottom:3px}
+.buffer-note{font-size:11px;color:#8a8a85;margin-top:4px}
 </style>
 </head>
 <body>
@@ -122,7 +126,7 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2
 
     <div class="step" id="step-3">
       <div class="step-title">Pick a date & time</div>
-      <div class="step-sub">Showing slots within your barn hours. Horse assigned 24hrs before.</div>
+      <div class="step-sub">All days available. Horse assigned 24hrs before.</div>
       <div class="recurring-toggle" onclick="toggleRecurring()">
         <div>
           <div class="recurring-label">Recurring lesson</div>
@@ -143,6 +147,7 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2
       <div class="cal-grid" id="cal"></div>
       <div style="font-size:12px;color:#5a5a55;margin-bottom:8px" id="time-label">Select a date to see times</div>
       <div class="time-grid" id="times"></div>
+      <div class="buffer-note" id="buffer-note"></div>
       <div class="conflict-list" id="conflict-list"></div>
       <div class="actions"><button class="btn-back" onclick="go(2)">← Back</button><button class="btn-next" onclick="go(4)">Continue →</button></div>
     </div>
@@ -188,17 +193,18 @@ const db=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
 let cur=1,selRiderIdx=0,selLessonType=null,selDay=null,selTime=null,selStaffTrainer=null;
 let recurringWeeks=16,isRecurring=false,isBarnTier=false;
 let allRiders=[],allBookings=[],allLessonTypes=[],allStaffTrainers=[],allStaffSchedules=[];
-let barnOpen='09:00',barnClose='18:00';
+let barnOpen='09:00',barnClose='18:00',bufferMinutes=15;
 const avColors=[{bg:'#e0f5ed',fg:'#0f6e47'},{bg:'#faeeda',fg:'#633806'},{bg:'#eeedfe',fg:'#3c3489'},{bg:'#faece7',fg:'#712b13'},{bg:'#e6f0fb',fg:'#0c447c'}];
-const days=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+const days=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 const today=new Date();today.setHours(0,0,0,0);
 
-function generateTimeSlots(open,close){
+function generateTimeSlots(open,close,bufferMins){
   const slots=[];
   const [oh,om]=open.split(':').map(Number);
   const [ch,cm]=close.split(':').map(Number);
   let h=oh,m=om;
-  while(h<ch||(h===ch&&m<cm)){
+  const closeTotal=ch*60+cm;
+  while(h*60+m<closeTotal){
     const hour12=h>12?h-12:h===0?12:h;
     const ampm=h>=12?'PM':'AM';
     slots.push(`${hour12}:${m===0?'00':'30'} ${ampm}`);
@@ -207,24 +213,42 @@ function generateTimeSlots(open,close){
   return slots;
 }
 
-function isTimeBooked(dateStr,timeStr){
-  return allBookings.some(b=>b.date===dateStr&&b.time===timeStr);
+function parseTimeToMins(timeStr){
+  const[timePart,ampm]=timeStr.split(' ');
+  let[h,m]=timePart.split(':').map(Number);
+  if(ampm==='PM'&&h!==12)h+=12;
+  if(ampm==='AM'&&h===12)h=0;
+  return h*60+m;
 }
 
-function isTrainerAvailable(trainer,dayIndex,timeStr){
-  const schedules=allStaffSchedules.filter(s=>s.staff_trainer_id===trainer.id&&s.day_of_week===dayIndex);
-  if(schedules.length===0)return false;
-  const [timePart,ampm]=timeStr.split(' ');
-  let [th,tm]=timePart.split(':').map(Number);
-  if(ampm==='PM'&&th!==12)th+=12;
-  if(ampm==='AM'&&th===12)th=0;
-  const isMorning=th<12;
-  for(const s of schedules){
-    if(s.period==='full')return true;
-    if(s.period==='morning'&&isMorning)return true;
-    if(s.period==='afternoon'&&!isMorning)return true;
-  }
-  return false;
+function parseDurationToMins(dur){
+  const match=(dur||'').match(/(\d+)/);
+  if(!match)return 60;
+  const n=parseInt(match[1]);
+  if((dur||'').includes('hour'))return n*60;
+  return n;
+}
+
+function isGroupLesson(lt){
+  return lt&&lt.name.toLowerCase().includes('group');
+}
+
+function isTimeConflict(dateStr,timeStr,lessonType){
+  const isGroup=isGroupLesson(lessonType);
+  const proposedStart=parseTimeToMins(timeStr);
+  const proposedDur=parseDurationToMins(lessonType?.duration||'60 minutes');
+  const proposedEnd=proposedStart+proposedDur+bufferMinutes;
+
+  return allBookings.some(b=>{
+    if(b.date!==dateStr)return false;
+    // Group lessons can stack with other group lessons
+    if(isGroup&&b.lesson_type&&b.lesson_type.toLowerCase().includes('group'))return false;
+    const bStart=parseTimeToMins(b.time);
+    const bDur=parseDurationToMins(b.duration||'60 minutes');
+    const bEnd=bStart+bDur+bufferMinutes;
+    // Overlap check with buffer
+    return proposedStart<bEnd&&proposedEnd>bStart;
+  });
 }
 
 function renderProgress(){
@@ -270,14 +294,14 @@ function renderLessonTypes(){
     btn.className='type-btn'+(selLessonType&&selLessonType.id===lt.id?' sel':'');
     btn.innerHTML=`
       <div class="type-left">
-        <div class="type-name">${lt.name}</div>
+        <div class="type-name">${lt.name}${isGroupLesson(lt)?'<span style="font-size:10px;color:#7c6fd4;margin-left:6px;background:#eeedfe;padding:1px 6px;border-radius:10px;">stackable</span>':''}</div>
         ${lt.description?`<div class="type-desc">${lt.description}</div>`:''}
       </div>
       <div class="type-right">
         <div class="type-price">$${parseFloat(lt.price).toFixed(0)}</div>
         <div class="type-duration">${lt.duration}</div>
       </div>`;
-    btn.onclick=()=>{selLessonType=lt;renderLessonTypes();};
+    btn.onclick=()=>{selLessonType=lt;renderLessonTypes();if(selDay&&selTime)renderTimes();};
     list.appendChild(btn);
   });
   if(!selLessonType&&allLessonTypes.length>0)selLessonType=allLessonTypes[0];
@@ -307,19 +331,21 @@ function renderCal(){
   const now=new Date();
   const firstDay=new Date(now.getFullYear(),now.getMonth(),1).getDay();
   const daysInMonth=new Date(now.getFullYear(),now.getMonth()+1,0).getDate();
-  const offset=(firstDay+6)%7;
-  for(let i=0;i<offset;i++){const e=document.createElement('div');e.className='cal-day off';g.appendChild(e);}
+  for(let i=0;i<firstDay;i++){const e=document.createElement('div');e.className='cal-day off';g.appendChild(e);}
   for(let d=1;d<=daysInMonth;d++){
-    const dow=(offset+d-1)%7;
-    const isWeekday=dow<5;
     const thisDate=new Date(now.getFullYear(),now.getMonth(),d);
     const isPast=thisDate<today;
+    const dow=thisDate.getDay();
+    const isWeekend=dow===0||dow===6;
     const el=document.createElement('div');
-    if(!isWeekday){el.className='cal-day off';}
-    else if(isPast){el.className='cal-day past';}
+    if(isPast){el.className='cal-day past';}
     else{
-      el.className='cal-day'+(d===selDay?' sel':'');
-      el.onclick=()=>{selDay=d;selTime=null;selStaffTrainer=null;renderCal();renderTimes();document.getElementById('time-label').textContent=`Available times for ${now.toLocaleString('default',{month:'long'})} ${d}`;document.getElementById('conflict-list').style.display='none';};
+      el.className='cal-day'+(isWeekend?' weekend':'')+(d===selDay?' sel':'');
+      el.onclick=()=>{selDay=d;selTime=null;selStaffTrainer=null;renderCal();renderTimes();
+        const monthName=now.toLocaleString('default',{month:'long'});
+        document.getElementById('time-label').textContent=`Available times for ${monthName} ${d}`;
+        document.getElementById('conflict-list').style.display='none';
+      };
     }
     el.textContent=d;
     g.appendChild(el);
@@ -332,16 +358,19 @@ function renderTimes(){
   if(!selDay)return;
   const now=new Date();
   const dateStr=`${now.toLocaleString('default',{month:'long'})} ${selDay}`;
-  const slots=generateTimeSlots(barnOpen,barnClose);
+  const slots=generateTimeSlots(barnOpen,barnClose,bufferMinutes);
   slots.forEach(t=>{
-    const booked=isTimeBooked(dateStr,t);
+    const conflict=isTimeConflict(dateStr,t,selLessonType);
     const btn=document.createElement('button');
-    btn.className='time-btn'+(booked?' taken':t===selTime?' sel':'');
+    btn.className='time-btn'+(conflict?' taken':t===selTime?' sel':'');
     btn.textContent=t;
-    if(!booked)btn.onclick=()=>{selTime=t;renderTimes();if(isRecurring)checkRecurringConflicts();};
+    if(!conflict)btn.onclick=()=>{selTime=t;renderTimes();if(isRecurring)checkRecurringConflicts();};
     else btn.disabled=true;
     g.appendChild(btn);
   });
+  if(bufferMinutes>0){
+    document.getElementById('buffer-note').textContent=`${bufferMinutes}-minute buffer between lessons`;
+  }
 }
 
 function checkRecurringConflicts(){
@@ -351,13 +380,29 @@ function checkRecurringConflicts(){
   for(let w=0;w<recurringWeeks;w++){
     const d=new Date(now.getFullYear(),now.getMonth(),selDay+(w*7));
     const dateStr=d.toLocaleString('default',{month:'long',day:'numeric'});
-    if(isTimeBooked(dateStr,selTime))conflicts.push(dateStr);
+    if(isTimeConflict(dateStr,selTime,selLessonType))conflicts.push(dateStr);
   }
   const cl=document.getElementById('conflict-list');
   if(conflicts.length>0){
     cl.innerHTML=`<strong>Conflicts found — series cannot be booked:</strong><ul>${conflicts.map(c=>`<li>${c} at ${selTime}</li>`).join('')}</ul>`;
     cl.style.display='block';
   } else {cl.style.display='none';}
+}
+
+function isTrainerAvailable(trainer,dayIndex,timeStr){
+  const schedules=allStaffSchedules.filter(s=>s.staff_trainer_id===trainer.id&&s.day_of_week===dayIndex);
+  if(schedules.length===0)return false;
+  const[timePart,ampm]=timeStr.split(' ');
+  let[th,tm]=timePart.split(':').map(Number);
+  if(ampm==='PM'&&th!==12)th+=12;
+  if(ampm==='AM'&&th===12)th=0;
+  const isMorning=th<12;
+  for(const s of schedules){
+    if(s.period==='full')return true;
+    if(s.period==='morning'&&isMorning)return true;
+    if(s.period==='afternoon'&&!isMorning)return true;
+  }
+  return false;
 }
 
 function renderTrainerSelector(){
@@ -369,6 +414,8 @@ function renderTrainerSelector(){
   const now=new Date();
   const date=new Date(now.getFullYear(),now.getMonth(),selDay);
   const jsDay=date.getDay();
+  // Convert JS day (0=Sun) to our day index (0=Mon)
+  // Staff schedules use 0=Mon...6=Sun
   const ourDay=jsDay===0?6:jsDay-1;
   const available=allStaffTrainers.filter(t=>t.active&&isTrainerAvailable(t,ourDay,selTime));
 
@@ -418,11 +465,9 @@ function buildSummary(){
 function go(n){
   if(n===3&&!selLessonType){alert('Please select a lesson type.');return;}
   if(n===4&&!isBarnTier){
-    // Skip trainer step for non-barn
     if(isRecurring&&document.getElementById('conflict-list').style.display==='block'){alert('Please resolve conflicts.');return;}
     if(!selDay||!selTime){alert('Please select a date and time.');return;}
-    buildSummary();
-    n=5;
+    buildSummary();n=5;
   } else if(n===4&&isBarnTier){
     if(isRecurring&&document.getElementById('conflict-list').style.display==='block'){alert('Please resolve conflicts.');return;}
     if(!selDay||!selTime){alert('Please select a date and time.');return;}
@@ -462,7 +507,7 @@ async function saveBooking(){
     for(let w=0;w<recurringWeeks;w++){
       const d=new Date(now.getFullYear(),now.getMonth(),selDay+(w*7));
       const dateStr=d.toLocaleString('default',{month:'long',day:'numeric'});
-      if(isTimeBooked(dateStr,selTime))conflicts.push(dateStr);
+      if(isTimeConflict(dateStr,selTime,selLessonType))conflicts.push(dateStr);
     }
     if(conflicts.length>0){
       document.getElementById('error').textContent='Conflicts detected. Please go back.';
@@ -485,7 +530,6 @@ async function saveBooking(){
       document.getElementById('error').style.display='block';
       btn.disabled=false;btn.textContent='Book lesson ✓';return;
     }
-    // Log activity
     await db.from('activity_log').insert({
       trainer_id:user.id,action:'booking_created',
       entity_type:'booking',entity_name:rider.first_name+' '+rider.last_name,
@@ -502,7 +546,6 @@ async function saveBooking(){
       document.getElementById('error').style.display='block';
       btn.disabled=false;btn.textContent='Book lesson ✓';return;
     }
-    // Log activity
     await db.from('activity_log').insert({
       trainer_id:user.id,action:'booking_created',
       entity_type:'booking',entity_name:rider.first_name+' '+rider.last_name,
@@ -527,17 +570,20 @@ function resetForm(){
 async function load(){
   const {data:{user}}=await db.auth.getUser();
   if(!user){window.location.href='login.html';return;}
-  const {data:bookingCount}=await db.from('bookings').select('id').eq('trainer_id',user.id);
-  const {data:trainer}=await db.from('trainers').select('barn_open,barn_close,tier,is_lifetime').eq('id',user.id).single();
+  const {data:trainer}=await db.from('trainers').select('barn_open,barn_close,tier,is_lifetime,buffer_minutes').eq('id',user.id).single();
   const isLifetime=trainer?.is_lifetime===true;
   const tier=trainer?.tier||'free';
-  if(!isLifetime&&(bookingCount||[]).length>=20&&tier==='free'){window.location.href='paywall.html';return;}
+  if(!isLifetime&&tier==='free'){
+    const {data:bookingCount}=await db.from('bookings').select('id').eq('trainer_id',user.id);
+    if((bookingCount||[]).length>=20){window.location.href='paywall.html';return;}
+  }
   isBarnTier=tier==='barn';
   barnOpen=trainer?.barn_open||'09:00';
   barnClose=trainer?.barn_close||'18:00';
+  bufferMinutes=trainer?.buffer_minutes??15;
   const [{data:riders},{data:allB},{data:lessonTypes},{data:staffTrainers},{data:staffSchedules}]=await Promise.all([
     db.from('riders').select('*').eq('trainer_id',user.id).order('created_at',{ascending:false}),
-    db.from('bookings').select('date,time').eq('trainer_id',user.id),
+    db.from('bookings').select('date,time,duration,lesson_type').eq('trainer_id',user.id),
     db.from('lesson_types').select('*').eq('trainer_id',user.id).eq('active',true).order('sort_order',{ascending:true}),
     db.from('staff_trainers').select('*').eq('head_trainer_id',user.id).eq('active',true),
     db.from('staff_trainer_schedules').select('*').eq('head_trainer_id',user.id)
