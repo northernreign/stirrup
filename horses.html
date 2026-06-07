@@ -28,7 +28,7 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2
 .horse-top{display:flex;align-items:center;gap:12px}
 .horse-icon{width:40px;height:40px;border-radius:50%;background:#faeeda;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
 .horse-info{flex:1;min-width:0}
-.horse-name{font-size:14px;font-weight:500;color:#1a1a18;display:flex;align-items:center;gap:6px}
+.horse-name{font-size:14px;font-weight:500;color:#1a1a18;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
 .horse-meta{font-size:12px;color:#5a5a55;margin-top:1px}
 .status-badge{font-size:16px;cursor:default}
 .horse-actions{display:flex;gap:6px;margin-top:10px;padding-top:10px;border-top:1px solid #f0efe9;flex-wrap:wrap}
@@ -185,8 +185,15 @@ const selDays=new Set();
 const dayNames=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
 let userId=null,barnOpen='09:00',barnClose='18:00';
 
+function getLessonBadge(horseId){
+  const count=allBookings.filter(b=>b.horse_id===horseId&&b.payment_status==='paid').length;
+  if(count>=1000)return'💎';
+  if(count>=500)return'🏆';
+  if(count>=250)return'🏅';
+  return null;
+}
+
 function isRetired(horse){
-  // No bookings in last 2 years
   const twoYearsAgo=new Date();
   twoYearsAgo.setFullYear(twoYearsAgo.getFullYear()-2);
   const recentBooking=allBookings.find(b=>{
@@ -194,8 +201,6 @@ function isRetired(horse){
     return new Date(b.scheduled_date)>=twoYearsAgo;
   });
   if(recentBooking)return false;
-
-  // Has a rest period covering 365+ consecutive days
   const periods=allRestPeriods.filter(r=>r.horse_id===horse.id);
   const oneYear=365*24*60*60*1000;
   const longRest=periods.find(r=>{
@@ -207,7 +212,6 @@ function isRetired(horse){
 }
 
 function getHorseStatus(horse){
-  // Check retirement first (silent easter egg)
   if(isRetired(horse))return{badge:'😇',label:'',retired:true};
 
   const now=new Date();
@@ -218,7 +222,6 @@ function getHorseStatus(horse){
   const closeMins=ch*60+cm;
   const isBarnOpen=currentMins>=openMins&&currentMins<closeMins;
 
-  // Check one-time rest
   const todayDate=new Date();todayDate.setHours(0,0,0,0);
   const periods=allRestPeriods.filter(r=>r.horse_id===horse.id);
   const activeRest=periods.find(r=>{
@@ -232,7 +235,6 @@ function getHorseStatus(horse){
     return{badge:'😴',label:`Resting until ${endStr}`};
   }
 
-  // Check recurring rest
   const jsDay=now.getDay();
   const ourDay=jsDay===0?6:jsDay-1;
   const schedules=allRestSchedules.filter(r=>r.horse_id===horse.id&&r.day_of_week===ourDay);
@@ -243,7 +245,6 @@ function getHorseStatus(horse){
     if(s.period==='afternoon'&&!isMorning)return{badge:'😴',label:'Resting this afternoon'};
   }
 
-  // Check if currently in a lesson
   const todayStr=now.toISOString().split('T')[0];
   const activeLesson=todayBookings.find(b=>{
     if(b.horse_id!==horse.id)return false;
@@ -496,6 +497,7 @@ function renderHorses(){
   list.innerHTML='';
   active.forEach((h,idx)=>{
     const status=statuses[idx];
+    const lessonBadge=status.retired?null:getLessonBadge(h.id);
     const periods=allRestPeriods.filter(r=>r.horse_id===h.id);
     const schedules=allRestSchedules.filter(r=>r.horse_id===h.id);
     const card=document.createElement('div');
@@ -536,6 +538,7 @@ function renderHorses(){
           <div class="horse-name">
             ${h.name}
             <span class="status-badge">${status.badge}</span>
+            ${lessonBadge?`<span class="status-badge">${lessonBadge}</span>`:''}
             ${status.label?`<span style="font-size:11px;color:#5a5a55;background:#f0efe9;padding:2px 8px;border-radius:20px">${status.label}</span>`:''}
           </div>
           <div class="horse-meta">${[h.breed,h.color].filter(Boolean).join(' · ')||'No details'}${h.notes?' · '+h.notes:''}</div>
@@ -560,7 +563,7 @@ async function load(){
     db.from('horse_rest_periods').select('*').eq('trainer_id',userId),
     db.from('horse_rest_schedules').select('*').eq('trainer_id',userId),
     db.from('bookings').select('horse_id,rider_name,time,duration,scheduled_date').eq('trainer_id',userId).eq('scheduled_date',todayStr),
-    db.from('bookings').select('horse_id,scheduled_date').eq('trainer_id',userId).not('horse_id','is',null)
+    db.from('bookings').select('horse_id,scheduled_date,payment_status').eq('trainer_id',userId).not('horse_id','is',null)
   ]);
   allHorses=horses||[];
   allRestPeriods=periods||[];
