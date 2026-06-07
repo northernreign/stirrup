@@ -19,7 +19,7 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2
 .wrap{max-width:720px;margin:0 auto;padding:2rem}
 .page-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem}
 .page-title{font-size:22px;font-weight:600}
-.summary{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:1.25rem}
+.summary{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:1.25rem}
 .sum{background:#fff;border:1px solid #e8e6e0;border-radius:10px;padding:.75rem 1rem}
 .sum-label{font-size:11px;color:#5a5a55;margin-bottom:3px}
 .sum-val{font-size:20px;font-weight:600;color:#1a1a18}
@@ -30,8 +30,8 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2
 .horse-info{flex:1;min-width:0}
 .horse-name{font-size:14px;font-weight:500;color:#1a1a18;display:flex;align-items:center;gap:6px}
 .horse-meta{font-size:12px;color:#5a5a55;margin-top:1px}
-.horse-right{display:flex;align-items:center;gap:8px;flex-shrink:0}
-.status-badge{font-size:13px}
+.status-badge{font-size:16px;cursor:default}
+.status-label{font-size:11px;color:#5a5a55;background:#f0efe9;padding:2px 8px;border-radius:20px}
 .horse-actions{display:flex;gap:6px;margin-top:10px;padding-top:10px;border-top:1px solid #f0efe9;flex-wrap:wrap}
 .btn-sm{font-size:12px;padding:4px 10px;border-radius:6px;cursor:pointer;font-family:'Inter',sans-serif;border:1px solid #d4d2cb;background:transparent;color:#1a1a18}
 .btn-sm:hover{background:#f0efe9}
@@ -71,6 +71,8 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2
 .period-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:12px}
 .period-btn{padding:8px;border-radius:8px;font-size:12px;text-align:center;cursor:pointer;border:1px solid #d4d2cb;background:#fff;color:#5a5a55;font-family:'Inter',sans-serif}
 .period-btn.sel{background:#e0f5ed;border-color:#1D9E75;color:#0f6e47;font-weight:500}
+.badge-legend{display:flex;flex-wrap:wrap;gap:12px;background:#fff;border:1px solid #e8e6e0;border-radius:10px;padding:.75rem 1rem;margin-bottom:1.25rem}
+.badge-legend-item{display:flex;align-items:center;gap:6px;font-size:12px;color:#5a5a55}
 </style>
 </head>
 <body>
@@ -87,11 +89,21 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2
     <div class="page-title">Horses</div>
     <button class="btn btn-primary" onclick="openModal('add')">+ Add horse</button>
   </div>
-  <div class="summary">
-    <div class="sum"><div class="sum-label">Total horses</div><div class="sum-val" id="total-horses">—</div></div>
-    <div class="sum"><div class="sum-label">Active</div><div class="sum-val" id="active-horses">—</div></div>
-    <div class="sum"><div class="sum-label">Resting</div><div class="sum-val" id="resting-horses">—</div></div>
+
+  <div class="badge-legend">
+    <div class="badge-legend-item">🍀 Grazing — available</div>
+    <div class="badge-legend-item">🐴 Working — in a lesson now</div>
+    <div class="badge-legend-item">😴 Resting — scheduled rest</div>
+    <div class="badge-legend-item">🌙 Sleeping — barn closed</div>
   </div>
+
+  <div class="summary">
+    <div class="sum"><div class="sum-label">Total</div><div class="sum-val" id="total-horses">—</div></div>
+    <div class="sum"><div class="sum-label">Grazing 🍀</div><div class="sum-val" id="grazing-horses">—</div></div>
+    <div class="sum"><div class="sum-label">Working 🐴</div><div class="sum-val" id="working-horses">—</div></div>
+    <div class="sum"><div class="sum-label">Resting 😴</div><div class="sum-val" id="resting-horses">—</div></div>
+  </div>
+
   <div id="horse-list"><div class="loading">Loading horses…</div></div>
 </div>
 
@@ -167,32 +179,47 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2
 const SUPABASE_URL='https://mfinlbqfowymmklhkuhb.supabase.co';
 const SUPABASE_KEY='sb_publishable_PcwbX1YoncwnrHobFmpAIA_L39K4XfK';
 const db=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
-let allHorses=[],allRestPeriods=[],allRestSchedules=[];
+let allHorses=[],allRestPeriods=[],allRestSchedules=[],todayBookings=[];
 let currentHorseId=null,currentHorseName=null,editingHorseId=null;
 let selPeriodVal='morning';
 const selDays=new Set();
 const dayNames=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
-let userId=null;
-let barnOpen='09:00',barnClose='18:00';
+let userId=null,barnOpen='09:00',barnClose='18:00';
+
+function parseTimeToMinutes(timeStr){
+  // e.g. "9:00 AM", "1:30 PM"
+  const [timePart,ampm]=timeStr.split(' ');
+  let [h,m]=timePart.split(':').map(Number);
+  if(ampm==='PM'&&h!==12)h+=12;
+  if(ampm==='AM'&&h===12)h=0;
+  return h*60+m;
+}
+
+function parseDurationToMinutes(durationStr){
+  // e.g. "45 minutes", "1 hour", "90 minutes"
+  const match=durationStr.match(/(\d+)/);
+  if(!match)return 60;
+  const num=parseInt(match[1]);
+  if(durationStr.includes('hour'))return num*60;
+  return num;
+}
 
 function getHorseStatus(horse){
   const now=new Date();
-  const currentHour=now.getHours();
-  const currentMin=now.getMinutes();
-  const currentTime=currentHour*60+currentMin;
+  const currentMins=now.getHours()*60+now.getMinutes();
   const [oh,om]=barnOpen.split(':').map(Number);
   const [ch,cm]=barnClose.split(':').map(Number);
-  const openTime=oh*60+om;
-  const closeTime=ch*60+cm;
-  const isBarOpen=currentTime>=openTime&&currentTime<closeTime;
+  const openMins=oh*60+om;
+  const closeMins=ch*60+cm;
+  const isBarnOpen=currentMins>=openMins&&currentMins<closeMins;
 
-  // Check one-time rest
-  const today=new Date();today.setHours(0,0,0,0);
+  // Check one-time rest (highest priority)
+  const todayDate=new Date();todayDate.setHours(0,0,0,0);
   const periods=allRestPeriods.filter(r=>r.horse_id===horse.id);
   const activeRest=periods.find(r=>{
     const s=new Date(r.start_date);s.setHours(0,0,0,0);
     const e=new Date(r.end_date);e.setHours(23,59,59,999);
-    return today>=s&&today<=e;
+    return todayDate>=s&&todayDate<=e;
   });
   if(activeRest){
     const end=new Date(activeRest.end_date);
@@ -204,14 +231,30 @@ function getHorseStatus(horse){
   const jsDay=now.getDay();
   const ourDay=jsDay===0?6:jsDay-1;
   const schedules=allRestSchedules.filter(r=>r.horse_id===horse.id&&r.day_of_week===ourDay);
-  const isMorning=currentTime<720;
+  const isMorning=currentMins<720;
   for(const s of schedules){
     if(s.period==='full')return{badge:'😴',label:'Resting today'};
     if(s.period==='morning'&&isMorning)return{badge:'😴',label:'Resting this morning'};
     if(s.period==='afternoon'&&!isMorning)return{badge:'😴',label:'Resting this afternoon'};
   }
 
-  if(!isBarOpen)return{badge:'🌙',label:'Sleeping'};
+  // Check if currently working (in an active lesson right now)
+  const todayStr=now.toISOString().split('T')[0];
+  const activeLesson=todayBookings.find(b=>{
+    if(b.horse_id!==horse.id)return false;
+    if(b.scheduled_date!==todayStr)return false;
+    if(!b.time)return false;
+    const lessonStart=parseTimeToMinutes(b.time);
+    const duration=parseDurationToMinutes(b.duration||'60 minutes');
+    const lessonEnd=lessonStart+duration;
+    return currentMins>=lessonStart&&currentMins<lessonEnd;
+  });
+  if(activeLesson){
+    return{badge:'🐴',label:`In a lesson · ${activeLesson.rider_name}`};
+  }
+
+  // Sleeping or grazing
+  if(!isBarnOpen)return{badge:'🌙',label:'Sleeping'};
   return{badge:'🍀',label:'Grazing'};
 }
 
@@ -420,10 +463,12 @@ function formatDate(str){
 function renderHorses(){
   const list=document.getElementById('horse-list');
   const active=allHorses.filter(h=>h.active);
-  document.getElementById('total-horses').textContent=allHorses.length;
-  document.getElementById('active-horses').textContent=active.length;
-  const resting=active.filter(h=>getHorseStatus(h).badge==='😴').length;
-  document.getElementById('resting-horses').textContent=resting;
+  document.getElementById('total-horses').textContent=active.length;
+
+  const statuses=active.map(h=>getHorseStatus(h));
+  document.getElementById('grazing-horses').textContent=statuses.filter(s=>s.badge==='🍀').length;
+  document.getElementById('working-horses').textContent=statuses.filter(s=>s.badge==='🐴').length;
+  document.getElementById('resting-horses').textContent=statuses.filter(s=>s.badge==='😴').length;
 
   if(active.length===0){
     list.innerHTML=`<div class="empty">
@@ -436,8 +481,8 @@ function renderHorses(){
   }
 
   list.innerHTML='';
-  active.forEach(h=>{
-    const status=getHorseStatus(h);
+  active.forEach((h,idx)=>{
+    const status=statuses[idx];
     const periods=allRestPeriods.filter(r=>r.horse_id===h.id);
     const schedules=allRestSchedules.filter(r=>r.horse_id===h.id);
     const card=document.createElement('div');
@@ -465,7 +510,11 @@ function renderHorses(){
       <div class="horse-top">
         <div class="horse-icon">🐴</div>
         <div class="horse-info">
-          <div class="horse-name">${h.name} <span class="status-badge" title="${status.label}">${status.badge}</span></div>
+          <div class="horse-name">
+            ${h.name}
+            <span class="status-badge" title="${status.label}">${status.badge}</span>
+            <span class="status-label">${status.label}</span>
+          </div>
           <div class="horse-meta">${[h.breed,h.color].filter(Boolean).join(' · ')||'No details'}${h.notes?' · '+h.notes:''}</div>
         </div>
       </div>
@@ -486,14 +535,17 @@ async function load(){
   const {data:trainer}=await db.from('trainers').select('barn_open,barn_close').eq('id',user.id).single();
   barnOpen=trainer?.barn_open||'09:00';
   barnClose=trainer?.barn_close||'18:00';
-  const [{data:horses},{data:periods},{data:schedules}]=await Promise.all([
+  const todayStr=new Date().toISOString().split('T')[0];
+  const [{data:horses},{data:periods},{data:schedules},{data:bookings}]=await Promise.all([
     db.from('horses').select('*').eq('trainer_id',userId).order('name',{ascending:true}),
     db.from('horse_rest_periods').select('*').eq('trainer_id',userId),
-    db.from('horse_rest_schedules').select('*').eq('trainer_id',userId)
+    db.from('horse_rest_schedules').select('*').eq('trainer_id',userId),
+    db.from('bookings').select('horse_id,rider_name,time,duration,scheduled_date').eq('trainer_id',userId).eq('scheduled_date',todayStr)
   ]);
   allHorses=horses||[];
   allRestPeriods=periods||[];
   allRestSchedules=schedules||[];
+  todayBookings=bookings||[];
   renderHorses();
   renderSchedDays();
 }
