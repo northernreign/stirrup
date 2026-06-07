@@ -56,6 +56,11 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2
 .time-btn.sel{background:#e0f5ed;border-color:#1D9E75;color:#0f6e47;font-weight:500}
 .time-btn:hover{background:#f0efe9}
 .time-btn.taken{background:#f0efe9;color:#c8c6bf;cursor:default;text-decoration:line-through}
+.trainer-list{display:flex;flex-direction:column;gap:6px;margin-bottom:14px}
+.trainer-btn{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;border:1px solid #d4d2cb;background:#fff;cursor:pointer;text-align:left;transition:all .15s;font-family:'Inter',sans-serif;width:100%}
+.trainer-btn.sel{background:#e0f5ed;border-color:#1D9E75}
+.trainer-btn:hover{background:#f0efe9}
+.trainer-av{width:32px;height:32px;border-radius:50%;background:#e0f5ed;color:#0f6e47;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;flex-shrink:0}
 .recurring-toggle{display:flex;align-items:center;gap:10px;padding:12px;background:#f9f8f5;border-radius:10px;margin-bottom:14px;cursor:pointer}
 .toggle{width:36px;height:20px;border-radius:10px;border:none;cursor:pointer;position:relative;transition:background .2s;flex-shrink:0;padding:0}
 .toggle.on{background:#1D9E75}
@@ -107,7 +112,7 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2
     <div class="step" id="step-2">
       <div class="step-title">What kind of lesson?</div>
       <div class="step-sub">Choose a lesson type and duration.</div>
-      <div class="type-list" id="type-list"><div style="text-align:center;padding:1rem;color:#8a8a85">Loading lesson types…</div></div>
+      <div class="type-list" id="type-list"><div style="text-align:center;padding:1rem;color:#8a8a85">Loading…</div></div>
       <div class="field"><label>Notes (optional)</label><textarea id="notes" placeholder="e.g. focus on canter transitions…"></textarea></div>
       <div class="actions"><button class="btn-back" onclick="go(1)">← Back</button><button class="btn-next" onclick="go(3)">Continue →</button></div>
     </div>
@@ -131,14 +136,21 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2
     </div>
 
     <div class="step" id="step-4">
+      <div class="step-title">Assign a trainer</div>
+      <div class="step-sub" id="trainer-step-sub">Select which trainer will teach this lesson.</div>
+      <div id="trainer-selector"></div>
+      <div class="actions"><button class="btn-back" onclick="go(3)">← Back</button><button class="btn-next" onclick="go(5)">Continue →</button></div>
+    </div>
+
+    <div class="step" id="step-5">
       <div class="step-title">Confirm booking</div>
       <div class="step-sub">Review the details. Payment collected after the lesson.</div>
       <div class="summary-card" id="summary"></div>
       <div class="payment-note">💳 Payment options will be available after the lesson date has passed. Horse will be assigned 24 hours before the lesson.</div>
-      <div class="actions"><button class="btn-back" onclick="go(3)">← Back</button><button class="btn-next" id="book-btn" onclick="saveBooking()">Book lesson ✓</button></div>
+      <div class="actions"><button class="btn-back" id="confirm-back-btn" onclick="go(4)">← Back</button><button class="btn-next" id="book-btn" onclick="saveBooking()">Book lesson ✓</button></div>
     </div>
 
-    <div class="step" id="step-5">
+    <div class="step" id="step-6">
       <div class="done-wrap">
         <div class="done-icon">✓</div>
         <div style="font-size:20px;font-weight:600;margin-bottom:6px" id="done-title">Lesson booked</div>
@@ -158,9 +170,10 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2
 const SUPABASE_URL='https://mfinlbqfowymmklhkuhb.supabase.co';
 const SUPABASE_KEY='sb_publishable_PcwbX1YoncwnrHobFmpAIA_L39K4XfK';
 const db=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
-let cur=1,selRiderIdx=0,selLessonType=null,selDay=null,selTime=null;
-let allRiders=[],allBookings=[],allRestPeriods=[],allRestSchedules=[],allLessonTypes=[];
-let barnOpen='09:00',barnClose='18:00',isRecurring=false;
+let cur=1,selRiderIdx=0,selLessonType=null,selDay=null,selTime=null,selStaffTrainer=null;
+let allRiders=[],allBookings=[],allLessonTypes=[],allStaffTrainers=[],allStaffSchedules=[];
+let barnOpen='09:00',barnClose='18:00',isRecurring=false,isBarnTier=false;
+const totalSteps=5; // 4 for non-barn, 5 for barn
 const avColors=[{bg:'#e0f5ed',fg:'#0f6e47'},{bg:'#faeeda',fg:'#633806'},{bg:'#eeedfe',fg:'#3c3489'},{bg:'#faece7',fg:'#712b13'},{bg:'#e6f0fb',fg:'#0c447c'}];
 const days=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
 const today=new Date();today.setHours(0,0,0,0);
@@ -183,12 +196,34 @@ function isTimeBooked(dateStr,timeStr){
   return allBookings.some(b=>b.date===dateStr&&b.time===timeStr);
 }
 
+function isTrainerAvailable(trainer,dayIndex,timeStr){
+  const schedules=allStaffSchedules.filter(s=>s.staff_trainer_id===trainer.id&&s.day_of_week===dayIndex);
+  if(schedules.length===0)return false;
+  const[timePart,ampm]=timeStr.split(' ');
+  let[th,tm]=timePart.split(':').map(Number);
+  if(ampm==='PM'&&th!==12)th+=12;
+  if(ampm==='AM'&&th===12)th=0;
+  const isMorning=th<12;
+  for(const s of schedules){
+    if(s.period==='full')return true;
+    if(s.period==='morning'&&isMorning)return true;
+    if(s.period==='afternoon'&&!isMorning)return true;
+  }
+  return false;
+}
+
+function getAvailableTrainers(dayIndex,timeStr){
+  return allStaffTrainers.filter(t=>t.active&&isTrainerAvailable(t,dayIndex,timeStr));
+}
+
 function renderProgress(){
   const p=document.getElementById('progress');
   p.innerHTML='';
-  for(let i=1;i<=4;i++){
+  const steps=isBarnTier?5:4;
+  const displayCur=isBarnTier?cur:cur>3?cur-1:cur;
+  for(let i=1;i<=steps;i++){
     const b=document.createElement('div');
-    b.className='prog-bar'+(i<cur?' done':i===cur?' active':'');
+    b.className='prog-bar'+(i<displayCur?' done':i===displayCur?' active':'');
     p.appendChild(b);
   }
 }
@@ -214,11 +249,11 @@ function renderRiders(){
 function renderLessonTypes(){
   const list=document.getElementById('type-list');
   if(allLessonTypes.length===0){
-    list.innerHTML=`<div style="text-align:center;padding:1rem;color:#5a5a55;font-size:13px">No lesson types set up. <a href="settings.html" style="color:#1D9E75">Add some in settings</a>.</div>`;
+    list.innerHTML=`<div style="text-align:center;padding:1rem;color:#5a5a55;font-size:13px">No lesson types. <a href="settings.html" style="color:#1D9E75">Add some in settings</a>.</div>`;
     return;
   }
   list.innerHTML='';
-  allLessonTypes.forEach((lt,i)=>{
+  allLessonTypes.forEach(lt=>{
     const btn=document.createElement('button');
     btn.className='type-btn'+(selLessonType&&selLessonType.id===lt.id?' sel':'');
     btn.innerHTML=`
@@ -233,7 +268,47 @@ function renderLessonTypes(){
     btn.onclick=()=>{selLessonType=lt;renderLessonTypes();};
     list.appendChild(btn);
   });
-  if(!selLessonType&&allLessonTypes.length>0) selLessonType=allLessonTypes[0];
+  if(!selLessonType&&allLessonTypes.length>0)selLessonType=allLessonTypes[0];
+}
+
+function renderTrainerSelector(){
+  const container=document.getElementById('trainer-selector');
+  if(!selDay||!selTime){
+    container.innerHTML='<div style="font-size:13px;color:#8a8a85;text-align:center;padding:1rem">Please select a date and time first.</div>';
+    return;
+  }
+  const now=new Date();
+  const date=new Date(now.getFullYear(),now.getMonth(),selDay);
+  const jsDay=date.getDay();
+  const ourDay=jsDay===0?6:jsDay-1;
+  const available=getAvailableTrainers(ourDay,selTime);
+
+  if(available.length===0){
+    container.innerHTML=`<div style="background:#faeeda;border-radius:10px;padding:12px;font-size:13px;color:#633806">No staff trainers are available at this time. You can still book — you'll teach this lesson yourself.</div>`;
+    selStaffTrainer=null;
+    return;
+  }
+
+  const list=document.createElement('div');
+  list.className='trainer-list';
+
+  // "Myself" option
+  const selfBtn=document.createElement('button');
+  selfBtn.className='trainer-btn'+(selStaffTrainer===null?' sel':'');
+  selfBtn.innerHTML=`<div class="trainer-av" style="background:#f0efe9;color:#5a5a55">Me</div><div><div class="rider-name">Myself (head trainer)</div><div class="rider-meta">You'll teach this lesson</div></div>`;
+  selfBtn.onclick=()=>{selStaffTrainer=null;renderTrainerSelector();};
+  list.appendChild(selfBtn);
+
+  available.forEach(t=>{
+    const initials=((t.name.split(' ')[0]?.[0]||'')+(t.name.split(' ')[1]?.[0]||'')).toUpperCase();
+    const btn=document.createElement('button');
+    btn.className='trainer-btn'+(selStaffTrainer&&selStaffTrainer.id===t.id?' sel':'');
+    btn.innerHTML=`<div class="trainer-av">${initials}</div><div><div class="rider-name">${t.name}</div><div class="rider-meta">Staff trainer</div></div>`;
+    btn.onclick=()=>{selStaffTrainer=t;renderTrainerSelector();};
+    list.appendChild(btn);
+  });
+  container.innerHTML='';
+  container.appendChild(list);
 }
 
 function toggleRecurring(){
@@ -265,7 +340,7 @@ function renderCal(){
     else if(isPast){el.className='cal-day past';}
     else{
       el.className='cal-day'+(d===selDay?' sel':'');
-      el.onclick=()=>{selDay=d;selTime=null;renderCal();renderTimes();document.getElementById('time-label').textContent=`Available times for ${now.toLocaleString('default',{month:'long'})} ${d}`;document.getElementById('conflict-list').style.display='none';};
+      el.onclick=()=>{selDay=d;selTime=null;selStaffTrainer=null;renderCal();renderTimes();document.getElementById('time-label').textContent=`Available times for ${now.toLocaleString('default',{month:'long'})} ${d}`;document.getElementById('conflict-list').style.display='none';};
     }
     el.textContent=d;
     g.appendChild(el);
@@ -284,7 +359,7 @@ function renderTimes(){
     const btn=document.createElement('button');
     btn.className='time-btn'+(booked?' taken':t===selTime?' sel':'');
     btn.textContent=t;
-    if(!booked)btn.onclick=()=>{selTime=t;renderTimes();if(isRecurring)checkRecurringConflicts();};
+    if(!booked)btn.onclick=()=>{selTime=t;selStaffTrainer=null;renderTimes();if(isRecurring)checkRecurringConflicts();};
     else btn.disabled=true;
     g.appendChild(btn);
   });
@@ -301,7 +376,7 @@ function checkRecurringConflicts(){
   }
   const cl=document.getElementById('conflict-list');
   if(conflicts.length>0){
-    cl.innerHTML=`<strong>Conflicts found — series cannot be booked:</strong><ul>${conflicts.map(c=>`<li>${c} at ${selTime}</li>`).join('')}</ul><div style="margin-top:6px">Please resolve these conflicts or choose a different time.</div>`;
+    cl.innerHTML=`<strong>Conflicts found — series cannot be booked:</strong><ul>${conflicts.map(c=>`<li>${c} at ${selTime}</li>`).join('')}</ul>`;
     cl.style.display='block';
   } else {cl.style.display='none';}
 }
@@ -314,8 +389,9 @@ function buildSummary(){
     <div class="sum-row"><span class="sum-label">Rider</span><span class="sum-val">${rider?rider.first_name+' '+rider.last_name:'—'}</span></div>
     <div class="sum-row"><span class="sum-label">Lesson type</span><span class="sum-val">${selLessonType?selLessonType.name:'—'}</span></div>
     <div class="sum-row"><span class="sum-label">Duration</span><span class="sum-val">${selLessonType?selLessonType.duration:'—'}</span></div>
+    <div class="sum-row"><span class="sum-label">Trainer</span><span class="sum-val">${selStaffTrainer?selStaffTrainer.name:'You (head trainer)'}</span></div>
     <div class="sum-row"><span class="sum-label">Horse</span><span class="sum-val" style="color:#8a8a85;font-style:italic">Assigned 24hrs before</span></div>
-    <div class="sum-row"><span class="sum-label">Date & time</span><span class="sum-val">${dateStr} · ${selTime||'No time selected'}</span></div>
+    <div class="sum-row"><span class="sum-label">Date & time</span><span class="sum-val">${dateStr} · ${selTime||'No time'}</span></div>
     <div class="sum-row"><span class="sum-label">Amount</span><span class="sum-val">$${selLessonType?parseFloat(selLessonType.price).toFixed(0):'—'}</span></div>
     ${isRecurring?'<div class="sum-row"><span class="sum-label">Recurring</span><span class="sum-val" style="color:#1D9E75">16 weeks</span></div>':''}`;
 }
@@ -323,9 +399,17 @@ function buildSummary(){
 function go(n){
   if(n===3&&!selLessonType){alert('Please select a lesson type.');return;}
   if(n===4){
-    if(isRecurring&&document.getElementById('conflict-list').style.display==='block'){alert('Please resolve conflicts before confirming.');return;}
-    buildSummary();
+    if(isRecurring&&document.getElementById('conflict-list').style.display==='block'){alert('Please resolve conflicts.');return;}
+    if(!selDay||!selTime){alert('Please select a date and time.');return;}
+    if(isBarnTier){
+      renderTrainerSelector();
+    } else {
+      // Skip trainer step for non-barn
+      buildSummary();
+      n=5;
+    }
   }
+  if(n===5&&isBarnTier)buildSummary();
   document.getElementById('step-'+cur).classList.remove('active');
   cur=n;
   document.getElementById('step-'+cur).classList.add('active');
@@ -342,6 +426,20 @@ async function saveBooking(){
   const {data:{user}}=await db.auth.getUser();
   const now=new Date();
 
+  const baseBooking={
+    trainer_id:user.id,
+    rider_id:rider.id,
+    rider_name:rider.first_name+' '+rider.last_name,
+    lesson_type:selLessonType.name,
+    price:'$'+parseFloat(selLessonType.price).toFixed(0),
+    duration:selLessonType.duration,
+    notes:document.getElementById('notes').value,
+    time:selTime,
+    payment_status:'upcoming',
+    staff_trainer_id:selStaffTrainer?selStaffTrainer.id:null,
+    staff_trainer_name:selStaffTrainer?selStaffTrainer.name:null
+  };
+
   if(isRecurring){
     const conflicts=[];
     for(let w=0;w<16;w++){
@@ -350,25 +448,18 @@ async function saveBooking(){
       if(isTimeBooked(dateStr,selTime))conflicts.push(dateStr);
     }
     if(conflicts.length>0){
-      document.getElementById('error').textContent='Conflicts detected. Please go back and resolve them.';
+      document.getElementById('error').textContent='Conflicts detected. Please go back.';
       document.getElementById('error').style.display='block';
       btn.disabled=false;btn.textContent='Book lesson ✓';return;
     }
     const inserts=[];
     for(let w=0;w<16;w++){
       const d=new Date(now.getFullYear(),now.getMonth(),selDay+(w*7));
-      const dateStr=d.toLocaleString('default',{month:'long',day:'numeric'});
-      const scheduledDate=d.toISOString().split('T')[0];
       inserts.push({
-        trainer_id:user.id,rider_id:rider.id,
-        rider_name:rider.first_name+' '+rider.last_name,
-        lesson_type:selLessonType.name,
-        price:'$'+parseFloat(selLessonType.price).toFixed(0),
-        duration:selLessonType.duration,
-        notes:document.getElementById('notes').value,
-        date:dateStr,time:selTime,scheduled_date:scheduledDate,
-        payment_status:'upcoming',is_recurring:true,
-        recurring_week:w+1,recurring_total:16
+        ...baseBooking,
+        date:d.toLocaleString('default',{month:'long',day:'numeric'}),
+        scheduled_date:d.toISOString().split('T')[0],
+        is_recurring:true,recurring_week:w+1,recurring_total:16
       });
     }
     const {error}=await db.from('bookings').insert(inserts);
@@ -378,19 +469,12 @@ async function saveBooking(){
       btn.disabled=false;btn.textContent='Book lesson ✓';return;
     }
     document.getElementById('done-title').textContent='16 lessons booked';
-    document.getElementById('done-sub').textContent=`${rider.first_name} ${rider.last_name} · ${selLessonType.name} · ${selTime} · weekly for 16 weeks`;
+    document.getElementById('done-sub').textContent=`${rider.first_name} ${rider.last_name} · ${selLessonType.name} · ${selTime} · 16 weeks`;
   } else {
     const dateStr=`${now.toLocaleString('default',{month:'long'})} ${selDay}`;
     const scheduledDate=new Date(now.getFullYear(),now.getMonth(),selDay).toISOString().split('T')[0];
     const {error}=await db.from('bookings').insert({
-      trainer_id:user.id,rider_id:rider.id,
-      rider_name:rider.first_name+' '+rider.last_name,
-      lesson_type:selLessonType.name,
-      price:'$'+parseFloat(selLessonType.price).toFixed(0),
-      duration:selLessonType.duration,
-      notes:document.getElementById('notes').value,
-      date:dateStr,time:selTime,scheduled_date:scheduledDate,
-      payment_status:'upcoming'
+      ...baseBooking,date:dateStr,scheduled_date:scheduledDate
     });
     if(error){
       document.getElementById('error').textContent=error.message;
@@ -399,12 +483,13 @@ async function saveBooking(){
     }
     document.getElementById('done-sub').textContent=`${rider.first_name} ${rider.last_name} · ${selLessonType.name} · ${dateStr} at ${selTime}`;
   }
-  go(5);
+  go(6);
 }
 
 function resetForm(){
-  selDay=null;selTime=null;isRecurring=false;cur=1;selLessonType=allLessonTypes[0]||null;
-  document.getElementById('step-5').classList.remove('active');
+  selDay=null;selTime=null;isRecurring=false;cur=1;
+  selLessonType=allLessonTypes[0]||null;selStaffTrainer=null;
+  document.getElementById('step-6').classList.remove('active');
   document.getElementById('step-1').classList.add('active');
   document.getElementById('recurring-toggle').className='toggle off';
   document.getElementById('recurring-detail').style.display='none';
@@ -416,17 +501,22 @@ async function load(){
   if(!user){window.location.href='login.html';return;}
   const {data:bookings}=await db.from('bookings').select('id').eq('trainer_id',user.id);
   if((bookings||[]).length>=20){window.location.href='paywall.html';return;}
-  const [{data:trainer},{data:riders},{data:allB},{data:lessonTypes}]=await Promise.all([
-    db.from('trainers').select('barn_open,barn_close').eq('id',user.id).single(),
+  const [{data:trainer},{data:riders},{data:allB},{data:lessonTypes},{data:staffTrainers},{data:staffSchedules}]=await Promise.all([
+    db.from('trainers').select('barn_open,barn_close,tier').eq('id',user.id).single(),
     db.from('riders').select('*').eq('trainer_id',user.id).order('created_at',{ascending:false}),
     db.from('bookings').select('date,time').eq('trainer_id',user.id),
-    db.from('lesson_types').select('*').eq('trainer_id',user.id).eq('active',true).order('sort_order',{ascending:true})
+    db.from('lesson_types').select('*').eq('trainer_id',user.id).eq('active',true).order('sort_order',{ascending:true}),
+    db.from('staff_trainers').select('*').eq('head_trainer_id',user.id).eq('active',true),
+    db.from('staff_trainer_schedules').select('*').eq('head_trainer_id',user.id)
   ]);
   barnOpen=trainer?.barn_open||'09:00';
   barnClose=trainer?.barn_close||'18:00';
+  isBarnTier=trainer?.tier==='barn';
   allRiders=riders||[];
   allBookings=allB||[];
   allLessonTypes=lessonTypes||[];
+  allStaffTrainers=staffTrainers||[];
+  allStaffSchedules=staffSchedules||[];
   selLessonType=allLessonTypes[0]||null;
   renderProgress();renderRiders();renderLessonTypes();renderCal();
 }
