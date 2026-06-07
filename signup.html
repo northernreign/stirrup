@@ -7,101 +7,108 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'Inter',sans-serif;background:#f9f8f5;color:#1a1a18;min-height:100vh;display:flex;flex-direction:column}
-nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2rem;background:#fff;border-bottom:1px solid #e8e6e0}
-.logo{font-size:18px;font-weight:600;color:#1a1a18;text-decoration:none}
-.nav-link{font-size:14px;color:#5a5a55;text-decoration:none}
-.main{flex:1;display:flex;align-items:center;justify-content:center;padding:2rem}
+body{font-family:'Inter',sans-serif;background:#f9f8f5;color:#1a1a18;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:2rem}
 .card{background:#fff;border:1px solid #e8e6e0;border-radius:16px;padding:2rem;width:100%;max-width:420px}
-.card-title{font-size:22px;font-weight:600;margin-bottom:6px}
-.card-sub{font-size:14px;color:#5a5a55;margin-bottom:1.75rem}
-.field{margin-bottom:14px}
-.field label{display:block;font-size:13px;font-weight:500;color:#3a3a35;margin-bottom:5px}
-.field input{width:100%;padding:10px 12px;border:1px solid #d4d2cb;border-radius:8px;font-size:14px;font-family:'Inter',sans-serif;background:#fff;color:#1a1a18;outline:none;transition:border .15s}
+.logo{font-size:18px;font-weight:600;color:#1a1a18;text-align:center;margin-bottom:1.5rem}
+.trial-banner{background:#e0f5ed;border:1px solid #a8d8c0;border-radius:10px;padding:10px 14px;font-size:13px;color:#0f6e47;margin-bottom:1.25rem;text-align:center;display:none}
+.title{font-size:20px;font-weight:600;margin-bottom:6px}
+.sub{font-size:14px;color:#5a5a55;margin-bottom:1.5rem;line-height:1.5}
+.field{margin-bottom:12px}
+.field label{display:block;font-size:12px;font-weight:500;color:#3a3a35;margin-bottom:4px}
+.field input{width:100%;padding:10px 12px;border:1px solid #d4d2cb;border-radius:8px;font-size:14px;font-family:'Inter',sans-serif;outline:none;background:#fff;color:#1a1a18;transition:border .15s}
 .field input:focus{border-color:#1D9E75}
-.row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.btn-submit{width:100%;padding:11px;background:#1D9E75;border:none;border-radius:8px;color:#fff;font-size:15px;font-weight:500;cursor:pointer;margin-top:6px;font-family:'Inter',sans-serif}
-.btn-submit:hover{background:#178a64}
-.btn-submit:disabled{background:#9ad4be;cursor:not-allowed}
-.login-link{text-align:center;font-size:13px;color:#5a5a55;margin-top:1rem}
-.login-link a{color:#1D9E75;text-decoration:none;font-weight:500}
-.free-badge{display:inline-block;background:#e0f5ed;color:#0f6e47;font-size:12px;font-weight:500;padding:3px 10px;border-radius:20px;margin-bottom:1.25rem}
-.terms{font-size:12px;color:#8a8a85;text-align:center;margin-top:1rem;line-height:1.5}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.btn-primary{width:100%;padding:11px;background:#1D9E75;border:none;border-radius:8px;font-size:14px;font-weight:500;cursor:pointer;color:#fff;font-family:'Inter',sans-serif;margin-top:4px}
+.btn-primary:hover{background:#178a64}
+.btn-primary:disabled{background:#9ad4be;cursor:not-allowed}
 .error{background:#fcebeb;color:#c0392b;font-size:13px;padding:10px 12px;border-radius:8px;margin-bottom:14px;display:none}
+.footer{text-align:center;font-size:13px;color:#5a5a55;margin-top:1.25rem}
+.footer a{color:#1D9E75;text-decoration:none}
+.divider{text-align:center;font-size:12px;color:#8a8a85;margin:1rem 0;position:relative}
+.divider::before{content:'';position:absolute;top:50%;left:0;right:0;height:1px;background:#e8e6e0}
+.divider span{position:relative;background:#fff;padding:0 10px}
 </style>
 </head>
 <body>
-<nav>
-  <a href="index.html" class="logo">Stirrup</a>
-  <a href="login.html" class="nav-link">Already have an account? Log in</a>
-</nav>
-<div class="main">
-  <div class="card">
-    <span class="free-badge">Free — no credit card required</span>
-    <div class="card-title">Create your account</div>
-    <div class="card-sub">Set up your barn in about 2 minutes.</div>
-    <div class="error" id="error"></div>
-    <div class="row2">
-      <div class="field"><label>First name</label><input type="text" placeholder="Claire" id="fname"></div>
-      <div class="field"><label>Last name</label><input type="text" placeholder="Morgan" id="lname"></div>
-    </div>
-    <div class="field"><label>Email</label><input type="email" placeholder="claire@ridgeview.com" id="email"></div>
-    <div class="field"><label>Password</label><input type="password" placeholder="At least 8 characters" id="password"></div>
-    <div class="field"><label>Barn or program name</label><input type="text" placeholder="Ridgeview Equestrian" id="barn"></div>
-    <button class="btn-submit" id="submit-btn" onclick="handleSignup()">Create account →</button>
-    <div class="terms">By signing up you agree to our Terms of Service and Privacy Policy.</div>
-    <div class="login-link">Already have an account? <a href="login.html">Log in</a></div>
+<div class="card">
+  <div class="logo">Stirrup</div>
+  <div class="trial-banner" id="trial-banner">🎉 You're starting a 90-day free trial of <strong id="trial-tier-name">Pro</strong>!</div>
+  <div class="title">Create your account</div>
+  <div class="sub" id="sub-text">Start scheduling lessons in minutes. Free up to 20 bookings/month.</div>
+  <div class="error" id="error"></div>
+  <div class="row2">
+    <div class="field"><label>First name</label><input type="text" id="fname" placeholder="Freddie"></div>
+    <div class="field"><label>Last name</label><input type="text" id="lname" placeholder="van Reesema"></div>
   </div>
+  <div class="field"><label>Phone number</label><input type="tel" id="phone" placeholder="(704) 555-0100"></div>
+  <div class="field"><label>Email</label><input type="email" id="email" placeholder="you@example.com"></div>
+  <div class="field"><label>Password</label><input type="password" id="password" placeholder="At least 8 characters"></div>
+  <button class="btn-primary" id="signup-btn" onclick="handleSignup()">Create account →</button>
+  <div class="footer">Already have an account? <a href="login.html">Log in</a></div>
 </div>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-const SUPABASE_URL = 'https://mfinlbqfowymmklhkuhb.supabase.co';
-const SUPABASE_KEY = 'sb_publishable_PcwbX1YoncwnrHobFmpAIA_L39K4XfK';
-const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+const SUPABASE_URL='https://mfinlbqfowymmklhkuhb.supabase.co';
+const SUPABASE_KEY='sb_publishable_PcwbX1YoncwnrHobFmpAIA_L39K4XfK';
+const db=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+
+const params=new URLSearchParams(window.location.search);
+const trialParam=params.get('trial');
+
+if(trialParam==='pro'||trialParam==='barn'){
+  document.getElementById('trial-banner').style.display='block';
+  document.getElementById('trial-tier-name').textContent=trialParam==='barn'?'Barn':'Pro';
+  document.getElementById('sub-text').textContent=`You're getting a 90-day free trial of Stirrup ${trialParam==='barn'?'Barn':'Pro'}. No credit card required.`;
+}
 
 async function handleSignup(){
-  const fname = document.getElementById('fname').value.trim();
-  const lname = document.getElementById('lname').value.trim();
-  const email = document.getElementById('email').value.trim();
-  const password = document.getElementById('password').value;
-  const barn = document.getElementById('barn').value.trim();
-  const errorEl = document.getElementById('error');
-  const btn = document.getElementById('submit-btn');
+  const fname=document.getElementById('fname').value.trim();
+  const lname=document.getElementById('lname').value.trim();
+  const phone=document.getElementById('phone').value.trim();
+  const email=document.getElementById('email').value.trim();
+  const password=document.getElementById('password').value;
 
-  errorEl.style.display = 'none';
+  if(!fname||!lname){showError('Please enter your first and last name.');return;}
+  if(!email){showError('Please enter your email.');return;}
+  if(!password||password.length<8){showError('Password must be at least 8 characters.');return;}
 
-  if(!fname || !email || !password || !barn){
-    errorEl.textContent = 'Please fill in all fields.';
-    errorEl.style.display = 'block';
-    return;
-  }
-  if(password.length < 8){
-    errorEl.textContent = 'Password must be at least 8 characters.';
-    errorEl.style.display = 'block';
-    return;
-  }
+  const btn=document.getElementById('signup-btn');
+  btn.disabled=true;btn.textContent='Creating account…';
 
-  btn.disabled = true;
-  btn.textContent = 'Creating account…';
+  const {data,error}=await db.auth.signUp({email,password});
+  if(error){showError(error.message);btn.disabled=false;btn.textContent='Create account →';return;}
 
-  try {
-    const { data, error } = await db.auth.signUp({ email, password });
-    if(error) throw error;
-    if(data.user){
-      await db.from('trainers').insert({
-        id: data.user.id,
-        name: fname + ' ' + lname,
-        barn_name: barn
-      });
-    }
-    localStorage.setItem('stirrup_user', JSON.stringify({ name: fname, barn: barn, email: email }));
-    window.location.href = 'onboarding.html';
-  } catch(err) {
-    errorEl.textContent = err.message || 'Something went wrong. Please try again.';
-    errorEl.style.display = 'block';
-    btn.disabled = false;
-    btn.textContent = 'Create account →';
-  }
+  const user=data.user;
+  if(!user){showError('Something went wrong. Please try again.');btn.disabled=false;btn.textContent='Create account →';return;}
+
+  // Set tier and trial if applicable
+  let tier='free';
+  let trialExpiresAt=null;
+  if(trialParam==='pro'){tier='pro';trialExpiresAt=new Date(Date.now()+90*24*60*60*1000).toISOString();}
+  if(trialParam==='barn'){tier='barn';trialExpiresAt=new Date(Date.now()+90*24*60*60*1000).toISOString();}
+
+  await db.from('trainers').insert({
+    id:user.id,
+    name:fname+' '+lname,
+    tier,
+    trial_expires_at:trialExpiresAt,
+    barn_open:'09:00',
+    barn_close:'18:00'
+  });
+
+  // Insert default lesson types
+  await db.from('lesson_types').insert([
+    {trainer_id:user.id,name:'Private lesson',price:75,duration:'45 minutes',sort_order:1,is_system:true,active:true},
+    {trainer_id:user.id,name:'Group lesson',price:40,duration:'45 minutes',sort_order:2,is_system:true,active:true}
+  ]);
+
+  window.location.href='onboarding.html';
+}
+
+function showError(msg){
+  const el=document.getElementById('error');
+  el.textContent=msg;el.style.display='block';
 }
 </script>
 </body>
