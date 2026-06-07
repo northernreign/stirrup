@@ -18,9 +18,10 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2
 .btn-ghost:hover{background:#f0efe9}
 .wrap{max-width:680px;margin:0 auto;padding:2rem}
 .profile-header{display:flex;align-items:center;gap:16px;margin-bottom:1.5rem}
-.av{width:56px;height:56px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:600;flex-shrink:0}
+.av{width:64px;height:64px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:32px;flex-shrink:0;background:#f9f8f5;border:1px solid #e8e6e0}
 .profile-name{font-size:22px;font-weight:600;margin-bottom:3px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .profile-meta{font-size:13px;color:#5a5a55}
+.tenure-label{font-size:11px;color:#8a8a85;margin-top:2px}
 .payment-badge{font-size:11px;padding:2px 8px;border-radius:20px;font-weight:500}
 .badge-overdue{background:#faeeda;color:#633806}
 .badge-serious{background:#fcebeb;color:#791f1f}
@@ -90,10 +91,11 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2
 
 <div class="wrap">
   <div class="profile-header">
-    <div class="av" id="av" style="background:#e0f5ed;color:#0f6e47">?</div>
+    <div class="av" id="av">🌱</div>
     <div>
       <div class="profile-name" id="rider-name">Loading…</div>
       <div class="profile-meta" id="rider-meta">—</div>
+      <div class="tenure-label" id="tenure-label"></div>
     </div>
   </div>
 
@@ -187,7 +189,7 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2
       </div>
     </div>
     <div class="field"><label>Trainer notes <span class="optional">optional</span></label>
-      <textarea id="e-notes" placeholder="e.g. works on canter leads…"></textarea>
+      <textarea id="e-notes"></textarea>
     </div>
     <div class="modal-actions">
       <button class="btn-cancel" onclick="closeEditModal()">Cancel</button>
@@ -201,8 +203,25 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2
 const SUPABASE_URL='https://mfinlbqfowymmklhkuhb.supabase.co';
 const SUPABASE_KEY='sb_publishable_PcwbX1YoncwnrHobFmpAIA_L39K4XfK';
 const db=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
-const avColors=[{bg:'#e0f5ed',fg:'#0f6e47'},{bg:'#faeeda',fg:'#633806'},{bg:'#eeedfe',fg:'#3c3489'},{bg:'#faece7',fg:'#712b13'},{bg:'#e6f0fb',fg:'#0c447c'}];
 let rider=null,allHorses=[],selLevelVal='intermediate';
+
+function getRiderBadge(createdAt){
+  if(!createdAt)return'🌱';
+  const months=(Date.now()-new Date(createdAt).getTime())/(1000*60*60*24*30.44);
+  if(months>=18)return'🥇';
+  if(months>=12)return'🥈';
+  if(months>=6)return'🥉';
+  return'🌱';
+}
+
+function getTenureLabel(createdAt){
+  if(!createdAt)return'New rider';
+  const months=(Date.now()-new Date(createdAt).getTime())/(1000*60*60*24*30.44);
+  if(months>=18)return'Gold member · '+Math.floor(months)+' months';
+  if(months>=12)return'Silver member · '+Math.floor(months)+' months';
+  if(months>=6)return'Bronze member · '+Math.floor(months)+' months';
+  return'New rider · '+Math.floor(months)+' months';
+}
 
 function showTab(name){
   ['overview','lessons'].forEach(t=>{
@@ -253,8 +272,6 @@ function openEditModal(){
   document.getElementById('e-duration').value=rider.duration||'45 min';
   selLevelVal=rider.level||'intermediate';
   ['beginner','intermediate','advanced'].forEach(x=>document.getElementById('el-'+x).classList.toggle('sel',x===selLevelVal));
-
-  // Set preferred horse
   const horseSelect=document.getElementById('e-horse');
   horseSelect.innerHTML='<option value="">No preference</option>';
   allHorses.forEach(h=>{
@@ -263,7 +280,6 @@ function openEditModal(){
     if(h.name===rider.horse)opt.selected=true;
     horseSelect.appendChild(opt);
   });
-
   document.getElementById('edit-error').style.display='none';
   document.getElementById('save-edit-btn').disabled=false;
   document.getElementById('save-edit-btn').textContent='Save changes';
@@ -326,24 +342,20 @@ async function load(){
   rider=JSON.parse(localStorage.getItem('stirrup_viewing_rider')||'null');
   if(!rider){window.location.href='riders.html';return;}
 
-  const [{data:riders},{data:bookings},{data:horses}]=await Promise.all([
-    db.from('riders').select('id').eq('trainer_id',user.id),
+  const [{data:bookings},{data:horses}]=await Promise.all([
     db.from('bookings').select('*').eq('rider_id',rider.id).order('created_at',{ascending:false}),
     db.from('horses').select('*').eq('trainer_id',user.id).eq('active',true).order('name',{ascending:true})
   ]);
 
   allHorses=horses||[];
   const b=bookings||[];
-  const idx=(riders||[]).findIndex(r=>r.id===rider.id);
-  const color=avColors[Math.max(0,idx)%avColors.length];
-  const initials=((rider.first_name?.[0]||'')+(rider.last_name?.[0]||'')).toUpperCase();
 
-  document.getElementById('av').textContent=initials;
-  document.getElementById('av').style.background=color.bg;
-  document.getElementById('av').style.color=color.fg;
+  const badge=getRiderBadge(rider.created_at);
+  document.getElementById('av').textContent=badge;
+  document.getElementById('tenure-label').textContent=getTenureLabel(rider.created_at);
 
-  const badge=getPaymentBadge(b);
-  document.getElementById('rider-name').innerHTML=rider.first_name+' '+rider.last_name+(badge?' '+badge:'');
+  const payBadge=getPaymentBadge(b);
+  document.getElementById('rider-name').innerHTML=rider.first_name+' '+rider.last_name+(payBadge?' '+payBadge:'');
   document.getElementById('stat-lessons').textContent=b.length;
 
   if(rider.created_at){
