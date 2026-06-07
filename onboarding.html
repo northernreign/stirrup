@@ -52,11 +52,11 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2
 .horse-item-meta{font-size:11px;color:#5a5a55}
 .horse-remove{font-size:18px;color:#c8c6bf;cursor:pointer;background:none;border:none;padding:0 4px;line-height:1}
 .horse-remove:hover{color:#c0392b}
-.add-horse-mini{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:8px}
-.add-horse-mini input{padding:8px 10px;border:1px solid #d4d2cb;border-radius:8px;font-size:13px;font-family:'Inter',sans-serif;outline:none}
+.add-horse-mini{display:flex;flex-direction:column;gap:8px;margin-bottom:8px}
+.add-horse-mini input{padding:10px 12px;border:1px solid #d4d2cb;border-radius:8px;font-size:14px;font-family:'Inter',sans-serif;outline:none;width:100%}
 .add-horse-mini input:focus{border-color:#1D9E75}
 .tier-cards{display:flex;flex-direction:column;gap:10px;margin-bottom:1rem}
-.tier-card{border:1px solid #e8e6e0;border-radius:12px;padding:1rem 1.25rem;cursor:pointer;transition:all .15s;position:relative}
+.tier-card{border:1px solid #e8e6e0;border-radius:12px;padding:1rem 1.25rem;cursor:pointer;transition:all .15s}
 .tier-card:hover{border-color:#1D9E75}
 .tier-card.sel{border-color:#1D9E75;background:#f0faf5}
 .tier-card-top{display:flex;align-items:center;justify-content:space-between}
@@ -94,7 +94,6 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2
   <div class="card">
     <div class="progress" id="progress"></div>
 
-    <!-- Step 1: Barn details -->
     <div class="step active" id="step-1">
       <div class="step-label">Step 1 of 7</div>
       <div class="step-title">Tell us about your barn</div>
@@ -113,17 +112,13 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2
           <option>Pacific Time (PT)</option>
         </select>
       </div>
-      <div class="actions">
-        <span></span>
-        <button class="btn-next" onclick="saveStep1()">Continue →</button>
-      </div>
+      <div class="actions"><span></span><button class="btn-next" onclick="saveStep1()">Continue →</button></div>
     </div>
 
-    <!-- Step 2: Barn hours -->
     <div class="step" id="step-2">
       <div class="step-label">Step 2 of 7</div>
       <div class="step-title">Set your barn hours</div>
-      <div class="step-sub">Lesson time slots are generated based on your barn hours. You can change this anytime in settings.</div>
+      <div class="step-sub">Lesson time slots are generated based on your barn hours.</div>
       <div class="row2">
         <div class="field"><label>Opens</label><select id="s2-open" onchange="updateHoursPreview()"></select></div>
         <div class="field"><label>Closes</label><select id="s2-close" onchange="updateHoursPreview()"></select></div>
@@ -135,7 +130,6 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2
       </div>
     </div>
 
-    <!-- Step 3: Lesson types -->
     <div class="step" id="step-3">
       <div class="step-label">Step 3 of 7</div>
       <div class="step-title">Lesson types & pricing</div>
@@ -152,7 +146,6 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2
       </div>
     </div>
 
-    <!-- Step 4: Horses -->
     <div class="step" id="step-4">
       <div class="step-label">Step 4 of 7</div>
       <div class="step-title">Add your horses</div>
@@ -170,7 +163,6 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2
       </div>
     </div>
 
-    <!-- Step 5: First rider -->
     <div class="step" id="step-5">
       <div class="step-label">Step 5 of 7</div>
       <div class="step-title">Add your first rider</div>
@@ -187,7 +179,6 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2
       </div>
     </div>
 
-    <!-- Step 6: Plan -->
     <div class="step" id="step-6">
       <div class="step-label">Step 6 of 7</div>
       <div class="step-title">Choose your plan</div>
@@ -237,7 +228,6 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2
       </div>
     </div>
 
-    <!-- Step 7: Done -->
     <div class="step" id="step-7">
       <div class="done-wrap">
         <div class="done-icon">🐴</div>
@@ -297,9 +287,8 @@ function updateHoursPreview(){
   const close=document.getElementById('s2-close').value;
   const openOpt=timeOptions.find(t=>t.val===open);
   const closeOpt=timeOptions.find(t=>t.val===close);
-  if(openOpt&&closeOpt){
+  if(openOpt&&closeOpt)
     document.getElementById('hours-preview').textContent=`🕐 Barn open ${openOpt.label} – ${closeOpt.label}`;
-  }
 }
 
 function initHoursSelects(){
@@ -317,10 +306,7 @@ function initHoursSelects(){
 function renderLtList(){
   const list=document.getElementById('lt-list');
   list.innerHTML='';
-  const systemTypes=[
-    {name:'Private lesson',price:75,is_system:true},
-    {name:'Group lesson',price:40,is_system:true}
-  ];
+  const systemTypes=[{name:'Private lesson',price:75},{name:'Group lesson',price:40}];
   systemTypes.forEach((lt,i)=>{
     const item=document.createElement('div');
     item.className='lt-item';
@@ -328,7 +314,7 @@ function renderLtList(){
       <div class="lt-name">${lt.name} <span class="lt-locked">🔒</span></div>
       <div style="display:flex;align-items:center;gap:4px">
         <span style="font-size:13px;color:#5a5a55">$</span>
-        <input class="lt-price-input" type="number" value="${lt.price}" min="0" id="sys-price-${i}" placeholder="75">
+        <input class="lt-price-input" type="number" value="${lt.price}" min="0" id="sys-price-${i}">
       </div>`;
     list.appendChild(item);
   });
@@ -396,7 +382,7 @@ function selTier(t){
   if(t==='free'){
     note.textContent='You can upgrade anytime from Settings → your plan card.';
   } else {
-    note.textContent=`You selected ${t==='pro'?'Pro ($19/mo)':'Barn ($49/mo)'}. After setup, go to Settings to complete your upgrade with a payment method.`;
+    note.textContent=`You selected ${t==='pro'?'Pro ($19/mo)':'Barn ($49/mo)'}. After setup, go to Settings to complete your upgrade.`;
   }
 }
 
@@ -428,13 +414,13 @@ function buildSummary(){
 
 async function saveStep1(){
   const name=document.getElementById('s1-name').value.trim();
-  const barn_name=document.getElementById('s1-barn').value.trim();
   if(!name){
     document.getElementById('err-1').textContent='Please enter your name.';
     document.getElementById('err-1').style.display='block';return;
   }
   await db.from('trainers').update({
-    name,barn_name,
+    name,
+    barn_name:document.getElementById('s1-barn').value.trim(),
     timezone:document.getElementById('s1-tz').value
   }).eq('id',userId);
   setupDone.barn=true;
