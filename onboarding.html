@@ -3,273 +3,514 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Get started — Stirrup</title>
+<title>Set up your barn — Stirrup</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Inter',sans-serif;background:#f9f8f5;color:#1a1a18;min-height:100vh;display:flex;flex-direction:column}
 nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2rem;background:#fff;border-bottom:1px solid #e8e6e0}
-.logo{font-size:18px;font-weight:600;color:#1a1a18;text-decoration:none}
-.step-counter{font-size:13px;color:#8a8a85}
-.main{flex:1;display:flex;align-items:center;justify-content:center;padding:2rem}
-.card{background:#fff;border:1px solid #e8e6e0;border-radius:16px;padding:2rem;width:100%;max-width:480px}
-.progress{display:flex;gap:6px;margin-bottom:2rem}
-.prog-bar{flex:1;height:4px;border-radius:2px;background:#e8e6e0;transition:background .3s}
-.prog-bar.done{background:#1D9E75}
-.prog-bar.active{background:#1D9E75;opacity:.5}
+.logo{font-size:18px;font-weight:600;color:#1a1a18}
+.skip-all{font-size:13px;color:#8a8a85;text-decoration:none;cursor:pointer}
+.skip-all:hover{color:#5a5a55}
+.main{flex:1;display:flex;align-items:flex-start;justify-content:center;padding:2rem}
+.card{background:#fff;border:1px solid #e8e6e0;border-radius:16px;padding:2rem;width:100%;max-width:520px}
+.progress{display:flex;gap:4px;margin-bottom:2rem}
+.prog-dot{flex:1;height:4px;border-radius:2px;background:#e8e6e0;transition:background .3s}
+.prog-dot.done{background:#1D9E75}
+.prog-dot.active{background:#1D9E75;opacity:.5}
 .step{display:none}
 .step.active{display:block}
-.step-title{font-size:20px;font-weight:600;margin-bottom:6px}
+.step-label{font-size:11px;font-weight:500;color:#8a8a85;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px}
+.step-title{font-size:22px;font-weight:600;margin-bottom:6px}
 .step-sub{font-size:14px;color:#5a5a55;margin-bottom:1.5rem;line-height:1.5}
 .field{margin-bottom:14px}
 .field label{display:block;font-size:13px;font-weight:500;color:#3a3a35;margin-bottom:5px}
-.field input,.field select{width:100%;padding:10px 12px;border:1px solid #d4d2cb;border-radius:8px;font-size:14px;font-family:'Inter',sans-serif;background:#fff;color:#1a1a18;outline:none;transition:border .15s}
+.field input,.field select,.field textarea{width:100%;padding:10px 12px;border:1px solid #d4d2cb;border-radius:8px;font-size:14px;font-family:'Inter',sans-serif;background:#fff;color:#1a1a18;outline:none;transition:border .15s}
 .field input:focus,.field select:focus{border-color:#1D9E75}
+.field textarea{height:72px;resize:none}
+.optional{font-size:11px;color:#8a8a85;margin-left:4px}
 .row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.day-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-bottom:1rem}
-.day-btn{padding:8px 0;border-radius:8px;font-size:12px;text-align:center;cursor:pointer;border:1px solid #d4d2cb;background:#fff;color:#5a5a55;transition:all .15s;font-family:'Inter',sans-serif}
-.day-btn.sel{background:#e0f5ed;border-color:#1D9E75;color:#0f6e47;font-weight:500}
-.type-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:1rem}
-.type-btn{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;border:1px solid #d4d2cb;background:#fff;cursor:pointer;text-align:left;transition:all .15s;font-family:'Inter',sans-serif}
-.type-btn.sel{background:#e0f5ed;border-color:#1D9E75}
-.type-btn:hover{background:#f0efe9}
-.type-icon{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
-.type-name{font-size:13px;font-weight:500;color:#1a1a18}
-.type-price{font-size:11px;color:#5a5a55}
+.hours-preview{font-size:13px;color:#1D9E75;font-weight:500;margin-top:8px;padding:8px 12px;background:#e0f5ed;border-radius:8px}
+.lt-list{margin-bottom:12px}
+.lt-item{display:flex;align-items:center;gap:10px;padding:8px 12px;background:#f9f8f5;border-radius:8px;margin-bottom:6px;border:1px solid #e8e6e0}
+.lt-name{flex:1;font-size:13px;font-weight:500;color:#1a1a18}
+.lt-locked{font-size:11px;color:#8a8a85}
+.lt-price-input{width:80px;padding:6px 10px;border:1px solid #d4d2cb;border-radius:6px;font-size:13px;font-family:'Inter',sans-serif;text-align:center}
+.lt-price-input:focus{border-color:#1D9E75;outline:none}
+.lt-remove{font-size:18px;color:#c8c6bf;cursor:pointer;background:none;border:none;padding:0 4px;line-height:1}
+.lt-remove:hover{color:#c0392b}
+.add-lt-row{display:flex;gap:8px;align-items:flex-end;margin-bottom:6px}
+.add-lt-row input{flex:1;padding:8px 10px;border:1px solid #d4d2cb;border-radius:8px;font-size:13px;font-family:'Inter',sans-serif;outline:none}
+.add-lt-row input:focus{border-color:#1D9E75}
+.add-lt-row .price-wrap{position:relative;width:90px}
+.add-lt-row .price-wrap::before{content:'$';position:absolute;left:8px;top:50%;transform:translateY(-50%);font-size:13px;color:#5a5a55;pointer-events:none}
+.add-lt-row .price-wrap input{padding-left:18px}
+.btn-add-lt{padding:8px 14px;background:#1D9E75;border:none;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;color:#fff;font-family:'Inter',sans-serif;white-space:nowrap}
+.horse-list{margin-bottom:12px}
+.horse-item{display:flex;align-items:center;gap:10px;padding:8px 12px;background:#f9f8f5;border-radius:8px;margin-bottom:6px;border:1px solid #e8e6e0}
+.horse-item-name{flex:1;font-size:13px;font-weight:500;color:#1a1a18}
+.horse-item-meta{font-size:11px;color:#5a5a55}
+.horse-remove{font-size:18px;color:#c8c6bf;cursor:pointer;background:none;border:none;padding:0 4px;line-height:1}
+.horse-remove:hover{color:#c0392b}
+.add-horse-mini{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:8px}
+.add-horse-mini input{padding:8px 10px;border:1px solid #d4d2cb;border-radius:8px;font-size:13px;font-family:'Inter',sans-serif;outline:none}
+.add-horse-mini input:focus{border-color:#1D9E75}
+.tier-cards{display:flex;flex-direction:column;gap:10px;margin-bottom:1rem}
+.tier-card{border:1px solid #e8e6e0;border-radius:12px;padding:1rem 1.25rem;cursor:pointer;transition:all .15s}
+.tier-card:hover{border-color:#1D9E75}
+.tier-card.sel{border-color:#1D9E75;background:#f0faf5}
+.tier-card-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px}
+.tier-name{font-size:14px;font-weight:600;color:#1a1a18}
+.tier-price{font-size:14px;font-weight:600;color:#1a1a18}
+.tier-desc{font-size:12px;color:#5a5a55;line-height:1.5}
+.tier-radio{width:18px;height:18px;border-radius:50%;border:1.5px solid #d4d2cb;flex-shrink:0;transition:all .15s}
+.tier-radio.sel{background:#1D9E75;border-color:#1D9E75}
+.summary-item{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid #f0efe9}
+.summary-item:last-child{border-bottom:none}
+.summary-check{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0}
+.summary-check.done{background:#e0f5ed;color:#1D9E75}
+.summary-check.skip{background:#f0efe9;color:#8a8a85}
+.summary-text{font-size:13px;color:#1a1a18;flex:1}
+.summary-sub{font-size:11px;color:#5a5a55;margin-top:1px}
 .actions{display:flex;align-items:center;justify-content:space-between;margin-top:1.5rem}
 .btn-back{padding:8px 18px;background:transparent;border:1px solid #d4d2cb;border-radius:8px;font-size:14px;font-weight:500;cursor:pointer;color:#5a5a55;font-family:'Inter',sans-serif}
 .btn-back:hover{background:#f0efe9}
 .btn-next{padding:8px 22px;background:#1D9E75;border:none;border-radius:8px;font-size:14px;font-weight:500;cursor:pointer;color:#fff;font-family:'Inter',sans-serif}
 .btn-next:hover{background:#178a64}
 .btn-next:disabled{background:#9ad4be;cursor:not-allowed}
-.done-wrap{text-align:center;padding:1rem 0}
-.done-icon{width:56px;height:56px;border-radius:50%;background:#e0f5ed;display:flex;align-items:center;justify-content:center;font-size:26px;margin:0 auto 1rem}
-.done-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:1.25rem 0}
-.done-stat{background:#f9f8f5;border-radius:10px;padding:10px;font-size:11px;color:#5a5a55;text-align:center}
-.done-stat strong{display:block;font-size:16px;font-weight:600;color:#1a1a18;margin-bottom:2px}
+.skip-step{font-size:13px;color:#8a8a85;text-decoration:none;cursor:pointer}
+.skip-step:hover{color:#5a5a55}
 .error{background:#fcebeb;color:#c0392b;font-size:13px;padding:10px 12px;border-radius:8px;margin-bottom:14px;display:none}
+.done-wrap{text-align:center;padding:.5rem 0}
+.done-icon{width:64px;height:64px;border-radius:50%;background:#e0f5ed;display:flex;align-items:center;justify-content:center;font-size:30px;margin:0 auto 1rem}
 </style>
 </head>
 <body>
 <nav>
-  <a href="index.html" class="logo">Stirrup</a>
-  <span class="step-counter" id="step-counter">Step 1 of 4</span>
+  <div class="logo">Stirrup</div>
+  <a class="skip-all" onclick="skipToEnd()">Skip setup →</a>
 </nav>
 <div class="main">
   <div class="card">
     <div class="progress" id="progress"></div>
-    <div class="error" id="error"></div>
 
+    <!-- Step 1: Barn details -->
     <div class="step active" id="step-1">
+      <div class="step-label">Step 1 of 7</div>
       <div class="step-title">Tell us about your barn</div>
-      <div class="step-sub">This takes about 2 minutes. You can change everything later.</div>
+      <div class="step-sub">This helps personalize your experience and set up your profile.</div>
+      <div class="error" id="err-1"></div>
       <div class="row2">
-        <div class="field"><label>First name</label><input type="text" id="fname" placeholder="Claire"></div>
-        <div class="field"><label>Last name</label><input type="text" id="lname" placeholder="Morgan"></div>
+        <div class="field"><label>Your name</label><input type="text" id="s1-name" placeholder="Freddie"></div>
+        <div class="field"><label>Barn name</label><input type="text" id="s1-barn" placeholder="Northern Reign Stables"></div>
       </div>
-      <div class="field"><label>Barn or program name</label><input type="text" id="barn" placeholder="Ridgeview Equestrian"></div>
-      <div class="field"><label>Time zone</label>
-        <select id="timezone">
+      <div class="field"><label>Phone number</label><input type="tel" id="s1-phone" placeholder="(704) 555-0100"></div>
+      <div class="field"><label>Timezone</label>
+        <select id="s1-tz">
           <option>Eastern Time (ET)</option>
           <option>Central Time (CT)</option>
           <option>Mountain Time (MT)</option>
           <option>Pacific Time (PT)</option>
         </select>
       </div>
-      <div class="actions"><span></span><button class="btn-next" onclick="go(2)">Continue →</button></div>
+      <div class="actions">
+        <span></span>
+        <button class="btn-next" onclick="saveStep1()">Continue →</button>
+      </div>
     </div>
 
+    <!-- Step 2: Barn hours -->
     <div class="step" id="step-2">
-      <div class="step-title">When do you teach?</div>
-      <div class="step-sub">Pick the days you're generally available.</div>
-      <div class="day-grid" id="day-grid"></div>
+      <div class="step-label">Step 2 of 7</div>
+      <div class="step-title">Set your barn hours</div>
+      <div class="step-sub">Lesson time slots are generated based on your barn hours. You can change this anytime in settings.</div>
       <div class="row2">
-        <div class="field"><label>Earliest start</label>
-          <select id="start-time">
-            <option>7:00 AM</option><option>8:00 AM</option><option selected>9:00 AM</option><option>10:00 AM</option><option>11:00 AM</option>
-          </select>
-        </div>
-        <div class="field"><label>Latest end</label>
-          <select id="end-time">
-            <option>3:00 PM</option><option>4:00 PM</option><option selected>5:00 PM</option><option>6:00 PM</option><option>7:00 PM</option>
-          </select>
-        </div>
+        <div class="field"><label>Opens</label><select id="s2-open" onchange="updateHoursPreview()"></select></div>
+        <div class="field"><label>Closes</label><select id="s2-close" onchange="updateHoursPreview()"></select></div>
       </div>
+      <div class="hours-preview" id="hours-preview">🕐 Barn open 9:00 AM – 6:00 PM</div>
       <div class="actions">
-        <button class="btn-back" onclick="go(1)">← Back</button>
-        <button class="btn-next" onclick="go(3)">Continue →</button>
+        <a class="skip-step" onclick="go(3)">Set up later →</a>
+        <button class="btn-next" onclick="saveStep2()">Continue →</button>
       </div>
     </div>
 
+    <!-- Step 3: Lesson types -->
     <div class="step" id="step-3">
-      <div class="step-title">What kinds of lessons do you offer?</div>
-      <div class="step-sub">Select all that apply.</div>
-      <div class="type-grid" id="type-grid"></div>
+      <div class="step-label">Step 3 of 7</div>
+      <div class="step-title">Lesson types & pricing</div>
+      <div class="step-sub">Set your prices. Private and Group lessons are required — add more if you offer them.</div>
+      <div class="lt-list" id="lt-list"></div>
+      <div class="add-lt-row">
+        <input type="text" id="new-lt-name" placeholder="e.g. Training ride, Pony party…">
+        <div class="price-wrap"><input type="number" id="new-lt-price" placeholder="85" min="0"></div>
+        <button class="btn-add-lt" onclick="addCustomLt()">+ Add</button>
+      </div>
       <div class="actions">
-        <button class="btn-back" onclick="go(2)">← Back</button>
-        <button class="btn-next" onclick="go(4)">Continue →</button>
+        <a class="skip-step" onclick="go(4)">Set up later →</a>
+        <button class="btn-next" onclick="saveStep3()">Continue →</button>
       </div>
     </div>
 
+    <!-- Step 4: Horses -->
     <div class="step" id="step-4">
-      <div class="step-title">Set your default lesson price</div>
-      <div class="step-sub">You can set different prices per lesson type in settings.</div>
-      <div class="row2">
-        <div class="field"><label>Default price ($)</label><input type="number" id="price" placeholder="75"></div>
-        <div class="field"><label>Default duration</label>
-          <select id="duration">
-            <option>30 minutes</option><option selected>45 minutes</option><option>60 minutes</option><option>90 minutes</option>
-          </select>
-        </div>
+      <div class="step-label">Step 4 of 7</div>
+      <div class="step-title">Add your horses</div>
+      <div class="step-sub">Horses appear in lesson booking. You can add more anytime.</div>
+      <div class="horse-list" id="horse-list"></div>
+      <div class="add-horse-mini">
+        <input type="text" id="new-horse-name" placeholder="Horse name">
+        <input type="text" id="new-horse-breed" placeholder="Breed (optional)">
+        <input type="text" id="new-horse-color" placeholder="Color (optional)">
       </div>
-      <div style="background:#e6f0fb;border-radius:10px;padding:12px;font-size:12px;color:#185fa5;line-height:1.6;margin-top:4px">
-        💳 Payment links are sent via Square after each booking. Square charges 2.9% + 30¢ per transaction.
-      </div>
+      <button class="btn-add-lt" onclick="addHorse()" style="width:100%;margin-bottom:4px">+ Add horse</button>
       <div class="actions">
-        <button class="btn-back" onclick="go(3)">← Back</button>
-        <button class="btn-next" id="finish-btn" onclick="finish()">Finish setup →</button>
+        <a class="skip-step" onclick="go(5)">Set up later →</a>
+        <button class="btn-next" onclick="go(5)">Continue →</button>
       </div>
     </div>
 
+    <!-- Step 5: First rider -->
     <div class="step" id="step-5">
-      <div class="done-wrap">
-        <div class="done-icon">✓</div>
-        <div style="font-size:20px;font-weight:600;margin-bottom:6px">You're all set, <span id="done-name">there</span>!</div>
-        <div style="font-size:14px;color:#5a5a55;line-height:1.6">Your barn is ready. You're on the free plan — up to 10 bookings a month.</div>
-        <div class="done-stats">
-          <div class="done-stat"><strong id="done-barn">—</strong>Barn</div>
-          <div class="done-stat"><strong>10</strong>Free bookings</div>
-          <div class="done-stat"><strong id="done-price">—</strong>Default price</div>
+      <div class="step-label">Step 5 of 7</div>
+      <div class="step-title">Add your first rider</div>
+      <div class="step-sub">Optional — you can add riders anytime from the Riders page.</div>
+      <div class="error" id="err-5"></div>
+      <div class="row2">
+        <div class="field"><label>First name</label><input type="text" id="s5-fname" placeholder="Sophie"></div>
+        <div class="field"><label>Last name</label><input type="text" id="s5-lname" placeholder="Reynolds"></div>
+      </div>
+      <div class="field"><label>Phone <span class="optional">optional</span></label><input type="tel" id="s5-phone" placeholder="(704) 555-0100"></div>
+      <div class="actions">
+        <a class="skip-step" onclick="go(6)">Set up later →</a>
+        <button class="btn-next" onclick="saveStep5()">Continue →</button>
+      </div>
+    </div>
+
+    <!-- Step 6: Plan -->
+    <div class="step" id="step-6">
+      <div class="step-label">Step 6 of 7</div>
+      <div class="step-title">Choose your plan</div>
+      <div class="step-sub">Start free — upgrade anytime as your barn grows.</div>
+      <div class="tier-cards">
+        <div class="tier-card sel" id="tc-free" onclick="selTier('free')">
+          <div class="tier-card-top">
+            <div>
+              <div class="tier-name">Free</div>
+              <div class="tier-desc">Up to 20 bookings/month · No card required</div>
+            </div>
+            <div style="display:flex;align-items:center;gap:10px">
+              <div class="tier-price">$0</div>
+              <div class="tier-radio sel" id="tr-free"></div>
+            </div>
+          </div>
         </div>
+        <div class="tier-card" id="tc-pro" onclick="selTier('pro')">
+          <div class="tier-card-top">
+            <div>
+              <div class="tier-name">Pro</div>
+              <div class="tier-desc">Unlimited bookings · Square payments · Reminders</div>
+            </div>
+            <div style="display:flex;align-items:center;gap:10px">
+              <div class="tier-price">$19/mo</div>
+              <div class="tier-radio" id="tr-pro"></div>
+            </div>
+          </div>
+        </div>
+        <div class="tier-card" id="tc-barn" onclick="selTier('barn')">
+          <div class="tier-card-top">
+            <div>
+              <div class="tier-name">Barn</div>
+              <div class="tier-desc">Everything in Pro · Unlimited staff trainers</div>
+            </div>
+            <div style="display:flex;align-items:center;gap:10px">
+              <div class="tier-price">$49/mo</div>
+              <div class="tier-radio" id="tr-barn"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="actions">
+        <a class="skip-step" onclick="go(7)">Decide later →</a>
+        <button class="btn-next" onclick="go(7)">Continue →</button>
+      </div>
+    </div>
+
+    <!-- Step 7: Done -->
+    <div class="step" id="step-7">
+      <div class="done-wrap">
+        <div class="done-icon">🐴</div>
+        <div style="font-size:22px;font-weight:600;margin-bottom:6px">Your barn is ready!</div>
+        <div style="font-size:14px;color:#5a5a55;margin-bottom:1.5rem;line-height:1.6">Here's what you set up:</div>
+        <div id="setup-summary" style="margin-bottom:1.5rem;text-align:left"></div>
         <button class="btn-next" style="width:100%;padding:12px;font-size:15px" onclick="window.location.href='dashboard.html'">Go to dashboard →</button>
       </div>
     </div>
+
   </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-const SUPABASE_URL = 'https://mfinlbqfowymmklhkuhb.supabase.co';
-const SUPABASE_KEY = 'sb_publishable_PcwbX1YoncwnrHobFmpAIA_L39K4XfK';
-const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+const SUPABASE_URL='https://mfinlbqfowymmklhkuhb.supabase.co';
+const SUPABASE_KEY='sb_publishable_PcwbX1YoncwnrHobFmpAIA_L39K4XfK';
+const db=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+let cur=1,userId=null;
+let customLts=[],horses=[];
+let setupDone={barn:false,hours:false,lessonTypes:false,horses:false,rider:false};
+let selTierVal='free';
 
-const days = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
-const selDays = new Set([0,1,2,3,4]);
-const types = [
-  {icon:'🧑‍🏫',name:'Private',price:'$75',bg:'#e0f5ed'},
-  {icon:'👥',name:'Group',price:'$40',bg:'#eeedfe'},
-  {icon:'🏇',name:'Jumping',price:'$85',bg:'#faeeda'},
-  {icon:'🎯',name:'Dressage',price:'$85',bg:'#faece7'},
-];
-const selTypes = new Set([0,1]);
-let cur = 1;
+const timeOptions=[];
+for(let h=6;h<=22;h++){
+  for(let m=0;m<60;m+=30){
+    if(h===22&&m>0)break;
+    const hour12=h>12?h-12:h===0?12:h;
+    const ampm=h>=12?'PM':'AM';
+    timeOptions.push({label:`${hour12}:${m===0?'00':'30'} ${ampm}`,val:`${String(h).padStart(2,'0')}:${m===0?'00':'30'}`});
+  }
+}
 
 function renderProgress(){
-  const p = document.getElementById('progress');
-  p.innerHTML = '';
-  for(let i=1;i<=4;i++){
-    const b = document.createElement('div');
-    b.className = 'prog-bar' + (i<cur?' done':i===cur?' active':'');
-    p.appendChild(b);
+  const p=document.getElementById('progress');
+  p.innerHTML='';
+  for(let i=1;i<=7;i++){
+    const d=document.createElement('div');
+    d.className='prog-dot'+(i<cur?' done':i===cur?' active':'');
+    p.appendChild(d);
   }
-  document.getElementById('step-counter').textContent = cur <= 4 ? `Step ${cur} of 4` : 'Done';
-}
-
-function renderDays(){
-  const g = document.getElementById('day-grid');
-  g.innerHTML = '';
-  days.forEach((d,i)=>{
-    const b = document.createElement('button');
-    b.className = 'day-btn' + (selDays.has(i)?' sel':'');
-    b.textContent = d;
-    b.onclick = ()=>{ selDays.has(i)?selDays.delete(i):selDays.add(i); renderDays(); };
-    g.appendChild(b);
-  });
-}
-
-function renderTypes(){
-  const g = document.getElementById('type-grid');
-  g.innerHTML = '';
-  types.forEach((t,i)=>{
-    const b = document.createElement('button');
-    b.className = 'type-btn' + (selTypes.has(i)?' sel':'');
-    b.innerHTML = `<div class="type-icon" style="background:${t.bg}">${t.icon}</div><div><div class="type-name">${t.name}</div><div class="type-price">${t.price}</div></div>`;
-    b.onclick = ()=>{ selTypes.has(i)?selTypes.delete(i):selTypes.add(i); renderTypes(); };
-    g.appendChild(b);
-  });
 }
 
 function go(n){
   document.getElementById('step-'+cur).classList.remove('active');
-  cur = n;
+  cur=n;
   document.getElementById('step-'+cur).classList.add('active');
   renderProgress();
+  if(n===7)buildSummary();
 }
 
-async function finish(){
-  const fname = document.getElementById('fname').value.trim();
-  const lname = document.getElementById('lname').value.trim();
-  const barn = document.getElementById('barn').value.trim();
-  const price = document.getElementById('price').value.trim();
+function skipToEnd(){window.location.href='dashboard.html';}
 
-  if(!fname || !barn){
-    document.getElementById('error').textContent = 'Please fill in your name and barn name on step 1.';
-    document.getElementById('error').style.display = 'block';
-    go(1);
-    return;
-  }
-
-  const btn = document.getElementById('finish-btn');
-  btn.disabled = true;
-  btn.textContent = 'Saving…';
-
-  try {
-    const { data: { user } } = await db.auth.getUser();
-    if(!user) throw new Error('Not logged in');
-
-    const fullName = fname + (lname ? ' ' + lname : '');
-
-    // Update trainer record in Supabase
-    const { error } = await db.from('trainers').upsert({
-      id: user.id,
-      name: fullName,
-      barn_name: barn,
-      timezone: document.getElementById('timezone').value,
-      plan: 'free',
-      tier: 'free'
-    });
-
-    if(error) throw error;
-
-    // Also update localStorage for greeting
-    localStorage.setItem('stirrup_user', JSON.stringify({
-      name: fname,
-      barn: barn,
-      email: user.email
-    }));
-
-    document.getElementById('done-name').textContent = fname;
-    document.getElementById('done-barn').textContent = barn;
-    document.getElementById('done-price').textContent = price ? '$'+price : '$75';
-    go(5);
-
-  } catch(err) {
-    document.getElementById('error').textContent = err.message || 'Something went wrong. Please try again.';
-    document.getElementById('error').style.display = 'block';
-    btn.disabled = false;
-    btn.textContent = 'Finish setup →';
+function updateHoursPreview(){
+  const open=document.getElementById('s2-open').value;
+  const close=document.getElementById('s2-close').value;
+  const openOpt=timeOptions.find(t=>t.val===open);
+  const closeOpt=timeOptions.find(t=>t.val===close);
+  if(openOpt&&closeOpt){
+    document.getElementById('hours-preview').textContent=`🕐 Barn open ${openOpt.label} – ${closeOpt.label}`;
   }
 }
 
-// Pre-fill from localStorage if available
-window.onload = function(){
-  const user = JSON.parse(localStorage.getItem('stirrup_user') || '{}');
-  if(user.name) document.getElementById('fname').value = user.name;
-  if(user.barn) document.getElementById('barn').value = user.barn;
+function initHoursSelects(){
+  const openSel=document.getElementById('s2-open');
+  const closeSel=document.getElementById('s2-close');
+  openSel.innerHTML='';closeSel.innerHTML='';
+  timeOptions.forEach(t=>{
+    const o=document.createElement('option');o.value=t.val;o.textContent=t.label;openSel.appendChild(o);
+    const c=document.createElement('option');c.value=t.val;c.textContent=t.label;closeSel.appendChild(c);
+  });
+  openSel.value='09:00';closeSel.value='18:00';
+  updateHoursPreview();
+}
+
+function renderLtList(){
+  const list=document.getElementById('lt-list');
+  list.innerHTML='';
+  // System types
+  const systemTypes=[
+    {name:'Private lesson',price:75,is_system:true},
+    {name:'Group lesson',price:40,is_system:true}
+  ];
+  systemTypes.forEach((lt,i)=>{
+    const item=document.createElement('div');
+    item.className='lt-item';
+    item.innerHTML=`
+      <div class="lt-name">${lt.name} <span class="lt-locked">🔒</span></div>
+      <div style="display:flex;align-items:center;gap:4px">
+        <span style="font-size:13px;color:#5a5a55">$</span>
+        <input class="lt-price-input" type="number" value="${lt.price}" min="0" id="sys-price-${i}" placeholder="75">
+      </div>`;
+    list.appendChild(item);
+  });
+  // Custom types
+  customLts.forEach((lt,i)=>{
+    const item=document.createElement('div');
+    item.className='lt-item';
+    item.innerHTML=`
+      <div class="lt-name">${lt.name}</div>
+      <div style="display:flex;align-items:center;gap:6px">
+        <span style="font-size:13px;color:#5a5a55">$</span>
+        <input class="lt-price-input" type="number" value="${lt.price}" min="0" onchange="customLts[${i}].price=parseFloat(this.value)||0">
+        <button class="lt-remove" onclick="customLts.splice(${i},1);renderLtList()">×</button>
+      </div>`;
+    list.appendChild(item);
+  });
+}
+
+function addCustomLt(){
+  const name=document.getElementById('new-lt-name').value.trim();
+  const price=parseFloat(document.getElementById('new-lt-price').value)||0;
+  if(!name)return;
+  customLts.push({name,price});
+  document.getElementById('new-lt-name').value='';
+  document.getElementById('new-lt-price').value='';
+  renderLtList();
+}
+
+function renderHorseList(){
+  const list=document.getElementById('horse-list');
+  list.innerHTML='';
+  horses.forEach((h,i)=>{
+    const item=document.createElement('div');
+    item.className='horse-item';
+    item.innerHTML=`
+      <div>
+        <div class="horse-item-name">🐴 ${h.name}</div>
+        ${h.breed||h.color?`<div class="horse-item-meta">${[h.breed,h.color].filter(Boolean).join(' · ')}</div>`:''}
+      </div>
+      <button class="horse-remove" onclick="horses.splice(${i},1);renderHorseList()">×</button>`;
+    list.appendChild(item);
+  });
+}
+
+function addHorse(){
+  const name=document.getElementById('new-horse-name').value.trim();
+  if(!name)return;
+  horses.push({
+    name,
+    breed:document.getElementById('new-horse-breed').value.trim(),
+    color:document.getElementById('new-horse-color').value.trim()
+  });
+  document.getElementById('new-horse-name').value='';
+  document.getElementById('new-horse-breed').value='';
+  document.getElementById('new-horse-color').value='';
+  renderHorseList();
+}
+
+function selTier(t){
+  selTierVal=t;
+  ['free','pro','barn'].forEach(x=>{
+    document.getElementById('tc-'+x).classList.toggle('sel',x===t);
+    document.getElementById('tr-'+x).classList.toggle('sel',x===t);
+  });
+}
+
+function buildSummary(){
+  const items=[
+    {done:setupDone.barn,text:'Barn profile',sub:'Name, phone, timezone'},
+    {done:setupDone.hours,text:'Barn hours',sub:'When lessons can be scheduled'},
+    {done:setupDone.lessonTypes,text:'Lesson types & pricing',sub:'Private, Group, and custom types'},
+    {done:setupDone.horses,text:'Horses',sub:horses.length>0?`${horses.length} horse${horses.length>1?'s':''} added`:'None added yet'},
+    {done:setupDone.rider,text:'First rider',sub:'Ready to book lessons'},
+  ];
+  const s=document.getElementById('setup-summary');
+  s.innerHTML='';
+  items.forEach(item=>{
+    const row=document.createElement('div');
+    row.className='summary-item';
+    row.innerHTML=`
+      <div class="summary-check ${item.done?'done':'skip'}">${item.done?'✓':'—'}</div>
+      <div>
+        <div class="summary-text">${item.text}</div>
+        <div class="summary-sub">${item.sub}</div>
+      </div>`;
+    s.appendChild(row);
+  });
+}
+
+async function saveStep1(){
+  const name=document.getElementById('s1-name').value.trim();
+  const barn_name=document.getElementById('s1-barn').value.trim();
+  if(!name){
+    document.getElementById('err-1').textContent='Please enter your name.';
+    document.getElementById('err-1').style.display='block';return;
+  }
+  await db.from('trainers').update({
+    name,barn_name,
+    timezone:document.getElementById('s1-tz').value
+  }).eq('id',userId);
+  setupDone.barn=true;
+  go(2);
+}
+
+async function saveStep2(){
+  const barn_open=document.getElementById('s2-open').value;
+  const barn_close=document.getElementById('s2-close').value;
+  if(barn_open>=barn_close){alert('Closing time must be after opening time.');return;}
+  await db.from('trainers').update({barn_open,barn_close}).eq('id',userId);
+  setupDone.hours=true;
+  go(3);
+}
+
+async function saveStep3(){
+  const sysPrice0=parseFloat(document.getElementById('sys-price-0').value)||75;
+  const sysPrice1=parseFloat(document.getElementById('sys-price-1').value)||40;
+  // Update system lesson type prices
+  const {data:existing}=await db.from('lesson_types').select('id,name').eq('trainer_id',userId).eq('is_system',true);
+  if(existing){
+    for(const lt of existing){
+      const price=lt.name==='Private lesson'?sysPrice0:sysPrice1;
+      await db.from('lesson_types').update({price}).eq('id',lt.id);
+    }
+  }
+  // Insert custom lesson types
+  if(customLts.length>0){
+    await db.from('lesson_types').insert(customLts.map((lt,i)=>({
+      trainer_id:userId,name:lt.name,price:lt.price,
+      duration:'45 minutes',sort_order:10+i,is_system:false,active:true
+    })));
+  }
+  setupDone.lessonTypes=true;
+  go(4);
+}
+
+async function saveStep5(){
+  const fname=document.getElementById('s5-fname').value.trim();
+  const lname=document.getElementById('s5-lname').value.trim();
+  if(!fname||!lname){
+    document.getElementById('err-5').textContent='Please enter first and last name, or skip this step.';
+    document.getElementById('err-5').style.display='block';return;
+  }
+  await db.from('riders').insert({
+    trainer_id:userId,first_name:fname,last_name:lname,
+    phone:document.getElementById('s5-phone').value.trim(),
+    payment_status:'paid',level:'intermediate',lesson_type:'private'
+  });
+  setupDone.rider=true;
+  go(6);
+}
+
+async function saveHorsesBeforeLeaving(){
+  if(horses.length>0){
+    await db.from('horses').insert(horses.map(h=>({
+      trainer_id:userId,name:h.name,breed:h.breed,color:h.color,active:true
+    })));
+    setupDone.horses=true;
+    horses=[];
+  }
+}
+
+// Override go for step 4 → 5 to save horses
+const originalGo=go;
+async function go(n){
+  if(cur===4&&n===5){await saveHorsesBeforeLeaving();}
+  document.getElementById('step-'+cur).classList.remove('active');
+  cur=n;
+  document.getElementById('step-'+cur).classList.add('active');
   renderProgress();
-  renderDays();
-  renderTypes();
-};
+  if(n===7)buildSummary();
+}
+
+async function load(){
+  const {data:{user}}=await db.auth.getUser();
+  if(!user){window.location.href='login.html';return;}
+  userId=user.id;
+  initHoursSelects();
+  renderLtList();
+  renderHorseList();
+  renderProgress();
+}
+
+load();
 </script>
 </body>
 </html>
