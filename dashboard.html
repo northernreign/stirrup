@@ -62,25 +62,21 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2
 .pill-green{background:#e0f5ed;color:#0f6e47}
 .pill-amber{background:#faeeda;color:#633806}
 .pill-blue{background:#e6f0fb;color:#0c447c}
-.checklist{background:#fff;border:1px solid #e8e6e0;border-radius:12px;padding:1rem 1.25rem;margin-bottom:1.5rem}
-.cl-title{font-size:14px;font-weight:600;margin-bottom:4px}
-.cl-sub{font-size:12px;color:#5a5a55;margin-bottom:.75rem}
-.cl-prog{height:4px;border-radius:2px;background:#e8e6e0;margin-bottom:1rem;overflow:hidden}
-.cl-fill{height:100%;border-radius:2px;background:#1D9E75;transition:width .3s}
-.cl-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid #f0efe9;cursor:pointer}
-.cl-row:last-child{border-bottom:none}
-.cl-check{width:20px;height:20px;border-radius:50%;border:1px solid #d4d2cb;display:flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0}
-.cl-check.done{background:#e0f5ed;border-color:#1D9E75;color:#1D9E75}
-.cl-text{font-size:13px;color:#1a1a18;flex:1}
-.cl-text.done{color:#8a8a85;text-decoration:line-through}
-.cl-arrow{font-size:14px;color:#8a8a85}
 .activity-feed{background:#fff;border:1px solid #e8e6e0;border-radius:12px;padding:1rem 1.25rem;margin-bottom:1.5rem}
-.activity-item{display:flex;align-items:flex-start;gap:10px;padding:8px 0;border-bottom:1px solid #f0efe9}
+.activity-item{display:flex;align-items:flex-start;gap:12px;padding:10px 0;border-bottom:1px solid #f0efe9;position:relative}
 .activity-item:last-child{border-bottom:none}
-.activity-icon{width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
+.activity-item::before{content:'';position:absolute;left:-1.25rem;top:0;bottom:0;width:3px;border-radius:0 2px 2px 0}
+.activity-item.color-green::before{background:#1D9E75}
+.activity-item.color-amber::before{background:#e8a020}
+.activity-item.color-purple::before{background:#7c6fd4}
+.activity-item.color-blue::before{background:#3b82c4}
+.activity-item.color-red::before{background:#c0392b}
+.activity-item.color-brown::before{background:#8B5E3C}
+.activity-icon{width:32px;height:32px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
 .activity-body{flex:1;min-width:0}
-.activity-text{font-size:13px;color:#1a1a18;line-height:1.4}
-.activity-time{font-size:11px;color:#8a8a85;margin-top:2px}
+.activity-text{font-size:13px;color:#1a1a18;line-height:1.5}
+.activity-text strong{font-weight:600}
+.activity-time{font-size:11px;color:#8a8a85;margin-top:3px}
 .sq-notice{background:#e6f0fb;border:1px solid #85b7eb;border-radius:12px;padding:1rem 1.25rem;display:flex;align-items:flex-start;gap:12px}
 .sq-notice-body{flex:1}
 .sq-notice-title{font-size:13px;font-weight:600;color:#0c447c;margin-bottom:3px}
@@ -129,28 +125,6 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2
       <div class="metric-label">Awaiting payment</div>
       <div class="metric-val" id="m-unpaid">—</div>
       <div class="metric-sub">past lessons unpaid</div>
-    </div>
-  </div>
-
-  <div class="checklist">
-    <div class="cl-title">Finish setting up your barn</div>
-    <div class="cl-sub" id="cl-sub">1 of 6 complete</div>
-    <div class="cl-prog"><div class="cl-fill" id="cl-fill" style="width:16%"></div></div>
-    <div class="cl-row"><div class="cl-check done">✓</div><div class="cl-text done">Create your account</div></div>
-    <div class="cl-row" onclick="window.location.href='horses.html'">
-      <div class="cl-check" id="ck-horses"></div><div class="cl-text" id="ct-horses">Add your horses</div><div class="cl-arrow">→</div>
-    </div>
-    <div class="cl-row" onclick="window.location.href='riders.html'">
-      <div class="cl-check" id="ck-rider"></div><div class="cl-text" id="ct-rider">Add your first rider</div><div class="cl-arrow">→</div>
-    </div>
-    <div class="cl-row" onclick="window.location.href='book.html'">
-      <div class="cl-check" id="ck-booking"></div><div class="cl-text" id="ct-booking">Book your first lesson</div><div class="cl-arrow">→</div>
-    </div>
-    <div class="cl-row" onclick="window.location.href='settings.html'">
-      <div class="cl-check"></div><div class="cl-text">Connect Square to accept payments</div><div class="cl-arrow">→</div>
-    </div>
-    <div class="cl-row" onclick="window.location.href='settings.html'">
-      <div class="cl-check"></div><div class="cl-text">Customize lesson types & pricing</div><div class="cl-arrow">→</div>
     </div>
   </div>
 
@@ -216,23 +190,48 @@ const dayLabels=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 const monthNames=['January','February','March','April','May','June','July','August','September','October','November','December'];
 
 const activityConfig={
-  booking_created:{icon:'🗓',bg:'#e0f5ed',label:(a)=>`Booking — ${a.entity_name}${a.meta?.lesson_type?' · '+a.meta.lesson_type:''}${a.meta?.date?' · '+a.meta.date:''}`},
-  booking_rescheduled:{icon:'✏️',bg:'#e6f0fb',label:(a)=>`Rescheduled — ${a.entity_name}${a.meta?.new_date?' → '+a.meta.new_date:''}`},
-  booking_cancelled:{icon:'✗',bg:'#fcebeb',label:(a)=>`Cancelled — ${a.entity_name}`},
-  payment_received:{icon:'✓',bg:'#e0f5ed',label:(a)=>`Payment received — ${a.entity_name}${a.meta?.amount?' · '+a.meta.amount:''}`},
-  payment_request_sent:{icon:'💳',bg:'#e6f0fb',label:(a)=>`Payment link sent — ${a.entity_name}${a.meta?.amount?' · '+a.meta.amount:''}`},
-  rider_added:{icon:'👤',bg:'#eeedfe',label:(a)=>`Rider added — ${a.entity_name}`},
-  horse_added:{icon:'🐴',bg:'#faeeda',label:(a)=>`Horse added — ${a.entity_name}`},
-  horse_edited:{icon:'✏️',bg:'#faeeda',label:(a)=>`Horse updated — ${a.entity_name}`},
-  horse_rest_added:{icon:'😴',bg:'#fcebeb',label:(a)=>`Rest period added — ${a.entity_name}${a.meta?.start_date?' · '+a.meta.start_date+' to '+a.meta.end_date:''}`},
-  horse_rest_removed:{icon:'✓',bg:'#e0f5ed',label:(a)=>`Rest period removed — ${a.entity_name}`},
-  horse_rest_schedule_added:{icon:'📅',bg:'#faeeda',label:(a)=>`Recurring rest added — ${a.entity_name}`},
-  horse_rest_schedule_removed:{icon:'📅',bg:'#f0efe9',label:(a)=>`Recurring rest removed — ${a.entity_name}`},
-  trainer_added:{icon:'👤',bg:'#e0f5ed',label:(a)=>`Staff trainer added — ${a.entity_name}`},
-  trainer_availability_changed:{icon:'📅',bg:'#e6f0fb',label:(a)=>`Availability updated — ${a.entity_name}`},
-  lesson_type_added:{icon:'📋',bg:'#eeedfe',label:(a)=>`Lesson type added — ${a.entity_name}`},
-  lesson_type_edited:{icon:'✏️',bg:'#eeedfe',label:(a)=>`Lesson type updated — ${a.entity_name}`},
-  barn_hours_changed:{icon:'🕐',bg:'#faeeda',label:(a)=>`Barn hours updated`},
+  booking_created:{icon:'🗓',bg:'#e0f5ed',color:'color-blue',
+    label:(a)=>`<strong>${a.entity_name}</strong> booked a ${a.meta?.lesson_type||'lesson'}${a.meta?.date?' on '+a.meta.date:''}`},
+  booking_rescheduled:{icon:'✏️',bg:'#e6f0fb',color:'color-blue',
+    label:(a)=>`<strong>${a.entity_name}'s</strong> lesson was rescheduled${a.meta?.new_date?' to '+a.meta.new_date:''}`},
+  booking_cancelled:{icon:'🚫',bg:'#fcebeb',color:'color-red',
+    label:(a)=>`<strong>${a.entity_name}'s</strong> lesson was cancelled`},
+  payment_received:{icon:'💵',bg:'#e0f5ed',color:'color-green',
+    label:(a)=>`Payment received from <strong>${a.entity_name}</strong>${a.meta?.amount?' · '+a.meta.amount:''}`},
+  payment_request_sent:{icon:'💳',bg:'#e6f0fb',color:'color-green',
+    label:(a)=>`Square payment link sent to <strong>${a.entity_name}</strong>${a.meta?.amount?' · '+a.meta.amount:''}`},
+  square_payment_received:{icon:'💰',bg:'#e0f5ed',color:'color-green',
+    label:(a)=>`<strong>${a.entity_name}</strong> paid via Square${a.meta?.amount?' · '+a.meta.amount:''}`},
+  rider_added:{icon:'👤',bg:'#eeedfe',color:'color-purple',
+    label:(a)=>`<strong>${a.entity_name}</strong> joined your roster`},
+  horse_added:{icon:'🐴',bg:'#faeeda',color:'color-amber',
+    label:(a)=>`<strong>${a.entity_name}</strong> was added to your barn`},
+  horse_edited:{icon:'✏️',bg:'#faeeda',color:'color-amber',
+    label:(a)=>`<strong>${a.entity_name}'s</strong> profile was updated`},
+  horse_rest_added:{icon:'😴',bg:'#fcebeb',color:'color-brown',
+    label:(a)=>`<strong>${a.entity_name}</strong> is heading to rest${a.meta?.start_date?' · '+a.meta.start_date+' to '+a.meta.end_date:''}`},
+  horse_rest_removed:{icon:'🍀',bg:'#e0f5ed',color:'color-green',
+    label:(a)=>`<strong>${a.entity_name}'s</strong> rest period was removed`},
+  horse_rest_schedule_added:{icon:'📅',bg:'#faeeda',color:'color-brown',
+    label:(a)=>`Recurring rest added for <strong>${a.entity_name}</strong>`},
+  horse_rest_schedule_removed:{icon:'📅',bg:'#f0efe9',color:'color-amber',
+    label:(a)=>`Recurring rest removed for <strong>${a.entity_name}</strong>`},
+  horse_started_lesson:{icon:'🐴',bg:'#faeeda',color:'color-amber',
+    label:(a)=>`<strong>${a.entity_name}</strong> started a lesson`},
+  horse_finished_lesson:{icon:'🍀',bg:'#e0f5ed',color:'color-green',
+    label:(a)=>`<strong>${a.entity_name}</strong> is back to grazing`},
+  horse_started_rest:{icon:'😴',bg:'#fcebeb',color:'color-brown',
+    label:(a)=>`<strong>${a.entity_name}</strong> started their scheduled rest`},
+  trainer_added:{icon:'👤',bg:'#e0f5ed',color:'color-purple',
+    label:(a)=>`<strong>${a.entity_name}</strong> was added as a staff trainer`},
+  trainer_availability_changed:{icon:'📅',bg:'#e6f0fb',color:'color-blue',
+    label:(a)=>`<strong>${a.entity_name}'s</strong> availability was updated`},
+  lesson_type_added:{icon:'📋',bg:'#eeedfe',color:'color-purple',
+    label:(a)=>`New lesson type added: <strong>${a.entity_name}</strong>`},
+  lesson_type_edited:{icon:'✏️',bg:'#eeedfe',color:'color-purple',
+    label:(a)=>`Lesson type updated: <strong>${a.entity_name}</strong>`},
+  barn_hours_changed:{icon:'🕐',bg:'#faeeda',color:'color-amber',
+    label:(a)=>`Barn hours were updated`},
 };
 
 function timeAgo(dateStr){
@@ -244,6 +243,7 @@ function timeAgo(dateStr){
   if(mins<1)return'just now';
   if(mins<60)return`${mins}m ago`;
   if(hours<24)return`${hours}h ago`;
+  if(days===1)return'yesterday';
   if(days<7)return`${days}d ago`;
   return d.toLocaleString('default',{month:'short',day:'numeric'});
 }
@@ -323,14 +323,15 @@ function renderCalendar(){
 function renderActivity(activities){
   const list=document.getElementById('activity-list');
   if(!activities||activities.length===0){
-    list.innerHTML='<div style="text-align:center;padding:1.5rem;color:#8a8a85;font-size:13px">No activity yet. Start by adding horses, riders, and booking lessons.</div>';
+    list.innerHTML='<div style="text-align:center;padding:1.5rem;color:#8a8a85;font-size:13px">No activity yet — start by booking a lesson or adding a rider.</div>';
     return;
   }
   list.innerHTML='';
   activities.forEach(a=>{
-    const cfg=activityConfig[a.action]||{icon:'•',bg:'#f0efe9',label:()=>a.action};
+    const cfg=activityConfig[a.action];
+    if(!cfg)return;
     const item=document.createElement('div');
-    item.className='activity-item';
+    item.className=`activity-item ${cfg.color}`;
     item.innerHTML=`
       <div class="activity-icon" style="background:${cfg.bg}">${cfg.icon}</div>
       <div class="activity-body">
@@ -355,7 +356,6 @@ async function load(){
   document.getElementById('greeting').textContent=greeting+(name?', '+name:'');
   document.getElementById('greeting-sub').textContent="Here's what's happening at "+barn+".";
 
-  // Show appropriate nav badge
   const badgeEl=document.getElementById('plan-badge-nav');
   if(tier==='barn'||tier==='pro'){
     badgeEl.innerHTML=`<span class="barn-badge">${isLifetime?'🌟 Lifetime Barn':tier==='barn'?'Barn':'Pro'}</span>`;
@@ -367,7 +367,7 @@ async function load(){
     db.from('riders').select('*').eq('trainer_id',user.id),
     db.from('bookings').select('*').eq('trainer_id',user.id).order('scheduled_date',{ascending:true}),
     db.from('horses').select('*').eq('trainer_id',user.id).eq('active',true),
-    db.from('activity_log').select('*').eq('trainer_id',user.id).order('created_at',{ascending:false}).limit(10)
+    db.from('activity_log').select('*').eq('trainer_id',user.id).order('created_at',{ascending:false}).limit(15)
   ]);
 
   const r=riders||[];
@@ -386,13 +386,6 @@ async function load(){
 
   const awaitingPayment=b.filter(bk=>lessonPassed(bk)&&bk.payment_status!=='paid');
   document.getElementById('m-unpaid').textContent=awaitingPayment.length;
-
-  let done=1;
-  if(h.length>0){done++;document.getElementById('ck-horses').className='cl-check done';document.getElementById('ck-horses').textContent='✓';document.getElementById('ct-horses').className='cl-text done';}
-  if(r.length>0){done++;document.getElementById('ck-rider').className='cl-check done';document.getElementById('ck-rider').textContent='✓';document.getElementById('ct-rider').className='cl-text done';}
-  if(b.length>0){done++;document.getElementById('ck-booking').className='cl-check done';document.getElementById('ck-booking').textContent='✓';document.getElementById('ct-booking').className='cl-text done';}
-  document.getElementById('cl-sub').textContent=done+' of 6 complete';
-  document.getElementById('cl-fill').style.width=(done/6*100)+'%';
 
   renderCalendar();
   renderActivity(activities);
