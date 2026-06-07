@@ -8,52 +8,53 @@
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Inter',sans-serif;background:#f9f8f5;color:#1a1a18;min-height:100vh}
-nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2rem;background:#fff;border-bottom:1px solid #e8e6e0}
-.logo{font-size:18px;font-weight:600;color:#1a1a18;text-decoration:none}
-.nav-right{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
-.free-badge{font-size:12px;padding:4px 10px;border-radius:20px;background:#f0efe9;color:#5a5a55;border:1px solid #e8e6e0}
+nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 1.25rem;background:#fff;border-bottom:1px solid #e8e6e0;gap:10px}
+.logo{font-size:18px;font-weight:600;color:#1a1a18;text-decoration:none;flex-shrink:0}
+.nav-right{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+.free-badge{font-size:11px;padding:3px 8px;border-radius:20px;background:#f0efe9;color:#5a5a55;border:1px solid #e8e6e0}
 .free-badge strong{color:#1a1a18}
-.barn-badge{font-size:12px;padding:4px 10px;border-radius:20px;background:#faeeda;color:#633806;border:1px solid #e8d5b0;font-weight:500}
-.btn{padding:7px 14px;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;text-decoration:none;display:inline-block;font-family:'Inter',sans-serif}
+.barn-badge{font-size:11px;padding:3px 8px;border-radius:20px;background:#faeeda;color:#633806;border:1px solid #e8d5b0;font-weight:500}
+.btn{padding:7px 12px;border-radius:8px;font-size:12px;font-weight:500;cursor:pointer;text-decoration:none;display:inline-block;font-family:'Inter',sans-serif}
 .btn-primary{background:#1D9E75;border:1px solid #1D9E75;color:#fff}
 .btn-primary:hover{background:#178a64}
 .btn-ghost{background:transparent;border:1px solid #d4d2cb;color:#1a1a18}
 .btn-ghost:hover{background:#f0efe9}
-.wrap{max-width:1100px;margin:0 auto;padding:2rem}
-.greeting{font-size:22px;font-weight:600;margin-bottom:4px}
-.greeting-sub{font-size:14px;color:#5a5a55;margin-bottom:1.5rem}
-.metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-bottom:1.5rem}
-.metric{background:#fff;border:1px solid #e8e6e0;border-radius:12px;padding:1rem;cursor:pointer;transition:border-color .15s}
+.nav-links{display:flex;align-items:center;gap:6px}
+.wrap{max-width:1100px;margin:0 auto;padding:1.25rem}
+.greeting{font-size:20px;font-weight:600;margin-bottom:4px}
+.greeting-sub{font-size:13px;color:#5a5a55;margin-bottom:1.25rem}
+.metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:1.25rem}
+.metric{background:#fff;border:1px solid #e8e6e0;border-radius:12px;padding:.875rem;cursor:pointer;transition:border-color .15s}
 .metric:hover{border-color:#1D9E75}
-.metric-label{font-size:12px;color:#5a5a55;margin-bottom:6px}
-.metric-val{font-size:24px;font-weight:600;color:#1a1a18}
-.metric-sub{font-size:12px;color:#8a8a85;margin-top:3px}
-.main-grid{display:grid;grid-template-columns:minmax(0,1fr) 280px;gap:16px;margin-bottom:1.5rem}
+.metric-label{font-size:11px;color:#5a5a55;margin-bottom:5px}
+.metric-val{font-size:22px;font-weight:600;color:#1a1a18}
+.metric-sub{font-size:11px;color:#8a8a85;margin-top:2px}
+.main-grid{display:grid;grid-template-columns:minmax(0,1fr) 260px;gap:14px;margin-bottom:1.25rem}
 .card{background:#fff;border:1px solid #e8e6e0;border-radius:12px;padding:1rem 1.25rem}
 .card-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem}
 .card-title{font-size:14px;font-weight:600;color:#1a1a18}
 .card-link{font-size:12px;color:#1D9E75;text-decoration:none;cursor:pointer}
-.cal-nav{display:flex;align-items:center;gap:12px}
+.cal-nav{display:flex;align-items:center;gap:10px}
 .cal-nav-btn{background:transparent;border:1px solid #e8e6e0;border-radius:6px;padding:4px 10px;cursor:pointer;font-size:14px;color:#5a5a55;font-family:'Inter',sans-serif}
 .cal-nav-btn:hover{background:#f0efe9}
-.cal-month{font-size:14px;font-weight:600;color:#1a1a18;min-width:120px;text-align:center}
+.cal-month{font-size:13px;font-weight:600;color:#1a1a18;min-width:110px;text-align:center}
 .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
-.cal-label{font-size:11px;color:#8a8a85;text-align:center;padding:4px 0;font-weight:500}
-.cal-day{min-height:80px;border-radius:6px;padding:4px;background:#f9f8f5;border:1px solid transparent;transition:border .15s;position:relative}
+.cal-label{font-size:10px;color:#8a8a85;text-align:center;padding:3px 0;font-weight:500}
+.cal-day{min-height:72px;border-radius:6px;padding:3px;background:#f9f8f5;border:1px solid transparent;transition:border .15s;position:relative}
 .cal-day:hover{border-color:#e8e6e0}
 .cal-day.today{background:#e0f5ed;border-color:#1D9E75}
 .cal-day.other-month{background:transparent;opacity:.4}
-.cal-day-num{font-size:11px;font-weight:500;color:#5a5a55;margin-bottom:2px}
+.cal-day-num{font-size:10px;font-weight:500;color:#5a5a55;margin-bottom:2px}
 .cal-day.today .cal-day-num{color:#0f6e47;font-weight:600}
-.cal-event{font-size:10px;padding:2px 4px;border-radius:3px;margin-bottom:2px;cursor:pointer;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cal-event{font-size:9px;padding:1px 3px;border-radius:3px;margin-bottom:1px;cursor:pointer;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .cal-event:hover{opacity:.8}
 .ev-private{background:#d1ede3;color:#0a5c38}
 .ev-group{background:#e4e2fd;color:#2d2580}
 .ev-jumping{background:#fde8c0;color:#7a4500}
 .ev-dressage{background:#fad9d0;color:#6b1f10}
 .ev-other{background:#e8e6e0;color:#3a3a35}
-.more-events{font-size:10px;color:#8a8a85;padding:2px 4px;cursor:pointer}
-.pay-row{display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid #f0efe9;cursor:pointer;transition:background .15s;margin:0 -1.25rem;padding-left:1.25rem;padding-right:1.25rem}
+.more-events{font-size:9px;color:#8a8a85;padding:1px 3px;cursor:pointer}
+.pay-row{display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid #f0efe9;cursor:pointer;transition:background .15s;margin:0 -1.25rem;padding-left:1.25rem;padding-right:1.25rem}
 .pay-row:last-child{border-bottom:none}
 .pay-row:hover{background:#f9f8f5}
 .pay-name{font-size:13px;font-weight:500;color:#1a1a18}
@@ -62,7 +63,7 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2
 .pill-green{background:#e0f5ed;color:#0f6e47}
 .pill-amber{background:#faeeda;color:#633806}
 .pill-blue{background:#e6f0fb;color:#0c447c}
-.activity-feed{background:#fff;border:1px solid #e8e6e0;border-radius:12px;padding:1rem 1.25rem;margin-bottom:1.5rem}
+.activity-feed{background:#fff;border:1px solid #e8e6e0;border-radius:12px;padding:1rem 1.25rem;margin-bottom:1.25rem}
 .activity-item{display:flex;align-items:flex-start;gap:12px;padding:10px 0;border-bottom:1px solid #f0efe9;position:relative}
 .activity-item:last-child{border-bottom:none}
 .activity-item::before{content:'';position:absolute;left:-1.25rem;top:0;bottom:0;width:3px;border-radius:0 2px 2px 0}
@@ -77,7 +78,7 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2
 .activity-text{font-size:13px;color:#1a1a18;line-height:1.5}
 .activity-text strong{font-weight:600}
 .activity-time{font-size:11px;color:#8a8a85;margin-top:3px}
-.sq-notice{background:#e6f0fb;border:1px solid #85b7eb;border-radius:12px;padding:1rem 1.25rem;display:flex;align-items:flex-start;gap:12px}
+.sq-notice{background:#e6f0fb;border:1px solid #85b7eb;border-radius:12px;padding:1rem 1.25rem;display:flex;align-items:flex-start;gap:12px;margin-bottom:1.25rem}
 .sq-notice-body{flex:1}
 .sq-notice-title{font-size:13px;font-weight:600;color:#0c447c;margin-bottom:3px}
 .sq-notice-text{font-size:12px;color:#185fa5;line-height:1.5}
@@ -85,7 +86,31 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2
 .legend{display:flex;flex-wrap:wrap;gap:8px;margin-top:.75rem}
 .legend-item{display:flex;align-items:center;gap:4px;font-size:11px;color:#5a5a55}
 .legend-dot{width:10px;height:10px;border-radius:2px}
-@media(max-width:900px){.main-grid{grid-template-columns:1fr}.metrics{grid-template-columns:1fr 1fr}}
+.mobile-book{display:none}
+
+/* Mobile nav — hide text links, show icons */
+@media(max-width:640px){
+  .nav-links{display:none}
+  .mobile-book{display:block}
+  .wrap{padding:1rem}
+  .greeting{font-size:18px}
+  .metrics{grid-template-columns:1fr 1fr;gap:8px}
+  .metric-val{font-size:18px}
+  .main-grid{grid-template-columns:1fr;gap:12px}
+  .cal-day{min-height:52px}
+  .cal-event{display:none}
+  .more-events{display:none}
+  .cal-day.today::after{content:'•';position:absolute;bottom:3px;left:50%;transform:translateX(-50%);font-size:14px;color:#1D9E75}
+  .activity-feed{padding:.875rem 1rem}
+  .activity-item::before{left:-1rem}
+  .pay-row{margin:0 -1.25rem;padding-left:1rem;padding-right:1rem}
+  .sq-notice{flex-direction:column;gap:8px}
+}
+
+@media(min-width:641px) and (max-width:900px){
+  .metrics{grid-template-columns:repeat(2,1fr)}
+  .main-grid{grid-template-columns:1fr}
+}
 </style>
 </head>
 <body>
@@ -93,11 +118,13 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2
   <a href="dashboard.html" class="logo">Stirrup</a>
   <div class="nav-right">
     <div id="plan-badge-nav"></div>
-    <a href="horses.html" class="btn btn-ghost">Horses</a>
-    <a href="riders.html" class="btn btn-ghost">Riders</a>
-    <a href="trainers.html" class="btn btn-ghost">Trainers</a>
-    <a href="settings.html" class="btn btn-ghost">Settings</a>
-    <a href="book.html" class="btn btn-primary">+ Book lesson</a>
+    <div class="nav-links">
+      <a href="horses.html" class="btn btn-ghost">Horses</a>
+      <a href="riders.html" class="btn btn-ghost">Riders</a>
+      <a href="trainers.html" class="btn btn-ghost">Trainers</a>
+      <a href="settings.html" class="btn btn-ghost">Settings</a>
+    </div>
+    <a href="book.html" class="btn btn-primary">+ Book</a>
   </div>
 </nav>
 
@@ -109,7 +136,7 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2
     <div class="metric" onclick="window.location.href='book.html'">
       <div class="metric-label">Total bookings</div>
       <div class="metric-val" id="m-lessons">—</div>
-      <div class="metric-sub">lessons scheduled</div>
+      <div class="metric-sub">scheduled</div>
     </div>
     <div class="metric" onclick="window.location.href='riders.html'">
       <div class="metric-label">Riders</div>
@@ -124,7 +151,17 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2
     <div class="metric" onclick="document.getElementById('awaiting-section').scrollIntoView({behavior:'smooth'})">
       <div class="metric-label">Awaiting payment</div>
       <div class="metric-val" id="m-unpaid">—</div>
-      <div class="metric-sub">past lessons unpaid</div>
+      <div class="metric-sub">unpaid lessons</div>
+    </div>
+  </div>
+
+  <!-- Mobile quick links -->
+  <div style="display:none" id="mobile-nav-links">
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:1.25rem">
+      <a href="horses.html" style="display:flex;flex-direction:column;align-items:center;gap:4px;background:#fff;border:1px solid #e8e6e0;border-radius:10px;padding:12px 8px;text-decoration:none;font-size:11px;color:#5a5a55;font-weight:500">🐴<span>Horses</span></a>
+      <a href="riders.html" style="display:flex;flex-direction:column;align-items:center;gap:4px;background:#fff;border:1px solid #e8e6e0;border-radius:10px;padding:12px 8px;text-decoration:none;font-size:11px;color:#5a5a55;font-weight:500">👤<span>Riders</span></a>
+      <a href="trainers.html" style="display:flex;flex-direction:column;align-items:center;gap:4px;background:#fff;border:1px solid #e8e6e0;border-radius:10px;padding:12px 8px;text-decoration:none;font-size:11px;color:#5a5a55;font-weight:500">🧑‍🏫<span>Trainers</span></a>
+      <a href="settings.html" style="display:flex;flex-direction:column;align-items:center;gap:4px;background:#fff;border:1px solid #e8e6e0;border-radius:10px;padding:12px 8px;text-decoration:none;font-size:11px;color:#5a5a55;font-weight:500">⚙️<span>Settings</span></a>
     </div>
   </div>
 
@@ -136,7 +173,7 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2
           <div class="cal-month" id="cal-month">June 2026</div>
           <button class="cal-nav-btn" onclick="changeMonth(1)">›</button>
         </div>
-        <span class="card-link" onclick="window.location.href='book.html'">+ Book lesson</span>
+        <span class="card-link" onclick="window.location.href='book.html'">+ Book</span>
       </div>
       <div class="cal-grid" id="cal-grid"></div>
       <div class="legend">
@@ -189,6 +226,11 @@ let allBookings=[];
 const dayLabels=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 const monthNames=['January','February','March','April','May','June','July','August','September','October','November','December'];
 
+// Show mobile nav links on small screens
+if(window.innerWidth<=640){
+  document.getElementById('mobile-nav-links').style.display='block';
+}
+
 const activityConfig={
   booking_created:{icon:'🗓',bg:'#e0f5ed',color:'color-blue',
     label:(a)=>`<strong>${a.entity_name}</strong> booked a ${a.meta?.lesson_type||'lesson'}${a.meta?.date?' on '+a.meta.date:''}`},
@@ -232,6 +274,8 @@ const activityConfig={
     label:(a)=>`Lesson type updated: <strong>${a.entity_name}</strong>`},
   barn_hours_changed:{icon:'🕐',bg:'#faeeda',color:'color-amber',
     label:(a)=>`Barn hours were updated`},
+  plan_upgraded:{icon:'⭐',bg:'#faeeda',color:'color-amber',
+    label:(a)=>`Account upgraded to <strong>${a.entity_name}</strong>`},
 };
 
 function timeAgo(dateStr){
@@ -360,7 +404,7 @@ async function load(){
   if(tier==='barn'||tier==='pro'){
     badgeEl.innerHTML=`<span class="barn-badge">${isLifetime?'🌟 Lifetime Barn':tier==='barn'?'Barn':'Pro'}</span>`;
   } else {
-    badgeEl.innerHTML=`<div class="free-badge"><strong id="bookings-left">—</strong> bookings left</div>`;
+    badgeEl.innerHTML=`<div class="free-badge"><strong id="bookings-left">—</strong> left</div>`;
   }
 
   const [{data:riders},{data:bookings},{data:horses},{data:activities}]=await Promise.all([
