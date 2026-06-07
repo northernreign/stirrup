@@ -147,11 +147,6 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2
         </div>
         <div class="buffer-btns" id="buffer-btns"></div>
       </div>
-      <div class="row">
-        <div class="row-icon" style="background:#faece7">📅</div>
-        <div class="row-body"><div class="row-title">Recurring lesson default</div><div class="row-sub">16 weeks</div></div>
-        <div class="row-right">→</div>
-      </div>
     </div>
   </div>
 
@@ -330,10 +325,6 @@ async function saveBuffer(mins){
   currentBufferMins=mins;
   renderBufferBtns();
   await db.from('trainers').update({buffer_minutes:mins}).eq('id',userId);
-  await db.from('activity_log').insert({
-    trainer_id:userId,action:'barn_hours_changed',entity_type:'settings',
-    meta:{buffer_minutes:mins}
-  });
 }
 
 function generateTimeOptions(){
