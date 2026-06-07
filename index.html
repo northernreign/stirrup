@@ -4,7 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Stirrup — Lesson scheduling & payments</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
@@ -30,12 +29,14 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2
 .feature p{font-size:13px;color:#5a5a55;line-height:1.6}
 .pricing{background:#fff;border-top:1px solid #e8e6e0;padding:4rem 2rem}
 .pricing h2{text-align:center;font-size:28px;font-weight:600;margin-bottom:2.5rem}
-.pricing-cards{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:20px;max-width:600px;margin:0 auto}
+.pricing-cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;max-width:860px;margin:0 auto}
 .pricing-card{border:1px solid #e8e6e0;border-radius:12px;padding:1.5rem}
 .pricing-card.pro{border:2px solid #1D9E75}
+.pricing-card.barn{border:2px solid #633806}
 .tier{font-size:12px;font-weight:500;padding:3px 10px;border-radius:20px;display:inline-block;margin-bottom:12px}
 .tier-free{background:#f0efe9;color:#5a5a55}
 .tier-pro{background:#e0f5ed;color:#0f6e47}
+.tier-barn{background:#faeeda;color:#633806}
 .price{font-size:32px;font-weight:600;margin-bottom:4px}
 .price span{font-size:14px;font-weight:400;color:#5a5a55}
 .price-note{font-size:12px;color:#8a8a85;margin-bottom:1.25rem}
@@ -44,9 +45,10 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2
 .feat-list li:last-child{border-bottom:none}
 .feat-list li.muted{color:#aaa}
 .check{color:#1D9E75;font-weight:600}
+.check-barn{color:#633806;font-weight:600}
 .cross{color:#ccc}
 footer{text-align:center;padding:2rem;font-size:13px;color:#8a8a85;border-top:1px solid #e8e6e0}
-@media(max-width:600px){
+@media(max-width:700px){
   .features{grid-template-columns:1fr}
   .pricing-cards{grid-template-columns:1fr}
   .hero h1{font-size:28px}
@@ -54,6 +56,7 @@ footer{text-align:center;padding:2rem;font-size:13px;color:#8a8a85;border-top:1p
 </style>
 </head>
 <body>
+
 <nav>
   <div class="logo">Stirrup</div>
   <div class="nav-right">
@@ -61,6 +64,7 @@ footer{text-align:center;padding:2rem;font-size:13px;color:#8a8a85;border-top:1p
     <a href="signup.html" class="btn btn-primary">Get started free</a>
   </div>
 </nav>
+
 <div class="hero">
   <h1>Scheduling and payments for riding trainers</h1>
   <p>Book lessons, track your riders, and collect payments — all in one place. No chasing Venmo. No paper schedules.</p>
@@ -68,13 +72,14 @@ footer{text-align:center;padding:2rem;font-size:13px;color:#8a8a85;border-top:1p
     <a href="signup.html" class="btn btn-primary btn-large">Get started free</a>
     <a href="#pricing" class="btn btn-ghost btn-large">See pricing</a>
   </div>
-  <div class="free-note">Free up to 10 lessons/month. No credit card required.</div>
+  <div class="free-note">Free up to 20 lessons/month. No credit card required.</div>
 </div>
+
 <div class="features">
   <div class="feature">
     <div class="feature-icon" style="background:#e0f5ed">📅</div>
     <h3>Lesson scheduling</h3>
-    <p>See your full week at a glance. Book lessons in seconds, track who's coming, and block off time when you need it.</p>
+    <p>Book single or recurring lessons. Conflict detection prevents double-booking horses or time slots.</p>
   </div>
   <div class="feature">
     <div class="feature-icon" style="background:#e6f0fb">💳</div>
@@ -88,13 +93,13 @@ footer{text-align:center;padding:2rem;font-size:13px;color:#8a8a85;border-top:1p
   </div>
   <div class="feature">
     <div class="feature-icon" style="background:#eeedfe">🐴</div>
-    <h3>Rider profiles</h3>
-    <p>Keep notes, track lesson history, and store emergency contacts for every rider in one place.</p>
+    <h3>Horse roster</h3>
+    <p>Manage your horses, track availability, and prevent double-booking with smart scheduling.</p>
   </div>
   <div class="feature">
-    <div class="feature-icon" style="background:#faece7">💰</div>
-    <h3>Payment tracking</h3>
-    <p>See who's paid, who hasn't, and who's overdue — without opening Square or digging through texts.</p>
+    <div class="feature-icon" style="background:#faece7">👤</div>
+    <h3>Rider profiles</h3>
+    <p>Keep notes, track lesson history, and store emergency contacts for every rider in one place.</p>
   </div>
   <div class="feature">
     <div class="feature-icon" style="background:#e0f5ed">📱</div>
@@ -102,6 +107,7 @@ footer{text-align:center;padding:2rem;font-size:13px;color:#8a8a85;border-top:1p
     <p>Use Stirrup from your phone at the barn or your laptop at home. No app to download.</p>
   </div>
 </div>
+
 <div class="pricing" id="pricing">
   <h2>Simple pricing</h2>
   <div class="pricing-cards">
@@ -110,11 +116,13 @@ footer{text-align:center;padding:2rem;font-size:13px;color:#8a8a85;border-top:1p
       <div class="price">$0<span>/mo</span></div>
       <div class="price-note">forever, no card required</div>
       <ul class="feat-list">
-        <li><span class="check">✓</span>Up to 10 bookings/month</li>
+        <li><span class="check">✓</span>Up to 20 bookings/month</li>
         <li><span class="check">✓</span>Rider profiles</li>
-        <li><span class="check">✓</span>Weekly calendar</li>
+        <li><span class="check">✓</span>Horse roster</li>
+        <li><span class="check">✓</span>Recurring lessons</li>
         <li class="muted"><span class="cross">✗</span>Square payment links</li>
         <li class="muted"><span class="cross">✗</span>Automated reminders</li>
+        <li class="muted"><span class="cross">✗</span>Staff trainers</li>
       </ul>
       <a href="signup.html" class="btn btn-ghost" style="width:100%;text-align:center">Get started free</a>
     </div>
@@ -125,16 +133,35 @@ footer{text-align:center;padding:2rem;font-size:13px;color:#8a8a85;border-top:1p
       <ul class="feat-list">
         <li><span class="check">✓</span>Unlimited bookings</li>
         <li><span class="check">✓</span>Rider profiles</li>
-        <li><span class="check">✓</span>Weekly calendar</li>
+        <li><span class="check">✓</span>Horse roster</li>
+        <li><span class="check">✓</span>Recurring lessons</li>
         <li><span class="check">✓</span>Square payment links</li>
         <li><span class="check">✓</span>Automated reminders</li>
+        <li class="muted"><span class="cross">✗</span>Staff trainers</li>
       </ul>
-      <a href="#" class="btn btn-primary" style="width:100%;text-align:center">Start free 14-day trial</a>
+      <a href="signup.html" class="btn btn-primary" style="width:100%;text-align:center">Start free trial</a>
+    </div>
+    <div class="pricing-card barn">
+      <span class="tier tier-barn">Barn</span>
+      <div class="price">$49<span>/mo</span></div>
+      <div class="price-note">or $490/yr — save $98</div>
+      <ul class="feat-list">
+        <li><span class="check-barn">✓</span>Unlimited bookings</li>
+        <li><span class="check-barn">✓</span>Rider profiles</li>
+        <li><span class="check-barn">✓</span>Horse roster</li>
+        <li><span class="check-barn">✓</span>Recurring lessons</li>
+        <li><span class="check-barn">✓</span>Square payment links</li>
+        <li><span class="check-barn">✓</span>Automated reminders</li>
+        <li><span class="check-barn">✓</span>Unlimited staff trainers</li>
+      </ul>
+      <a href="signup.html" class="btn" style="width:100%;text-align:center;background:#633806;border:1px solid #633806;color:#fff">Start free trial</a>
     </div>
   </div>
 </div>
+
 <footer>
-  © 2026 Stirrup · Payments processed by Square · Subscriptions by Stripe
+  © 2026 Stirrup · A Northern Reign Ecosystems app · Payments processed by Square · Subscriptions by Stripe
 </footer>
+
 </body>
 </html>
