@@ -13,6 +13,7 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2
 .nav-right{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 .free-badge{font-size:12px;padding:4px 10px;border-radius:20px;background:#f0efe9;color:#5a5a55;border:1px solid #e8e6e0}
 .free-badge strong{color:#1a1a18}
+.barn-badge{font-size:12px;padding:4px 10px;border-radius:20px;background:#faeeda;color:#633806;border:1px solid #e8d5b0;font-weight:500}
 .btn{padding:7px 14px;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;text-decoration:none;display:inline-block;font-family:'Inter',sans-serif}
 .btn-primary{background:#1D9E75;border:1px solid #1D9E75;color:#fff}
 .btn-primary:hover{background:#178a64}
@@ -95,7 +96,7 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2
 <nav>
   <a href="dashboard.html" class="logo">Stirrup</a>
   <div class="nav-right">
-    <div class="free-badge"><strong id="bookings-left">20</strong> bookings left</div>
+    <div id="plan-badge-nav"></div>
     <a href="horses.html" class="btn btn-ghost">Horses</a>
     <a href="riders.html" class="btn btn-ghost">Riders</a>
     <a href="trainers.html" class="btn btn-ghost">Trainers</a>
@@ -347,10 +348,20 @@ async function load(){
   const {data:trainer}=await db.from('trainers').select('*').eq('id',user.id).single();
   const name=trainer?.name?.split(' ')[0]||'';
   const barn=trainer?.barn_name||'your barn';
+  const tier=trainer?.tier||'free';
+  const isLifetime=trainer?.is_lifetime===true;
   const hour=new Date().getHours();
   const greeting=hour<12?'Good morning':hour<17?'Good afternoon':'Good evening';
   document.getElementById('greeting').textContent=greeting+(name?', '+name:'');
   document.getElementById('greeting-sub').textContent="Here's what's happening at "+barn+".";
+
+  // Show appropriate nav badge
+  const badgeEl=document.getElementById('plan-badge-nav');
+  if(tier==='barn'||tier==='pro'){
+    badgeEl.innerHTML=`<span class="barn-badge">${isLifetime?'🌟 Lifetime Barn':tier==='barn'?'Barn':'Pro'}</span>`;
+  } else {
+    badgeEl.innerHTML=`<div class="free-badge"><strong id="bookings-left">—</strong> bookings left</div>`;
+  }
 
   const [{data:riders},{data:bookings},{data:horses},{data:activities}]=await Promise.all([
     db.from('riders').select('*').eq('trainer_id',user.id),
@@ -367,7 +378,11 @@ async function load(){
   document.getElementById('m-riders').textContent=r.length;
   document.getElementById('m-lessons').textContent=b.length;
   document.getElementById('m-horses').textContent=h.length;
-  document.getElementById('bookings-left').textContent=Math.max(0,20-b.length);
+
+  if(tier==='free'){
+    const blEl=document.getElementById('bookings-left');
+    if(blEl)blEl.textContent=Math.max(0,20-b.length);
+  }
 
   const awaitingPayment=b.filter(bk=>lessonPassed(bk)&&bk.payment_status!=='paid');
   document.getElementById('m-unpaid').textContent=awaitingPayment.length;
