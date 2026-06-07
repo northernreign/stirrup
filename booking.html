@@ -75,28 +75,23 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-const SUPABASE_URL = 'https://mfinlbqfowymmklhkuhb.supabase.co';
-const SUPABASE_KEY = 'sb_publishable_PcwbX1YoncwnrHobFmpAIA_L39K4XfK';
-const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-let booking = null;
-let allHorses = [];
-let allBookings = [];
-let selDay = null;
-let selTime = null;
-const times = ['8:00 AM','9:00 AM','10:00 AM','11:00 AM','1:00 PM','2:00 PM','3:00 PM','4:00 PM','5:00 PM'];
-const days = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
-const today = new Date();
-today.setHours(0,0,0,0);
+const SUPABASE_URL='https://mfinlbqfowymmklhkuhb.supabase.co';
+const SUPABASE_KEY='sb_publishable_PcwbX1YoncwnrHobFmpAIA_L39K4XfK';
+const db=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+let booking=null,allHorses=[],allBookings=[],userId=null;
+let selDay=null,selTime=null;
+const times=['8:00 AM','9:00 AM','10:00 AM','11:00 AM','12:00 PM','1:00 PM','2:00 PM','3:00 PM','4:00 PM','5:00 PM','6:00 PM'];
+const days=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+const today=new Date();today.setHours(0,0,0,0);
 
 function lessonHasPassed(){
-  if(!booking.scheduled_date) return false;
-  const lessonDate = new Date(booking.scheduled_date);
-  lessonDate.setHours(0,0,0,0);
-  return lessonDate < today;
+  if(!booking.scheduled_date)return false;
+  const d=new Date(booking.scheduled_date);d.setHours(0,0,0,0);
+  return d<today;
 }
 
-function isHorseBooked(horseId, dateStr, timeStr){
-  if(!horseId) return false;
+function isHorseBooked(horseId,dateStr,timeStr){
+  if(!horseId)return false;
   return allBookings.some(b=>b.horse_id===horseId&&b.date===dateStr&&b.time===timeStr&&b.id!==booking.id);
 }
 
@@ -132,10 +127,9 @@ function renderTimes(){
   if(!g||!selDay)return;
   const now=new Date();
   const dateStr=`${now.toLocaleString('default',{month:'long'})} ${selDay}`;
-  const horseId=booking.horse_id;
   g.innerHTML='';
   times.forEach(t=>{
-    const conflict=isHorseBooked(horseId,dateStr,t);
+    const conflict=isHorseBooked(booking.horse_id,dateStr,t);
     const btn=document.createElement('button');
     btn.className='time-btn'+(conflict?' taken':t===selTime?' sel':'');
     btn.textContent=t;
@@ -150,39 +144,56 @@ async function saveReschedule(){
   const now=new Date();
   const dateStr=`${now.toLocaleString('default',{month:'long'})} ${selDay}`;
   const scheduledDate=new Date(now.getFullYear(),now.getMonth(),selDay).toISOString().split('T')[0];
-  const { error }=await db.from('bookings').update({
-    date:dateStr,
-    time:selTime,
-    scheduled_date:scheduledDate,
-    payment_status:'upcoming'
+  const oldDate=booking.date;
+  const {error}=await db.from('bookings').update({
+    date:dateStr,time:selTime,scheduled_date:scheduledDate,payment_status:'upcoming'
   }).eq('id',booking.id);
   if(error){showError(error.message);return;}
+  await db.from('activity_log').insert({
+    trainer_id:userId,action:'booking_rescheduled',
+    entity_type:'booking',entity_name:booking.rider_name,
+    meta:{old_date:oldDate,new_date:dateStr,time:selTime}
+  });
   showSuccess('Booking rescheduled to '+dateStr+' at '+selTime);
-  booking.date=dateStr;
-  booking.time=selTime;
-  booking.scheduled_date=scheduledDate;
-  booking.payment_status='upcoming';
+  booking.date=dateStr;booking.time=selTime;
+  booking.scheduled_date=scheduledDate;booking.payment_status='upcoming';
   document.getElementById('disp-date').textContent=dateStr+' at '+selTime;
   document.getElementById('payment-pill').className='pill pill-blue';
   document.getElementById('payment-pill').textContent='upcoming';
+  renderPaymentSection();
 }
 
 async function handlePayment(action){
   if(action==='received'){
-    const { error }=await db.from('bookings').update({payment_status:'paid'}).eq('id',booking.id);
+    const {error}=await db.from('bookings').update({payment_status:'paid'}).eq('id',booking.id);
     if(error){showError(error.message);return;}
+    await db.from('activity_log').insert({
+      trainer_id:userId,action:'payment_received',
+      entity_type:'booking',entity_name:booking.rider_name,
+      meta:{amount:booking.price,lesson_type:booking.lesson_type}
+    });
     booking.payment_status='paid';
     showSuccess('Payment marked as received.');
     renderPaymentSection();
   } else if(action==='square'){
+    await db.from('activity_log').insert({
+      trainer_id:userId,action:'payment_request_sent',
+      entity_type:'booking',entity_name:booking.rider_name,
+      meta:{amount:booking.price,lesson_type:booking.lesson_type}
+    });
     showSuccess('Square payment link feature coming soon. For now, send the link manually from your Square account.');
   }
 }
 
 async function cancelBooking(){
   if(!confirm('Cancel this booking? This cannot be undone.'))return;
-  const { error }=await db.from('bookings').delete().eq('id',booking.id);
+  const {error}=await db.from('bookings').delete().eq('id',booking.id);
   if(error){showError(error.message);return;}
+  await db.from('activity_log').insert({
+    trainer_id:userId,action:'booking_cancelled',
+    entity_type:'booking',entity_name:booking.rider_name,
+    meta:{lesson_type:booking.lesson_type,date:booking.date}
+  });
   window.location.href='dashboard.html';
 }
 
@@ -230,7 +241,7 @@ function renderPaymentSection(){
       <div class="pay-opts">
         <div class="pay-opt sel" id="po-received" onclick="selPay('received')">
           <div class="pay-radio sel" id="pr-received"></div>
-          <div><div class="pay-opt-title">Received Payment</div><div class="pay-opt-sub">Cash, check, Venmo, or any other method already collected.</div></div>
+          <div><div class="pay-opt-title">Received Payment</div><div class="pay-opt-sub">Cash, check, Venmo, or already collected.</div></div>
         </div>
         <div class="pay-opt" id="po-square" onclick="selPay('square')">
           <div class="pay-radio" id="pr-square"></div>
@@ -241,8 +252,7 @@ function renderPaymentSection(){
     </div>`;
 }
 
-let selectedPayAction = 'received';
-
+let selectedPayAction='received';
 function selPay(action){
   selectedPayAction=action;
   ['received','square'].forEach(a=>{
@@ -250,10 +260,7 @@ function selPay(action){
     document.getElementById('pr-'+a).classList.toggle('sel',a===action);
   });
 }
-
-function confirmPayment(){
-  handlePayment(selectedPayAction);
-}
+function confirmPayment(){handlePayment(selectedPayAction);}
 
 function render(){
   const horse=allHorses.find(h=>h.id===booking.horse_id);
@@ -266,26 +273,23 @@ function render(){
   document.getElementById('main-content').innerHTML=`
     <div class="booking-header">
       <div class="booking-title">${booking.rider_name}</div>
-      <div class="booking-meta">${booking.lesson_type.charAt(0).toUpperCase()+booking.lesson_type.slice(1)} · ${booking.date} at ${booking.time}</div>
+      <div class="booking-meta">${booking.lesson_type} · ${booking.date} at ${booking.time}</div>
     </div>
-
     <div class="error" id="msg-error"></div>
     <div class="success" id="msg-success"></div>
-
     <div class="card">
       <div class="card-title">Booking details</div>
       <div class="info-row"><span class="info-label">Rider</span><span class="info-val">${booking.rider_name}</span></div>
-      <div class="info-row"><span class="info-label">Lesson type</span><span class="info-val">${booking.lesson_type.charAt(0).toUpperCase()+booking.lesson_type.slice(1)}</span></div>
+      <div class="info-row"><span class="info-label">Lesson type</span><span class="info-val">${booking.lesson_type}</span></div>
       <div class="info-row"><span class="info-label">Date & time</span><span class="info-val" id="disp-date">${booking.date} at ${booking.time}</span></div>
       <div class="info-row"><span class="info-label">Duration</span><span class="info-val">${booking.duration||'—'}</span></div>
       <div class="info-row"><span class="info-label">Horse</span><span class="info-val">${horse?horse.name:'None assigned'}</span></div>
+      <div class="info-row"><span class="info-label">Trainer</span><span class="info-val">${booking.staff_trainer_name||'Head trainer'}</span></div>
       <div class="info-row"><span class="info-label">Price</span><span class="info-val">${booking.price||'—'}</span></div>
       <div class="info-row"><span class="info-label">Status</span><span class="info-val">${statusPill}</span></div>
       ${booking.notes?`<div class="info-row"><span class="info-label">Notes</span><span class="info-val">${booking.notes}</span></div>`:''}
     </div>
-
     <div id="payment-section"></div>
-
     <div class="card">
       <div class="card-title">Reschedule</div>
       <div class="cal-grid" id="reschedule-cal"></div>
@@ -293,7 +297,6 @@ function render(){
       <div class="time-grid" id="reschedule-times"></div>
       <button class="btn btn-primary" onclick="saveReschedule()" style="width:100%;padding:10px">Save new date & time</button>
     </div>
-
     <div class="card">
       <div class="card-title" style="color:#c0392b">Danger zone</div>
       <p style="font-size:13px;color:#5a5a55;margin-bottom:1rem">Cancelling removes this booking permanently.</p>
@@ -305,18 +308,16 @@ function render(){
 }
 
 async function load(){
-  const { data: { user } }=await db.auth.getUser();
+  const {data:{user}}=await db.auth.getUser();
   if(!user){window.location.href='login.html';return;}
-
+  userId=user.id;
   const bookingData=JSON.parse(localStorage.getItem('stirrup_viewing_booking')||'null');
   if(!bookingData){window.location.href='dashboard.html';return;}
   booking=bookingData;
-
-  const [{ data: horses },{ data: bookings }]=await Promise.all([
+  const [{data:horses},{data:bookings}]=await Promise.all([
     db.from('horses').select('*').eq('trainer_id',user.id).eq('active',true),
     db.from('bookings').select('horse_id,date,time,id').eq('trainer_id',user.id)
   ]);
-
   allHorses=horses||[];
   allBookings=bookings||[];
   render();
