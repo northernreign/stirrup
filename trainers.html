@@ -114,7 +114,7 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2
 <div class="modal-overlay" id="modal-add">
   <div class="modal">
     <div class="modal-title">Add a staff trainer</div>
-    <div class="modal-sub">Add a trainer who teaches at your barn. They'll be unavailable for booking until you set their schedule.</div>
+    <div class="modal-sub">They'll be unavailable for booking until you set their schedule.</div>
     <div class="error" id="add-error"></div>
     <div class="field"><label>Full name</label><input type="text" id="t-name" placeholder="e.g. Sarah Johnson"></div>
     <div class="field"><label>Email <span class="optional">optional</span></label><input type="email" id="t-email" placeholder="sarah@example.com"></div>
@@ -130,8 +130,8 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2
 <div class="modal-overlay" id="modal-sched">
   <div class="modal">
     <div class="modal-title">Set availability</div>
-    <div class="modal-sub" id="sched-trainer-name">Set when this trainer is available at the barn.</div>
-    <div class="unavail-note">⚠️ This trainer is unavailable for booking until at least one availability slot is set.</div>
+    <div class="modal-sub" id="sched-trainer-name">Set when this trainer is available.</div>
+    <div class="unavail-note">⚠️ This trainer is unavailable until at least one availability slot is set.</div>
     <div class="error" id="sched-error"></div>
     <div class="section-title">Available days</div>
     <div class="day-grid" id="sched-days"></div>
@@ -155,7 +155,7 @@ const SUPABASE_KEY='sb_publishable_PcwbX1YoncwnrHobFmpAIA_L39K4XfK';
 const db=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
 let allTrainers=[],allSchedules=[];
 let isBarnTier=false,userId=null;
-let currentTrainerId=null,selSchedPeriodVal='morning';
+let currentTrainerId=null,currentTrainerName=null,selSchedPeriodVal='morning';
 const selSchedDays=new Set();
 const dayNames=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
 
@@ -174,15 +174,14 @@ function openModal(name){
 
 function closeModal(name){
   document.getElementById('modal-'+name).classList.remove('open');
-  if(name==='sched'){currentTrainerId=null;selSchedDays.clear();renderSchedDays();}
+  if(name==='sched'){currentTrainerId=null;currentTrainerName=null;selSchedDays.clear();renderSchedDays();}
 }
 
 function openSchedModal(trainerId,trainerName){
-  currentTrainerId=trainerId;
+  currentTrainerId=trainerId;currentTrainerName=trainerName;
   document.getElementById('sched-trainer-name').textContent=`Set when ${trainerName} is available at the barn.`;
   document.getElementById('sched-error').style.display='none';
-  selSchedDays.clear();
-  selSchedPeriodVal='morning';
+  selSchedDays.clear();selSchedPeriodVal='morning';
   renderSchedDays();
   ['morning','afternoon','full'].forEach(p=>document.getElementById('sp-'+p).classList.toggle('sel',p===selSchedPeriodVal));
   document.getElementById('modal-sched').classList.add('open');
@@ -214,17 +213,21 @@ async function saveTrainer(){
   }
   const btn=document.getElementById('add-save-btn');
   btn.disabled=true;btn.textContent='Saving…';
-  const {error}=await db.from('staff_trainers').insert({
+  const {data:trainer,error}=await db.from('staff_trainers').insert({
     head_trainer_id:userId,name,
     email:document.getElementById('t-email').value.trim(),
     phone:document.getElementById('t-phone').value.trim(),
     active:true
-  });
+  }).select().single();
   if(error){
     document.getElementById('add-error').textContent=error.message;
     document.getElementById('add-error').style.display='block';
     btn.disabled=false;btn.textContent='Add trainer';return;
   }
+  await db.from('activity_log').insert({
+    trainer_id:userId,action:'trainer_added',
+    entity_type:'staff_trainer',entity_id:trainer.id,entity_name:name
+  });
   closeModal('add');load();
 }
 
@@ -238,8 +241,7 @@ async function saveSchedule(){
   const inserts=[...selSchedDays].map(d=>({
     staff_trainer_id:currentTrainerId,
     head_trainer_id:userId,
-    day_of_week:d,
-    period:selSchedPeriodVal
+    day_of_week:d,period:selSchedPeriodVal
   }));
   const {error}=await db.from('staff_trainer_schedules').insert(inserts);
   btn.disabled=false;btn.textContent='Add availability';
@@ -247,12 +249,22 @@ async function saveSchedule(){
     document.getElementById('sched-error').textContent=error.message;
     document.getElementById('sched-error').style.display='block';return;
   }
+  await db.from('activity_log').insert({
+    trainer_id:userId,action:'trainer_availability_changed',
+    entity_type:'staff_trainer',entity_id:currentTrainerId,entity_name:currentTrainerName,
+    meta:{days:[...selSchedDays],period:selSchedPeriodVal}
+  });
   document.getElementById('sched-error').style.display='none';
   selSchedDays.clear();renderSchedDays();load();
 }
 
-async function removeSchedule(id){
+async function removeSchedule(id,trainerName){
   await db.from('staff_trainer_schedules').delete().eq('id',id);
+  await db.from('activity_log').insert({
+    trainer_id:userId,action:'trainer_availability_changed',
+    entity_type:'staff_trainer',entity_name:trainerName,
+    meta:{change:'schedule_removed'}
+  });
   load();
 }
 
@@ -278,7 +290,7 @@ function renderTrainers(){
     list.innerHTML=`<div class="empty">
       <div class="empty-icon">👤</div>
       <div class="empty-title">No staff trainers yet</div>
-      <div class="empty-sub">${isBarnTier?'Add trainers and set their availability to assign them to lessons.':'Upgrade to the Barn plan to add staff trainers.'}</div>
+      <div class="empty-sub">${isBarnTier?'Add trainers and set their availability.':'Upgrade to Barn to add staff trainers.'}</div>
       ${isBarnTier?'<button class="btn btn-primary" onclick="openModal(\'add\')">Add first trainer</button>':'<a href="paywall.html" class="btn btn-primary">Upgrade to Barn</a>'}
     </div>`;
     return;
@@ -299,7 +311,7 @@ function renderTrainers(){
       schedules.forEach(s=>{
         const day=dayNames[s.day_of_week];
         const period=s.period==='full'?'All day':s.period.charAt(0).toUpperCase()+s.period.slice(1);
-        schedHtml+=`<div class="sched-item"><span>${day} · ${period}</span><button class="btn-remove-sched" onclick="removeSchedule('${s.id}')">Remove</button></div>`;
+        schedHtml+=`<div class="sched-item"><span>${day} · ${period}</span><button class="btn-remove-sched" onclick="removeSchedule('${s.id}','${t.name}')">Remove</button></div>`;
       });
       schedHtml+='</div></div>';
     }
