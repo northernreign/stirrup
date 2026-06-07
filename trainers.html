@@ -126,6 +126,22 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2
   </div>
 </div>
 
+<!-- Edit trainer modal -->
+<div class="modal-overlay" id="modal-edit">
+  <div class="modal">
+    <div class="modal-title">Edit trainer</div>
+    <div class="modal-sub">Update this trainer's contact information.</div>
+    <div class="error" id="edit-error"></div>
+    <div class="field"><label>Full name</label><input type="text" id="et-name"></div>
+    <div class="field"><label>Email <span class="optional">optional</span></label><input type="email" id="et-email"></div>
+    <div class="field"><label>Phone <span class="optional">optional</span></label><input type="tel" id="et-phone"></div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal('edit')">Cancel</button>
+      <button class="btn-save" id="edit-save-btn" onclick="saveEditTrainer()">Save changes</button>
+    </div>
+  </div>
+</div>
+
 <!-- Schedule modal -->
 <div class="modal-overlay" id="modal-sched">
   <div class="modal">
@@ -155,7 +171,8 @@ const SUPABASE_KEY='sb_publishable_PcwbX1YoncwnrHobFmpAIA_L39K4XfK';
 const db=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
 let allTrainers=[],allSchedules=[];
 let isBarnTier=false,userId=null;
-let currentTrainerId=null,currentTrainerName=null,selSchedPeriodVal='morning';
+let currentTrainerId=null,currentTrainerName=null,editingTrainerId=null;
+let selSchedPeriodVal='morning';
 const selSchedDays=new Set();
 const dayNames=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
 
@@ -170,6 +187,17 @@ function openModal(name){
     document.getElementById('add-save-btn').textContent='Add trainer';
   }
   document.getElementById('modal-'+name).classList.add('open');
+}
+
+function openEditModal(trainer){
+  editingTrainerId=trainer.id;
+  document.getElementById('et-name').value=trainer.name||'';
+  document.getElementById('et-email').value=trainer.email||'';
+  document.getElementById('et-phone').value=trainer.phone||'';
+  document.getElementById('edit-error').style.display='none';
+  document.getElementById('edit-save-btn').disabled=false;
+  document.getElementById('edit-save-btn').textContent='Save changes';
+  document.getElementById('modal-edit').classList.add('open');
 }
 
 function closeModal(name){
@@ -229,6 +257,32 @@ async function saveTrainer(){
     entity_type:'staff_trainer',entity_id:trainer.id,entity_name:name
   });
   closeModal('add');load();
+}
+
+async function saveEditTrainer(){
+  const name=document.getElementById('et-name').value.trim();
+  if(!name){
+    document.getElementById('edit-error').textContent='Please enter a name.';
+    document.getElementById('edit-error').style.display='block';return;
+  }
+  const btn=document.getElementById('edit-save-btn');
+  btn.disabled=true;btn.textContent='Saving…';
+  const {error}=await db.from('staff_trainers').update({
+    name,
+    email:document.getElementById('et-email').value.trim(),
+    phone:document.getElementById('et-phone').value.trim()
+  }).eq('id',editingTrainerId);
+  if(error){
+    document.getElementById('edit-error').textContent=error.message;
+    document.getElementById('edit-error').style.display='block';
+    btn.disabled=false;btn.textContent='Save changes';return;
+  }
+  await db.from('activity_log').insert({
+    trainer_id:userId,action:'trainer_availability_changed',
+    entity_type:'staff_trainer',entity_name:name,
+    meta:{change:'profile_edited'}
+  });
+  closeModal('edit');load();
 }
 
 async function saveSchedule(){
@@ -329,6 +383,7 @@ function renderTrainers(){
       </div>
       ${schedHtml}
       <div class="trainer-actions">
+        <button class="btn-sm" onclick='openEditModal(${JSON.stringify(t)})'>Edit</button>
         <button class="btn-sm" onclick="openSchedModal('${t.id}','${t.name}')">+ Set availability</button>
         <button class="btn-sm-danger" onclick="removeTrainer('${t.id}')">Remove trainer</button>
       </div>`;
