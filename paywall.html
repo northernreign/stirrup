@@ -7,113 +7,125 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'Inter',sans-serif;background:#f9f8f5;color:#1a1a18;min-height:100vh;display:flex;flex-direction:column}
+body{font-family:'Inter',sans-serif;background:#f9f8f5;color:#1a1a18;min-height:100vh}
 nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2rem;background:#fff;border-bottom:1px solid #e8e6e0}
 .logo{font-size:18px;font-weight:600;color:#1a1a18;text-decoration:none}
-.main{flex:1;padding:2rem;display:flex;flex-direction:column;align-items:center;justify-content:center}
-.header{text-align:center;margin-bottom:2rem}
-.lock-icon{width:52px;height:52px;border-radius:50%;background:#faeeda;display:flex;align-items:center;justify-content:center;font-size:24px;margin:0 auto 1rem}
-.header-title{font-size:22px;font-weight:600;margin-bottom:6px}
-.header-sub{font-size:14px;color:#5a5a55;line-height:1.6;max-width:440px;margin:0 auto}
-.cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;width:100%;max-width:860px;margin-bottom:1.5rem}
-.card{background:#fff;border:1px solid #e8e6e0;border-radius:14px;padding:1.5rem}
-.card.highlight{border:2px solid #1D9E75}
-.card.barn{border:2px solid #633806}
-.tier-badge{font-size:11px;font-weight:500;padding:3px 10px;border-radius:20px;display:inline-block;margin-bottom:12px}
-.badge-free{background:#f0efe9;color:#5a5a55}
-.badge-pro{background:#e0f5ed;color:#0f6e47}
-.badge-barn{background:#faeeda;color:#633806}
-.price{font-size:30px;font-weight:600;color:#1a1a18;margin-bottom:4px}
+.nav-right{display:flex;gap:10px}
+.btn{padding:7px 16px;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;text-decoration:none;display:inline-block;font-family:'Inter',sans-serif;border:1px solid transparent}
+.btn-ghost{background:transparent;border-color:#d4d2cb;color:#1a1a18}
+.btn-ghost:hover{background:#f0efe9}
+.wrap{max-width:860px;margin:0 auto;padding:2rem}
+.page-title{font-size:28px;font-weight:600;text-align:center;margin-bottom:8px}
+.page-sub{font-size:15px;color:#5a5a55;text-align:center;margin-bottom:2.5rem}
+.pricing-cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+.pricing-card{border:1px solid #e8e6e0;border-radius:12px;padding:1.5rem;background:#fff}
+.pricing-card.pro{border:2px solid #1D9E75}
+.pricing-card.barn{border:2px solid #633806}
+.tier{font-size:12px;font-weight:500;padding:3px 10px;border-radius:20px;display:inline-block;margin-bottom:12px}
+.tier-free{background:#f0efe9;color:#5a5a55}
+.tier-pro{background:#e0f5ed;color:#0f6e47}
+.tier-barn{background:#faeeda;color:#633806}
+.price{font-size:32px;font-weight:600;margin-bottom:4px}
 .price span{font-size:14px;font-weight:400;color:#5a5a55}
-.price-note{font-size:12px;color:#8a8a85;margin-bottom:1.25rem;min-height:18px}
-.divider{height:1px;background:#e8e6e0;margin-bottom:1.25rem}
-.feat{display:flex;align-items:flex-start;gap:8px;margin-bottom:8px;font-size:13px}
-.feat-check{color:#1D9E75;font-weight:600;flex-shrink:0}
-.feat-check.amber{color:#633806}
-.feat-x{color:#d4d2cb;flex-shrink:0}
-.feat-muted{color:#8a8a85}
-.btn-upgrade{width:100%;padding:11px;border-radius:10px;font-size:14px;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif;margin-top:1.25rem;border:none}
-.btn-pro{background:#1D9E75;color:#fff}
-.btn-pro:hover{background:#178a64}
-.btn-barn{background:#633806;color:#fff}
-.btn-barn:hover{background:#4a2a04}
-.btn-free{background:transparent;border:1px solid #d4d2cb;color:#5a5a55}
-.btn-free:hover{background:#f0efe9}
-.reset-note{font-size:12px;color:#8a8a85;text-align:center}
-@media(max-width:700px){.cards{grid-template-columns:1fr}}
+.price-note{font-size:12px;color:#8a8a85;margin-bottom:1.25rem}
+.feat-list{list-style:none;margin-bottom:1.5rem}
+.feat-list li{font-size:13px;padding:5px 0;border-bottom:1px solid #f0efe9;display:flex;align-items:center;gap:8px;color:#3a3a35}
+.feat-list li:last-child{border-bottom:none}
+.feat-list li.muted{color:#aaa}
+.check{color:#1D9E75;font-weight:600}
+.check-barn{color:#633806;font-weight:600}
+.cross{color:#ccc}
+.btn-upgrade{display:block;width:100%;padding:11px;border-radius:8px;font-size:14px;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif;text-align:center;text-decoration:none;border:none}
+.btn-upgrade-free{background:transparent;border:1px solid #d4d2cb;color:#5a5a55}
+.btn-upgrade-free:hover{background:#f0efe9}
+.btn-upgrade-pro{background:#1D9E75;color:#fff}
+.btn-upgrade-pro:hover{background:#178a64}
+.btn-upgrade-barn{background:#633806;color:#fff}
+.btn-upgrade-barn:hover{background:#4f2c04}
+.current-badge{display:block;width:100%;padding:11px;border-radius:8px;font-size:13px;font-weight:500;text-align:center;background:#f0efe9;color:#5a5a55}
+@media(max-width:700px){.pricing-cards{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
 <nav>
   <a href="dashboard.html" class="logo">Stirrup</a>
-</nav>
-<div class="main">
-  <div class="header">
-    <div class="lock-icon">🔒</div>
-    <div class="header-title">You've hit your free limit</div>
-    <div class="header-sub">You've used all 20 free bookings this month. Upgrade to keep booking and unlock more features.</div>
+  <div class="nav-right">
+    <a href="dashboard.html" class="btn btn-ghost">← Dashboard</a>
   </div>
+</nav>
 
-  <div class="cards">
-    <div class="card">
-      <span class="tier-badge badge-free">Free</span>
+<div class="wrap">
+  <div class="page-title">Simple pricing</div>
+  <div class="page-sub">Start free. Upgrade when you're ready.</div>
+
+  <div class="pricing-cards">
+    <div class="pricing-card">
+      <span class="tier tier-free">Free</span>
       <div class="price">$0<span>/mo</span></div>
-      <div class="price-note">your current plan</div>
-      <div class="divider"></div>
-      <div class="feat"><span class="feat-check">✓</span>20 bookings/month</div>
-      <div class="feat"><span class="feat-check">✓</span>Rider profiles</div>
-      <div class="feat"><span class="feat-check">✓</span>Horse roster</div>
-      <div class="feat"><span class="feat-x">✗</span><span class="feat-muted">Square payment links</span></div>
-      <div class="feat"><span class="feat-x">✗</span><span class="feat-muted">Automated reminders</span></div>
-      <div class="feat"><span class="feat-x">✗</span><span class="feat-muted">Staff trainers</span></div>
-      <button class="btn-upgrade btn-free" onclick="window.location.href='dashboard.html'">Maybe next month</button>
+      <div class="price-note">forever, no card required</div>
+      <ul class="feat-list">
+        <li><span class="check">✓</span>Up to 20 bookings/month</li>
+        <li><span class="check">✓</span>Rider profiles</li>
+        <li><span class="check">✓</span>Horse roster</li>
+        <li><span class="check">✓</span>Recurring lessons</li>
+        <li class="muted"><span class="cross">✗</span>Square payment links</li>
+        <li class="muted"><span class="cross">✗</span>Automated reminders</li>
+        <li class="muted"><span class="cross">✗</span>Staff trainers</li>
+      </ul>
+      <span class="current-badge" id="free-btn">Current plan</span>
     </div>
 
-    <div class="card highlight">
-      <span class="tier-badge badge-pro">Pro</span>
+    <div class="pricing-card pro">
+      <span class="tier tier-pro">Pro</span>
       <div class="price">$19<span>/mo</span></div>
       <div class="price-note">or $190/yr — save $38</div>
-      <div class="divider"></div>
-      <div class="feat"><span class="feat-check">✓</span>Unlimited bookings</div>
-      <div class="feat"><span class="feat-check">✓</span>Rider profiles</div>
-      <div class="feat"><span class="feat-check">✓</span>Horse roster</div>
-      <div class="feat"><span class="feat-check">✓</span>Square payment links</div>
-      <div class="feat"><span class="feat-check">✓</span>Automated reminders</div>
-      <div class="feat"><span class="feat-x">✗</span><span class="feat-muted">Staff trainers</span></div>
-      <button class="btn-upgrade btn-pro" onclick="window.location.href='dashboard.html'">Upgrade to Pro →</button>
+      <ul class="feat-list">
+        <li><span class="check">✓</span>Unlimited bookings</li>
+        <li><span class="check">✓</span>Rider profiles</li>
+        <li><span class="check">✓</span>Horse roster</li>
+        <li><span class="check">✓</span>Recurring lessons</li>
+        <li><span class="check">✓</span>Square payment links</li>
+        <li><span class="check">✓</span>Automated reminders</li>
+        <li class="muted"><span class="cross">✗</span>Staff trainers</li>
+      </ul>
+      <a href="https://buy.stripe.com/eVqbJ28NF2Z37J99Pr9AA00" class="btn-upgrade btn-upgrade-pro" id="pro-btn">Upgrade to Pro →</a>
     </div>
 
-    <div class="card barn">
-      <span class="tier-badge badge-barn">Barn</span>
+    <div class="pricing-card barn">
+      <span class="tier tier-barn">Barn</span>
       <div class="price">$49<span>/mo</span></div>
       <div class="price-note">or $490/yr — save $98</div>
-      <div class="divider"></div>
-      <div class="feat"><span class="feat-check amber">✓</span>Unlimited bookings</div>
-      <div class="feat"><span class="feat-check amber">✓</span>Rider profiles</div>
-      <div class="feat"><span class="feat-check amber">✓</span>Horse roster</div>
-      <div class="feat"><span class="feat-check amber">✓</span>Square payment links</div>
-      <div class="feat"><span class="feat-check amber">✓</span>Automated reminders</div>
-      <div class="feat"><span class="feat-check amber">✓</span>Unlimited staff trainers</div>
-      <button class="btn-upgrade btn-barn" onclick="window.location.href='dashboard.html'">Upgrade to Barn →</button>
+      <ul class="feat-list">
+        <li><span class="check-barn">✓</span>Unlimited bookings</li>
+        <li><span class="check-barn">✓</span>Rider profiles</li>
+        <li><span class="check-barn">✓</span>Horse roster</li>
+        <li><span class="check-barn">✓</span>Recurring lessons</li>
+        <li><span class="check-barn">✓</span>Square payment links</li>
+        <li><span class="check-barn">✓</span>Automated reminders</li>
+        <li><span class="check-barn">✓</span>Unlimited staff trainers</li>
+      </ul>
+      <a href="https://buy.stripe.com/8x2dRa6FxeHLaVl4v79AA01" class="btn-upgrade btn-upgrade-barn" id="barn-btn">Upgrade to Barn →</a>
     </div>
   </div>
-
-  <div class="reset-note" id="reset-note">Your existing bookings and riders are safe.</div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-const SUPABASE_URL = 'https://mfinlbqfowymmklhkuhb.supabase.co';
-const SUPABASE_KEY = 'sb_publishable_PcwbX1YoncwnrHobFmpAIA_L39K4XfK';
-const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+const SUPABASE_URL='https://mfinlbqfowymmklhkuhb.supabase.co';
+const SUPABASE_KEY='sb_publishable_PcwbX1YoncwnrHobFmpAIA_L39K4XfK';
+const db=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
 
 async function load(){
-  const { data: { user } }=await db.auth.getUser();
-  if(!user){window.location.href='login.html';return;}
-  const now=new Date();
-  const nextMonth=new Date(now.getFullYear(),now.getMonth()+1,1);
-  const resetStr=nextMonth.toLocaleString('default',{month:'long',day:'numeric'});
-  document.getElementById('reset-note').textContent=`Your existing bookings and riders are safe. Free bookings reset ${resetStr}.`;
+  const {data:{user}}=await db.auth.getUser();
+  if(!user)return;
+  const {data:trainer}=await db.from('trainers').select('tier').eq('id',user.id).single();
+  const tier=trainer?.tier||'free';
+  if(tier==='pro'){
+    document.getElementById('pro-btn').outerHTML='<span class="current-badge">Current plan</span>';
+  } else if(tier==='barn'){
+    document.getElementById('barn-btn').outerHTML='<span class="current-badge">Current plan</span>';
+    document.getElementById('free-btn').outerHTML='';
+  }
 }
 
 load();
