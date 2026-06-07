@@ -23,20 +23,30 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2
 .notice-body{flex:1}
 .notice-title{font-size:13px;font-weight:600;color:#0c447c;margin-bottom:3px}
 .notice-text{font-size:12px;color:#185fa5;line-height:1.5}
-.btn-upgrade{font-size:12px;padding:5px 12px;border-radius:8px;border:1px solid #85b7eb;background:transparent;color:#0c447c;cursor:pointer;margin-top:8px;font-family:'Inter',sans-serif;display:inline-block}
+.btn-upgrade{font-size:12px;padding:5px 12px;border-radius:8px;border:1px solid #85b7eb;background:transparent;color:#0c447c;cursor:pointer;margin-top:8px;font-family:'Inter',sans-serif;display:inline-block;text-decoration:none}
 .summary{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:1.25rem}
 .sum{background:#fff;border:1px solid #e8e6e0;border-radius:10px;padding:.75rem 1rem}
 .sum-label{font-size:11px;color:#5a5a55;margin-bottom:3px}
 .sum-val{font-size:20px;font-weight:600;color:#1a1a18}
-.trainer-card{background:#fff;border:1px solid #e8e6e0;border-radius:10px;padding:1rem 1.25rem;margin-bottom:8px;display:flex;align-items:center;gap:12px;transition:background .15s}
-.trainer-card:hover{background:#f9f8f5}
+.trainer-card{background:#fff;border:1px solid #e8e6e0;border-radius:10px;padding:1rem 1.25rem;margin-bottom:8px}
+.trainer-top{display:flex;align-items:center;gap:12px}
 .trainer-av{width:40px;height:40px;border-radius:50%;background:#e0f5ed;color:#0f6e47;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;flex-shrink:0}
 .trainer-info{flex:1;min-width:0}
 .trainer-name{font-size:14px;font-weight:500;color:#1a1a18}
 .trainer-meta{font-size:12px;color:#5a5a55;margin-top:1px}
 .trainer-right{display:flex;align-items:center;gap:8px;flex-shrink:0}
-.btn-remove{font-size:12px;padding:4px 10px;border-radius:6px;border:1px solid #e8c5c5;background:transparent;color:#c0392b;cursor:pointer;font-family:'Inter',sans-serif}
-.btn-remove:hover{background:#fcebeb}
+.avail-badge{font-size:11px;padding:2px 8px;border-radius:20px;font-weight:500}
+.avail-set{background:#e0f5ed;color:#0f6e47}
+.avail-none{background:#fcebeb;color:#791f1f}
+.trainer-actions{display:flex;gap:6px;margin-top:10px;padding-top:10px;border-top:1px solid #f0efe9;flex-wrap:wrap}
+.btn-sm{font-size:12px;padding:4px 10px;border-radius:6px;cursor:pointer;font-family:'Inter',sans-serif;border:1px solid #d4d2cb;background:transparent;color:#1a1a18}
+.btn-sm:hover{background:#f0efe9}
+.btn-sm-danger{font-size:12px;padding:4px 10px;border-radius:6px;cursor:pointer;font-family:'Inter',sans-serif;border:1px solid #e8c5c5;background:transparent;color:#c0392b}
+.btn-sm-danger:hover{background:#fcebeb}
+.sched-list{margin-top:8px;font-size:12px;color:#5a5a55}
+.sched-item{display:flex;align-items:center;justify-content:space-between;padding:4px 0;border-bottom:1px solid #f0efe9}
+.sched-item:last-child{border-bottom:none}
+.btn-remove-sched{font-size:11px;padding:2px 6px;border-radius:4px;cursor:pointer;font-family:'Inter',sans-serif;border:1px solid #e8c5c5;background:transparent;color:#c0392b}
 .empty{text-align:center;padding:3rem 1rem}
 .empty-icon{font-size:32px;margin-bottom:12px}
 .empty-title{font-size:15px;font-weight:500;color:#1a1a18;margin-bottom:6px}
@@ -44,7 +54,7 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2
 .loading{text-align:center;padding:3rem;color:#8a8a85;font-size:14px}
 .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:100;align-items:center;justify-content:center}
 .modal-overlay.open{display:flex}
-.modal{background:#fff;border-radius:16px;padding:1.5rem;width:100%;max-width:420px;margin:1rem}
+.modal{background:#fff;border-radius:16px;padding:1.5rem;width:100%;max-width:440px;margin:1rem;max-height:90vh;overflow-y:auto}
 .modal-title{font-size:18px;font-weight:600;margin-bottom:6px}
 .modal-sub{font-size:14px;color:#5a5a55;margin-bottom:1.25rem}
 .field{margin-bottom:12px}
@@ -58,7 +68,14 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2
 .btn-save:hover{background:#178a64}
 .btn-save:disabled{background:#9ad4be;cursor:not-allowed}
 .error{background:#fcebeb;color:#c0392b;font-size:13px;padding:10px 12px;border-radius:8px;margin-bottom:14px;display:none}
-.locked{opacity:.5;pointer-events:none}
+.section-title{font-size:13px;font-weight:600;color:#1a1a18;margin-bottom:8px;margin-top:14px}
+.day-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:8px}
+.day-btn{padding:6px 0;border-radius:6px;font-size:11px;text-align:center;cursor:pointer;border:1px solid #d4d2cb;background:#fff;color:#5a5a55;font-family:'Inter',sans-serif}
+.day-btn.sel{background:#e0f5ed;border-color:#1D9E75;color:#0f6e47;font-weight:500}
+.period-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:12px}
+.period-btn{padding:8px;border-radius:8px;font-size:12px;text-align:center;cursor:pointer;border:1px solid #d4d2cb;background:#fff;color:#5a5a55;font-family:'Inter',sans-serif}
+.period-btn.sel{background:#e0f5ed;border-color:#1D9E75;color:#0f6e47;font-weight:500}
+.unavail-note{background:#fcebeb;border-radius:8px;padding:8px 12px;font-size:12px;color:#791f1f;margin-bottom:12px}
 </style>
 </head>
 <body>
@@ -66,161 +83,266 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2
   <a href="dashboard.html" class="logo">Stirrup</a>
   <div class="nav-right">
     <a href="dashboard.html" class="btn btn-ghost">Dashboard</a>
-    <button class="btn btn-primary" id="add-btn" onclick="openModal()">+ Add trainer</button>
+    <button class="btn btn-primary" id="add-btn" onclick="openModal('add')">+ Add trainer</button>
   </div>
 </nav>
 
 <div class="wrap">
   <div class="page-head">
     <div class="page-title">Staff Trainers</div>
-    <button class="btn btn-primary" id="add-btn2" onclick="openModal()">+ Add trainer</button>
+    <button class="btn btn-primary" id="add-btn2" onclick="openModal('add')">+ Add trainer</button>
   </div>
 
   <div class="barn-tier-notice" id="tier-notice" style="display:none">
     <div style="font-size:20px">⭐</div>
     <div class="notice-body">
       <div class="notice-title">Barn plan required</div>
-      <div class="notice-text">Adding staff trainers is a Barn plan feature. Upgrade to add unlimited trainers, assign them to lessons, and manage your whole team from one place.</div>
+      <div class="notice-text">Adding staff trainers is a Barn plan feature. Upgrade to add unlimited trainers and manage your whole team.</div>
       <a href="paywall.html" class="btn-upgrade">Upgrade to Barn — $49/mo →</a>
     </div>
   </div>
 
-  <div class="summary" id="summary-wrap">
+  <div class="summary">
     <div class="sum"><div class="sum-label">Staff trainers</div><div class="sum-val" id="total-trainers">—</div></div>
-    <div class="sum"><div class="sum-label">Active</div><div class="sum-val" id="active-trainers">—</div></div>
+    <div class="sum"><div class="sum-label">Availability set</div><div class="sum-val" id="avail-set">—</div></div>
   </div>
 
   <div id="trainer-list"><div class="loading">Loading trainers…</div></div>
 </div>
 
-<div class="modal-overlay" id="modal">
+<!-- Add trainer modal -->
+<div class="modal-overlay" id="modal-add">
   <div class="modal">
     <div class="modal-title">Add a staff trainer</div>
-    <div class="modal-sub">Add a trainer who teaches lessons at your barn.</div>
-    <div class="error" id="error"></div>
+    <div class="modal-sub">Add a trainer who teaches at your barn. They'll be unavailable for booking until you set their schedule.</div>
+    <div class="error" id="add-error"></div>
     <div class="field"><label>Full name</label><input type="text" id="t-name" placeholder="e.g. Sarah Johnson"></div>
     <div class="field"><label>Email <span class="optional">optional</span></label><input type="email" id="t-email" placeholder="sarah@example.com"></div>
     <div class="field"><label>Phone <span class="optional">optional</span></label><input type="tel" id="t-phone" placeholder="(704) 555-0100"></div>
     <div class="modal-actions">
-      <button class="btn-cancel" onclick="closeModal()">Cancel</button>
-      <button class="btn-save" id="save-btn" onclick="saveTrainer()">Add trainer</button>
+      <button class="btn-cancel" onclick="closeModal('add')">Cancel</button>
+      <button class="btn-save" id="add-save-btn" onclick="saveTrainer()">Add trainer</button>
+    </div>
+  </div>
+</div>
+
+<!-- Schedule modal -->
+<div class="modal-overlay" id="modal-sched">
+  <div class="modal">
+    <div class="modal-title">Set availability</div>
+    <div class="modal-sub" id="sched-trainer-name">Set when this trainer is available at the barn.</div>
+    <div class="unavail-note">⚠️ This trainer is unavailable for booking until at least one availability slot is set.</div>
+    <div class="error" id="sched-error"></div>
+    <div class="section-title">Available days</div>
+    <div class="day-grid" id="sched-days"></div>
+    <div style="font-size:12px;color:#5a5a55;margin-bottom:6px">Available period</div>
+    <div class="period-grid">
+      <button class="period-btn sel" id="sp-morning" onclick="selSchedPeriod('morning')">🌅 Morning</button>
+      <button class="period-btn" id="sp-afternoon" onclick="selSchedPeriod('afternoon')">☀️ Afternoon</button>
+      <button class="period-btn" id="sp-full" onclick="selSchedPeriod('full')">🌙 All day</button>
+    </div>
+    <button class="btn-save" style="width:100%;padding:9px" id="sched-save-btn" onclick="saveSchedule()">Add availability</button>
+    <div class="modal-actions" style="margin-top:1rem">
+      <button class="btn-cancel" onclick="closeModal('sched')">Done</button>
     </div>
   </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-const SUPABASE_URL = 'https://mfinlbqfowymmklhkuhb.supabase.co';
-const SUPABASE_KEY = 'sb_publishable_PcwbX1YoncwnrHobFmpAIA_L39K4XfK';
-const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-let allTrainers = [];
-let isBarnTier = false;
+const SUPABASE_URL='https://mfinlbqfowymmklhkuhb.supabase.co';
+const SUPABASE_KEY='sb_publishable_PcwbX1YoncwnrHobFmpAIA_L39K4XfK';
+const db=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+let allTrainers=[],allSchedules=[];
+let isBarnTier=false,userId=null;
+let currentTrainerId=null,selSchedPeriodVal='morning';
+const selSchedDays=new Set();
+const dayNames=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
 
-function openModal(){
-  if(!isBarnTier){
-    window.location.href='paywall.html';
-    return;
+function openModal(name){
+  if(!isBarnTier&&name==='add'){window.location.href='paywall.html';return;}
+  if(name==='add'){
+    document.getElementById('t-name').value='';
+    document.getElementById('t-email').value='';
+    document.getElementById('t-phone').value='';
+    document.getElementById('add-error').style.display='none';
+    document.getElementById('add-save-btn').disabled=false;
+    document.getElementById('add-save-btn').textContent='Add trainer';
   }
-  document.getElementById('t-name').value='';
-  document.getElementById('t-email').value='';
-  document.getElementById('t-phone').value='';
-  document.getElementById('error').style.display='none';
-  document.getElementById('save-btn').disabled=false;
-  document.getElementById('save-btn').textContent='Add trainer';
-  document.getElementById('modal').classList.add('open');
+  document.getElementById('modal-'+name).classList.add('open');
 }
 
-function closeModal(){
-  document.getElementById('modal').classList.remove('open');
+function closeModal(name){
+  document.getElementById('modal-'+name).classList.remove('open');
+  if(name==='sched'){currentTrainerId=null;selSchedDays.clear();renderSchedDays();}
+}
+
+function openSchedModal(trainerId,trainerName){
+  currentTrainerId=trainerId;
+  document.getElementById('sched-trainer-name').textContent=`Set when ${trainerName} is available at the barn.`;
+  document.getElementById('sched-error').style.display='none';
+  selSchedDays.clear();
+  selSchedPeriodVal='morning';
+  renderSchedDays();
+  ['morning','afternoon','full'].forEach(p=>document.getElementById('sp-'+p).classList.toggle('sel',p===selSchedPeriodVal));
+  document.getElementById('modal-sched').classList.add('open');
+}
+
+function renderSchedDays(){
+  const g=document.getElementById('sched-days');
+  if(!g)return;
+  g.innerHTML='';
+  dayNames.forEach((d,i)=>{
+    const b=document.createElement('button');
+    b.className='day-btn'+(selSchedDays.has(i)?' sel':'');
+    b.textContent=d;
+    b.onclick=()=>{selSchedDays.has(i)?selSchedDays.delete(i):selSchedDays.add(i);renderSchedDays();};
+    g.appendChild(b);
+  });
+}
+
+function selSchedPeriod(p){
+  selSchedPeriodVal=p;
+  ['morning','afternoon','full'].forEach(x=>document.getElementById('sp-'+x).classList.toggle('sel',x===p));
 }
 
 async function saveTrainer(){
   const name=document.getElementById('t-name').value.trim();
   if(!name){
-    document.getElementById('error').textContent='Please enter a name.';
-    document.getElementById('error').style.display='block';
-    return;
+    document.getElementById('add-error').textContent='Please enter a name.';
+    document.getElementById('add-error').style.display='block';return;
   }
-  const btn=document.getElementById('save-btn');
+  const btn=document.getElementById('add-save-btn');
   btn.disabled=true;btn.textContent='Saving…';
-  const { data: { user } } = await db.auth.getUser();
-  const { error } = await db.from('staff_trainers').insert({
-    head_trainer_id: user.id,
-    name: name,
-    email: document.getElementById('t-email').value.trim(),
-    phone: document.getElementById('t-phone').value.trim(),
-    active: true
+  const {error}=await db.from('staff_trainers').insert({
+    head_trainer_id:userId,name,
+    email:document.getElementById('t-email').value.trim(),
+    phone:document.getElementById('t-phone').value.trim(),
+    active:true
   });
   if(error){
-    document.getElementById('error').textContent=error.message;
-    document.getElementById('error').style.display='block';
-    btn.disabled=false;btn.textContent='Add trainer';
-    return;
+    document.getElementById('add-error').textContent=error.message;
+    document.getElementById('add-error').style.display='block';
+    btn.disabled=false;btn.textContent='Add trainer';return;
   }
-  closeModal();
+  closeModal('add');load();
+}
+
+async function saveSchedule(){
+  if(selSchedDays.size===0){
+    document.getElementById('sched-error').textContent='Please select at least one day.';
+    document.getElementById('sched-error').style.display='block';return;
+  }
+  const btn=document.getElementById('sched-save-btn');
+  btn.disabled=true;btn.textContent='Saving…';
+  const inserts=[...selSchedDays].map(d=>({
+    staff_trainer_id:currentTrainerId,
+    head_trainer_id:userId,
+    day_of_week:d,
+    period:selSchedPeriodVal
+  }));
+  const {error}=await db.from('staff_trainer_schedules').insert(inserts);
+  btn.disabled=false;btn.textContent='Add availability';
+  if(error){
+    document.getElementById('sched-error').textContent=error.message;
+    document.getElementById('sched-error').style.display='block';return;
+  }
+  document.getElementById('sched-error').style.display='none';
+  selSchedDays.clear();renderSchedDays();load();
+}
+
+async function removeSchedule(id){
+  await db.from('staff_trainer_schedules').delete().eq('id',id);
   load();
 }
 
 async function removeTrainer(id){
-  if(!confirm('Remove this trainer?')) return;
+  if(!confirm('Remove this trainer?'))return;
   await db.from('staff_trainers').update({active:false}).eq('id',id);
   load();
 }
 
 function getInitials(name){
   const parts=name.trim().split(' ');
-  return (parts[0]?.[0]||'')+(parts[1]?.[0]||'');
+  return((parts[0]?.[0]||'')+(parts[1]?.[0]||'')).toUpperCase();
 }
 
 function renderTrainers(){
   const list=document.getElementById('trainer-list');
   const active=allTrainers.filter(t=>t.active);
-  document.getElementById('total-trainers').textContent=allTrainers.length;
-  document.getElementById('active-trainers').textContent=active.length;
+  document.getElementById('total-trainers').textContent=active.length;
+  const withSched=active.filter(t=>allSchedules.some(s=>s.staff_trainer_id===t.id)).length;
+  document.getElementById('avail-set').textContent=withSched+'/'+active.length;
 
   if(active.length===0){
-    list.innerHTML=`<div class="empty ${!isBarnTier?'locked':''}">
+    list.innerHTML=`<div class="empty">
       <div class="empty-icon">👤</div>
       <div class="empty-title">No staff trainers yet</div>
-      <div class="empty-sub">${isBarnTier?'Add trainers who teach lessons at your barn. They\'ll appear as an option when booking lessons.':'Upgrade to the Barn plan to add staff trainers.'}</div>
-      ${isBarnTier?'<button class="btn btn-primary" onclick="openModal()">Add first trainer</button>':'<a href="paywall.html" class="btn btn-primary">Upgrade to Barn</a>'}
+      <div class="empty-sub">${isBarnTier?'Add trainers and set their availability to assign them to lessons.':'Upgrade to the Barn plan to add staff trainers.'}</div>
+      ${isBarnTier?'<button class="btn btn-primary" onclick="openModal(\'add\')">Add first trainer</button>':'<a href="paywall.html" class="btn btn-primary">Upgrade to Barn</a>'}
     </div>`;
     return;
   }
 
   list.innerHTML='';
   active.forEach(t=>{
+    const schedules=allSchedules.filter(s=>s.staff_trainer_id===t.id);
+    const hasSchedule=schedules.length>0;
     const card=document.createElement('div');
     card.className='trainer-card';
+
+    let schedHtml='';
+    if(schedules.length>0){
+      schedHtml=`<div style="margin-top:10px;padding-top:10px;border-top:1px solid #f0efe9">
+        <div style="font-size:12px;font-weight:500;color:#3a3a35;margin-bottom:4px">Availability</div>
+        <div class="sched-list">`;
+      schedules.forEach(s=>{
+        const day=dayNames[s.day_of_week];
+        const period=s.period==='full'?'All day':s.period.charAt(0).toUpperCase()+s.period.slice(1);
+        schedHtml+=`<div class="sched-item"><span>${day} · ${period}</span><button class="btn-remove-sched" onclick="removeSchedule('${s.id}')">Remove</button></div>`;
+      });
+      schedHtml+='</div></div>';
+    }
+
     card.innerHTML=`
-      <div class="trainer-av">${getInitials(t.name).toUpperCase()||'?'}</div>
-      <div class="trainer-info">
-        <div class="trainer-name">${t.name}</div>
-        <div class="trainer-meta">${[t.email,t.phone].filter(Boolean).join(' · ')||'No contact info'}</div>
+      <div class="trainer-top">
+        <div class="trainer-av">${getInitials(t.name)||'?'}</div>
+        <div class="trainer-info">
+          <div class="trainer-name">${t.name}</div>
+          <div class="trainer-meta">${[t.email,t.phone].filter(Boolean).join(' · ')||'No contact info'}</div>
+        </div>
+        <div class="trainer-right">
+          <span class="avail-badge ${hasSchedule?'avail-set':'avail-none'}">${hasSchedule?'Available':'No schedule'}</span>
+        </div>
       </div>
-      <div class="trainer-right">
-        <button class="btn-remove" onclick="removeTrainer('${t.id}')">Remove</button>
+      ${schedHtml}
+      <div class="trainer-actions">
+        <button class="btn-sm" onclick="openSchedModal('${t.id}','${t.name}')">+ Set availability</button>
+        <button class="btn-sm-danger" onclick="removeTrainer('${t.id}')">Remove trainer</button>
       </div>`;
     list.appendChild(card);
   });
 }
 
 async function load(){
-  const { data: { user } } = await db.auth.getUser();
-  if(!user){ window.location.href='login.html'; return; }
-
-  const { data: trainer } = await db.from('trainers').select('tier').eq('id', user.id).single();
-  isBarnTier = trainer?.tier === 'barn';
-
+  const {data:{user}}=await db.auth.getUser();
+  if(!user){window.location.href='login.html';return;}
+  userId=user.id;
+  const {data:trainer}=await db.from('trainers').select('tier').eq('id',user.id).single();
+  isBarnTier=trainer?.tier==='barn';
   if(!isBarnTier){
     document.getElementById('tier-notice').style.display='flex';
     document.getElementById('add-btn').style.opacity='0.5';
     document.getElementById('add-btn2').style.opacity='0.5';
   }
-
-  const { data: trainers } = await db.from('staff_trainers').select('*').eq('head_trainer_id', user.id).order('name',{ascending:true});
-  allTrainers = trainers||[];
+  const [{data:trainers},{data:schedules}]=await Promise.all([
+    db.from('staff_trainers').select('*').eq('head_trainer_id',user.id).order('name',{ascending:true}),
+    db.from('staff_trainer_schedules').select('*').eq('head_trainer_id',user.id)
+  ]);
+  allTrainers=trainers||[];
+  allSchedules=schedules||[];
   renderTrainers();
+  renderSchedDays();
 }
 
 load();
