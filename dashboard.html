@@ -18,7 +18,7 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2
 .btn-primary:hover{background:#178a64}
 .btn-ghost{background:transparent;border:1px solid #d4d2cb;color:#1a1a18}
 .btn-ghost:hover{background:#f0efe9}
-.wrap{max-width:960px;margin:0 auto;padding:2rem}
+.wrap{max-width:1100px;margin:0 auto;padding:2rem}
 .greeting{font-size:22px;font-weight:600;margin-bottom:4px}
 .greeting-sub{font-size:14px;color:#5a5a55;margin-bottom:1.5rem}
 .metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-bottom:1.5rem}
@@ -26,11 +26,33 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2
 .metric-label{font-size:12px;color:#5a5a55;margin-bottom:6px}
 .metric-val{font-size:24px;font-weight:600;color:#1a1a18}
 .metric-sub{font-size:12px;color:#8a8a85;margin-top:3px}
-.grid2{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:16px;margin-bottom:1.5rem}
+.main-grid{display:grid;grid-template-columns:minmax(0,1fr) 280px;gap:16px;margin-bottom:1.5rem}
 .card{background:#fff;border:1px solid #e8e6e0;border-radius:12px;padding:1rem 1.25rem}
 .card-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem}
 .card-title{font-size:14px;font-weight:600;color:#1a1a18}
 .card-link{font-size:12px;color:#1D9E75;text-decoration:none;cursor:pointer}
+.cal-nav{display:flex;align-items:center;gap:12px}
+.cal-nav-btn{background:transparent;border:1px solid #e8e6e0;border-radius:6px;padding:4px 10px;cursor:pointer;font-size:14px;color:#5a5a55;font-family:'Inter',sans-serif}
+.cal-nav-btn:hover{background:#f0efe9}
+.cal-month{font-size:14px;font-weight:600;color:#1a1a18;min-width:120px;text-align:center}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
+.cal-label{font-size:11px;color:#8a8a85;text-align:center;padding:4px 0;font-weight:500}
+.cal-day{min-height:80px;border-radius:6px;padding:4px;background:#f9f8f5;border:1px solid transparent;transition:border .15s;cursor:default;position:relative}
+.cal-day:hover{border-color:#e8e6e0}
+.cal-day.today{background:#e0f5ed;border-color:#1D9E75}
+.cal-day.other-month{background:transparent;opacity:.4}
+.cal-day-num{font-size:11px;font-weight:500;color:#5a5a55;margin-bottom:2px}
+.cal-day.today .cal-day-num{color:#0f6e47;font-weight:600}
+.cal-event{font-size:10px;padding:2px 4px;border-radius:3px;margin-bottom:2px;cursor:pointer;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cal-event:hover{opacity:.8}
+.ev-private{background:#d1ede3;color:#0a5c38}
+.ev-group{background:#e4e2fd;color:#2d2580}
+.ev-jumping{background:#fde8c0;color:#7a4500}
+.ev-dressage{background:#fad9d0;color:#6b1f10}
+.ev-other{background:#e8e6e0;color:#3a3a35}
+.ev-paid{opacity:.6}
+.more-events{font-size:10px;color:#8a8a85;padding:2px 4px;cursor:pointer}
+.more-events:hover{color:#1a1a18}
 .pay-row{display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid #f0efe9;cursor:pointer;transition:background .15s;margin:0 -1.25rem;padding-left:1.25rem;padding-right:1.25rem}
 .pay-row:last-child{border-bottom:none}
 .pay-row:hover{background:#f9f8f5}
@@ -57,7 +79,10 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2
 .sq-notice-title{font-size:13px;font-weight:600;color:#0c447c;margin-bottom:3px}
 .sq-notice-text{font-size:12px;color:#185fa5;line-height:1.5}
 .btn-sq{font-size:12px;padding:5px 12px;border-radius:8px;border:1px solid #85b7eb;background:transparent;color:#0c447c;cursor:pointer;margin-top:8px;font-family:'Inter',sans-serif}
-@media(max-width:700px){.grid2{grid-template-columns:1fr}.metrics{grid-template-columns:1fr 1fr}}
+.legend{display:flex;flex-wrap:wrap;gap:8px;margin-top:.75rem}
+.legend-item{display:flex;align-items:center;gap:4px;font-size:11px;color:#5a5a55}
+.legend-dot{width:10px;height:10px;border-radius:2px}
+@media(max-width:900px){.main-grid{grid-template-columns:1fr}.metrics{grid-template-columns:1fr 1fr}}
 </style>
 </head>
 <body>
@@ -104,47 +129,44 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2
     <div class="cl-title">Finish setting up your barn</div>
     <div class="cl-sub" id="cl-sub">1 of 6 complete</div>
     <div class="cl-prog"><div class="cl-fill" id="cl-fill" style="width:16%"></div></div>
-    <div class="cl-row">
-      <div class="cl-check done">✓</div>
-      <div class="cl-text done">Create your account</div>
-    </div>
+    <div class="cl-row"><div class="cl-check done">✓</div><div class="cl-text done">Create your account</div></div>
     <div class="cl-row" onclick="window.location.href='horses.html'">
-      <div class="cl-check" id="ck-horses"></div>
-      <div class="cl-text" id="ct-horses">Add your horses</div>
-      <div class="cl-arrow">→</div>
+      <div class="cl-check" id="ck-horses"></div><div class="cl-text" id="ct-horses">Add your horses</div><div class="cl-arrow">→</div>
     </div>
     <div class="cl-row" onclick="window.location.href='riders.html'">
-      <div class="cl-check" id="ck-rider"></div>
-      <div class="cl-text" id="ct-rider">Add your first rider</div>
-      <div class="cl-arrow">→</div>
+      <div class="cl-check" id="ck-rider"></div><div class="cl-text" id="ct-rider">Add your first rider</div><div class="cl-arrow">→</div>
     </div>
     <div class="cl-row" onclick="window.location.href='book.html'">
-      <div class="cl-check" id="ck-booking"></div>
-      <div class="cl-text" id="ct-booking">Book your first lesson</div>
-      <div class="cl-arrow">→</div>
+      <div class="cl-check" id="ck-booking"></div><div class="cl-text" id="ct-booking">Book your first lesson</div><div class="cl-arrow">→</div>
     </div>
     <div class="cl-row" onclick="window.location.href='settings.html'">
-      <div class="cl-check"></div>
-      <div class="cl-text">Connect Square to accept payments</div>
-      <div class="cl-arrow">→</div>
+      <div class="cl-check"></div><div class="cl-text">Connect Square to accept payments</div><div class="cl-arrow">→</div>
     </div>
     <div class="cl-row" onclick="window.location.href='settings.html'">
-      <div class="cl-check"></div>
-      <div class="cl-text">Customize lesson types & pricing</div>
-      <div class="cl-arrow">→</div>
+      <div class="cl-check"></div><div class="cl-text">Customize lesson types & pricing</div><div class="cl-arrow">→</div>
     </div>
   </div>
 
-  <div class="grid2">
+  <div class="main-grid">
     <div class="card">
       <div class="card-head">
-        <div class="card-title">Recent bookings</div>
+        <div class="cal-nav">
+          <button class="cal-nav-btn" onclick="changeMonth(-1)">‹</button>
+          <div class="cal-month" id="cal-month">June 2026</div>
+          <button class="cal-nav-btn" onclick="changeMonth(1)">›</button>
+        </div>
         <span class="card-link" onclick="window.location.href='book.html'">+ Book lesson</span>
       </div>
-      <div id="recent-bookings">
-        <div style="text-align:center;padding:2rem 0;color:#8a8a85;font-size:13px">No bookings yet.</div>
+      <div class="cal-grid" id="cal-grid"></div>
+      <div class="legend">
+        <div class="legend-item"><div class="legend-dot" style="background:#d1ede3"></div>Private</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#e4e2fd"></div>Group</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#fde8c0"></div>Jumping</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#fad9d0"></div>Dressage</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#e8e6e0"></div>Other</div>
       </div>
     </div>
+
     <div class="card">
       <div class="card-head"><div class="card-title">Awaiting payment</div></div>
       <div id="awaiting-payment">
@@ -167,22 +189,34 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-const SUPABASE_URL = 'https://mfinlbqfowymmklhkuhb.supabase.co';
-const SUPABASE_KEY = 'sb_publishable_PcwbX1YoncwnrHobFmpAIA_L39K4XfK';
-const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-const today=new Date();
-today.setHours(0,0,0,0);
+const SUPABASE_URL='https://mfinlbqfowymmklhkuhb.supabase.co';
+const SUPABASE_KEY='sb_publishable_PcwbX1YoncwnrHobFmpAIA_L39K4XfK';
+const db=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+const today=new Date();today.setHours(0,0,0,0);
+let calYear=new Date().getFullYear();
+let calMonth=new Date().getMonth();
+let allBookings=[];
+const dayLabels=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+const monthNames=['January','February','March','April','May','June','July','August','September','October','November','December'];
+
+function getEventClass(lessonType){
+  const t=(lessonType||'').toLowerCase();
+  if(t.includes('private'))return'ev-private';
+  if(t.includes('group'))return'ev-group';
+  if(t.includes('jump'))return'ev-jumping';
+  if(t.includes('dressage'))return'ev-dressage';
+  return'ev-other';
+}
 
 function pillFor(bk){
-  if(bk.payment_status==='paid') return '<span class="pill pill-green">paid</span>';
-  if(bk.payment_status==='upcoming') return '<span class="pill pill-blue">upcoming</span>';
-  return '<span class="pill pill-amber">'+bk.payment_status+'</span>';
+  if(bk.payment_status==='paid')return'<span class="pill pill-green">paid</span>';
+  if(bk.payment_status==='upcoming')return'<span class="pill pill-blue">upcoming</span>';
+  return'<span class="pill pill-amber">'+bk.payment_status+'</span>';
 }
 
 function lessonPassed(bk){
-  if(!bk.scheduled_date) return false;
-  const d=new Date(bk.scheduled_date);
-  d.setHours(0,0,0,0);
+  if(!bk.scheduled_date)return false;
+  const d=new Date(bk.scheduled_date);d.setHours(0,0,0,0);
   return d<today;
 }
 
@@ -191,11 +225,83 @@ function openBooking(bk){
   window.location.href='booking.html';
 }
 
+function changeMonth(dir){
+  calMonth+=dir;
+  if(calMonth>11){calMonth=0;calYear++;}
+  if(calMonth<0){calMonth=11;calYear--;}
+  renderCalendar();
+}
+
+function renderCalendar(){
+  document.getElementById('cal-month').textContent=`${monthNames[calMonth]} ${calYear}`;
+  const g=document.getElementById('cal-grid');
+  g.innerHTML='';
+
+  // Day labels
+  dayLabels.forEach(d=>{
+    const l=document.createElement('div');
+    l.className='cal-label';l.textContent=d;
+    g.appendChild(l);
+  });
+
+  const firstDay=new Date(calYear,calMonth,1).getDay();
+  const daysInMonth=new Date(calYear,calMonth+1,0).getDate();
+  const daysInPrevMonth=new Date(calYear,calMonth,0).getDate();
+
+  // Previous month padding
+  for(let i=firstDay-1;i>=0;i--){
+    const cell=document.createElement('div');
+    cell.className='cal-day other-month';
+    cell.innerHTML=`<div class="cal-day-num">${daysInPrevMonth-i}</div>`;
+    g.appendChild(cell);
+  }
+
+  // Current month days
+  for(let d=1;d<=daysInMonth;d++){
+    const date=new Date(calYear,calMonth,d);
+    const isToday=date.toDateString()===new Date().toDateString();
+    const dateStr=date.toISOString().split('T')[0];
+
+    // Find bookings for this day
+    const dayBookings=allBookings.filter(b=>{
+      if(b.scheduled_date) return b.scheduled_date===dateStr;
+      // fallback: parse text date
+      return false;
+    }).sort((a,b)=>a.time>b.time?1:-1);
+
+    const cell=document.createElement('div');
+    cell.className='cal-day'+(isToday?' today':'');
+    let html=`<div class="cal-day-num">${d}</div>`;
+
+    const maxShow=3;
+    dayBookings.slice(0,maxShow).forEach(bk=>{
+      const cls=getEventClass(bk.lesson_type)+(bk.payment_status==='paid'?' ev-paid':'');
+      html+=`<div class="cal-event ${cls}" onclick="event.stopPropagation();openBooking(${JSON.stringify(bk).replace(/"/g,'&quot;')})" title="${bk.rider_name} · ${bk.time}">${bk.time} ${bk.rider_name.split(' ')[0]}</div>`;
+    });
+    if(dayBookings.length>maxShow){
+      html+=`<div class="more-events">+${dayBookings.length-maxShow} more</div>`;
+    }
+
+    cell.innerHTML=html;
+    g.appendChild(cell);
+  }
+
+  // Next month padding
+  const totalCells=firstDay+daysInMonth;
+  const remaining=totalCells%7===0?0:7-(totalCells%7);
+  for(let i=1;i<=remaining;i++){
+    const cell=document.createElement('div');
+    cell.className='cal-day other-month';
+    cell.innerHTML=`<div class="cal-day-num">${i}</div>`;
+    g.appendChild(cell);
+  }
+}
+
 async function load(){
-  const { data: { user } }=await db.auth.getUser();
+  const {data:{user}}=await db.auth.getUser();
   if(!user){window.location.href='login.html';return;}
 
-  const { data: trainer }=await db.from('trainers').select('*').eq('id',user.id).single();
+  const {data:trainer}=await db.from('trainers').select('*').eq('id',user.id).single();
   const name=trainer?.name?.split(' ')[0]||'';
   const barn=trainer?.barn_name||'your barn';
   const hour=new Date().getHours();
@@ -203,15 +309,16 @@ async function load(){
   document.getElementById('greeting').textContent=greeting+(name?', '+name:'');
   document.getElementById('greeting-sub').textContent="Here's what's happening at "+barn+".";
 
-  const [{ data: riders },{ data: bookings },{ data: horses }]=await Promise.all([
+  const [{data:riders},{data:bookings},{data:horses}]=await Promise.all([
     db.from('riders').select('*').eq('trainer_id',user.id),
-    db.from('bookings').select('*').eq('trainer_id',user.id).order('created_at',{ascending:false}),
+    db.from('bookings').select('*').eq('trainer_id',user.id).order('scheduled_date',{ascending:true}),
     db.from('horses').select('*').eq('trainer_id',user.id).eq('active',true)
   ]);
 
   const r=riders||[];
   const b=bookings||[];
   const h=horses||[];
+  allBookings=b;
 
   document.getElementById('m-riders').textContent=r.length;
   document.getElementById('m-lessons').textContent=b.length;
@@ -228,30 +335,12 @@ async function load(){
   document.getElementById('cl-sub').textContent=done+' of 6 complete';
   document.getElementById('cl-fill').style.width=(done/6*100)+'%';
 
-  if(b.length>0){
-    const rb=document.getElementById('recent-bookings');
-    rb.innerHTML='';
-    b.slice(0,5).forEach(bk=>{
-      const row=document.createElement('div');
-      row.className='pay-row';
-      row.onclick=()=>openBooking(bk);
-      row.innerHTML=`
-        <div>
-          <div class="pay-name">${bk.rider_name}</div>
-          <div class="pay-meta">${bk.lesson_type}${bk.horse_name?' · '+bk.horse_name:''} · ${bk.date} ${bk.time}</div>
-        </div>
-        <div style="display:flex;align-items:center;gap:8px">
-          ${pillFor(bk)}
-          <span style="font-size:13px;color:#8a8a85">→</span>
-        </div>`;
-      rb.appendChild(row);
-    });
-  }
+  renderCalendar();
 
   if(awaitingPayment.length>0){
     const ap=document.getElementById('awaiting-payment');
     ap.innerHTML='';
-    awaitingPayment.slice(0,5).forEach(bk=>{
+    awaitingPayment.slice(0,6).forEach(bk=>{
       const row=document.createElement('div');
       row.className='pay-row';
       row.onclick=()=>openBooking(bk);
