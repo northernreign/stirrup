@@ -207,8 +207,9 @@ function generateTimeSlots(open,close,bufferMins){
   while(h*60+m<closeTotal){
     const hour12=h>12?h-12:h===0?12:h;
     const ampm=h>=12?'PM':'AM';
-    slots.push(`${hour12}:${m===0?'00':'30'} ${ampm}`);
-    m+=30;if(m>=60){m=0;h++;}
+    const mins=m===0?'00':m===15?'15':m===30?'30':'45';
+    slots.push(`${hour12}:${mins} ${ampm}`);
+    m+=15;if(m>=60){m=0;h++;}
   }
   return slots;
 }
@@ -241,12 +242,10 @@ function isTimeConflict(dateStr,timeStr,lessonType){
 
   return allBookings.some(b=>{
     if(b.date!==dateStr)return false;
-    // Group lessons can stack with other group lessons
     if(isGroup&&b.lesson_type&&b.lesson_type.toLowerCase().includes('group'))return false;
     const bStart=parseTimeToMins(b.time);
     const bDur=parseDurationToMins(b.duration||'60 minutes');
     const bEnd=bStart+bDur+bufferMinutes;
-    // Overlap check with buffer
     return proposedStart<bEnd&&proposedEnd>bStart;
   });
 }
@@ -414,8 +413,6 @@ function renderTrainerSelector(){
   const now=new Date();
   const date=new Date(now.getFullYear(),now.getMonth(),selDay);
   const jsDay=date.getDay();
-  // Convert JS day (0=Sun) to our day index (0=Mon)
-  // Staff schedules use 0=Mon...6=Sun
   const ourDay=jsDay===0?6:jsDay-1;
   const available=allStaffTrainers.filter(t=>t.active&&isTrainerAvailable(t,ourDay,selTime));
 
