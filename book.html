@@ -193,12 +193,12 @@ const db=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
 let cur=1,selRiderIdx=0,selLessonType=null,selDay=null,selTime=null,selStaffTrainer=null;
 let recurringWeeks=16,isRecurring=false,isBarnTier=false;
 let allRiders=[],allBookings=[],allLessonTypes=[],allStaffTrainers=[],allStaffSchedules=[];
-let barnOpen='09:00',barnClose='18:00',bufferMinutes=15;
+let barnOpen='09:00',barnClose='18:00',sameStaffBuffer=false;
 const avColors=[{bg:'#e0f5ed',fg:'#0f6e47'},{bg:'#faeeda',fg:'#633806'},{bg:'#eeedfe',fg:'#3c3489'},{bg:'#faece7',fg:'#712b13'},{bg:'#e6f0fb',fg:'#0c447c'}];
 const days=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 const today=new Date();today.setHours(0,0,0,0);
 
-function generateTimeSlots(open,close,bufferMins){
+function generateTimeSlots(open,close){
   const slots=[];
   const [oh,om]=open.split(':').map(Number);
   const [ch,cm]=close.split(':').map(Number);
@@ -234,11 +234,12 @@ function isGroupLesson(lt){
   return lt&&lt.name.toLowerCase().includes('group');
 }
 
-function isTimeConflict(dateStr,timeStr,lessonType){
+function isTimeConflict(dateStr,timeStr,lessonType,staffTrainerId){
   const isGroup=isGroupLesson(lessonType);
   const proposedStart=parseTimeToMins(timeStr);
   const proposedDur=parseDurationToMins(lessonType?.duration||'60 minutes');
-  const proposedEnd=proposedStart+proposedDur+bufferMinutes;
+  const proposedEnd=proposedStart+proposedDur;
+  const staffId=staffTrainerId||null;
 
   return allBookings.some(b=>{
     if(b.date!==dateStr)return false;
@@ -246,8 +247,21 @@ function isTimeConflict(dateStr,timeStr,lessonType){
     if(isGroup&&b.lesson_type&&b.lesson_type.toLowerCase().includes('group'))return false;
     const bStart=parseTimeToMins(b.time);
     const bDur=parseDurationToMins(b.duration||'60 minutes');
-    const bEnd=bStart+bDur+bufferMinutes;
-    return proposedStart<bEnd&&proposedEnd>bStart;
+    const bEnd=bStart+bDur;
+
+    // Exact overlap is always a conflict
+    if(proposedStart<bEnd&&proposedEnd>bStart)return true;
+
+    // "Time to breathe" — 15min gap required between two lessons taught by the same person
+    if(sameStaffBuffer){
+      const bStaffId=b.staff_trainer_id||null;
+      if(bStaffId===staffId){
+        const bEndWithBuffer=bEnd+15;
+        const proposedEndWithBuffer=proposedEnd+15;
+        if(proposedStart<bEndWithBuffer&&proposedEndWithBuffer>bStart)return true;
+      }
+    }
+    return false;
   });
 }
 
@@ -358,9 +372,9 @@ function renderTimes(){
   if(!selDay)return;
   const now=new Date();
   const dateStr=`${now.toLocaleString('default',{month:'long'})} ${selDay}`;
-  const slots=generateTimeSlots(barnOpen,barnClose,bufferMinutes);
+  const slots=generateTimeSlots(barnOpen,barnClose);
   slots.forEach(t=>{
-    const conflict=isTimeConflict(dateStr,t,selLessonType);
+    const conflict=isTimeConflict(dateStr,t,selLessonType,selStaffTrainer?selStaffTrainer.id:null);
     const btn=document.createElement('button');
     btn.className='time-btn'+(conflict?' taken':t===selTime?' sel':'');
     btn.textContent=t;
@@ -368,8 +382,10 @@ function renderTimes(){
     else btn.disabled=true;
     g.appendChild(btn);
   });
-  if(bufferMinutes>0){
-    document.getElementById('buffer-note').textContent=`${bufferMinutes}-minute buffer between lessons`;
+  if(sameStaffBuffer){
+    document.getElementById('buffer-note').textContent=`🌬️ Time to breathe is on — 15 min kept clear around each trainer's lessons`;
+  } else {
+    document.getElementById('buffer-note').textContent='';
   }
 }
 
@@ -380,7 +396,7 @@ function checkRecurringConflicts(){
   for(let w=0;w<recurringWeeks;w++){
     const d=new Date(now.getFullYear(),now.getMonth(),selDay+(w*7));
     const dateStr=d.toLocaleString('default',{month:'long',day:'numeric'});
-    if(isTimeConflict(dateStr,selTime,selLessonType))conflicts.push(dateStr);
+    if(isTimeConflict(dateStr,selTime,selLessonType,selStaffTrainer?selStaffTrainer.id:null))conflicts.push(dateStr);
   }
   const cl=document.getElementById('conflict-list');
   if(conflicts.length>0){
@@ -397,12 +413,22 @@ function isTrainerAvailable(trainer,dayIndex,timeStr){
   if(ampm==='PM'&&th!==12)th+=12;
   if(ampm==='AM'&&th===12)th=0;
   const isMorning=th<12;
+  let scheduled=false;
   for(const s of schedules){
-    if(s.period==='full')return true;
-    if(s.period==='morning'&&isMorning)return true;
-    if(s.period==='afternoon'&&!isMorning)return true;
+    if(s.period==='full'){scheduled=true;break;}
+    if(s.period==='morning'&&isMorning){scheduled=true;break;}
+    if(s.period==='afternoon'&&!isMorning){scheduled=true;break;}
   }
-  return false;
+  if(!scheduled)return false;
+
+  // If "Time to breathe" is on, this trainer isn't selectable if the chosen
+  // time would conflict with one of their own existing lessons.
+  if(sameStaffBuffer&&selDay){
+    const now=new Date();
+    const dateStr=`${now.toLocaleString('default',{month:'long'})} ${selDay}`;
+    if(isTimeConflict(dateStr,timeStr,selLessonType,trainer.id))return false;
+  }
+  return true;
 }
 
 function renderTrainerSelector(){
@@ -415,16 +441,26 @@ function renderTrainerSelector(){
   const date=new Date(now.getFullYear(),now.getMonth(),selDay);
   const jsDay=date.getDay();
   const ourDay=jsDay===0?6:jsDay-1;
+  const dateStr=`${now.toLocaleString('default',{month:'long'})} ${selDay}`;
   const available=allStaffTrainers.filter(t=>t.active&&isTrainerAvailable(t,ourDay,selTime));
+  const selfConflict=sameStaffBuffer&&isTimeConflict(dateStr,selTime,selLessonType,null);
 
   const list=document.createElement('div');
   list.className='trainer-list';
 
-  const selfBtn=document.createElement('button');
-  selfBtn.className='trainer-btn'+(selStaffTrainer===null?' sel':'');
-  selfBtn.innerHTML=`<div class="trainer-av" style="background:#f0efe9;color:#5a5a55">Me</div><div><div class="rider-name">Myself (head trainer)</div><div class="rider-meta">You'll teach this lesson</div></div>`;
-  selfBtn.onclick=()=>{selStaffTrainer=null;renderTrainerSelector();};
-  list.appendChild(selfBtn);
+  if(selfConflict){
+    if(selStaffTrainer===null)selStaffTrainer=undefined; // force a re-pick
+    const note=document.createElement('div');
+    note.style.cssText='font-size:12px;color:#8a8a85;padding:8px 0;';
+    note.textContent="🌬️ You have a lesson too close to this time — pick a staff trainer instead, or go back and choose a different time.";
+    list.appendChild(note);
+  } else {
+    const selfBtn=document.createElement('button');
+    selfBtn.className='trainer-btn'+(selStaffTrainer===null?' sel':'');
+    selfBtn.innerHTML=`<div class="trainer-av" style="background:#f0efe9;color:#5a5a55">Me</div><div><div class="rider-name">Myself (head trainer)</div><div class="rider-meta">You'll teach this lesson</div></div>`;
+    selfBtn.onclick=()=>{selStaffTrainer=null;renderTrainerSelector();};
+    list.appendChild(selfBtn);
+  }
 
   if(available.length===0){
     const note=document.createElement('div');
@@ -471,7 +507,10 @@ function go(n){
     if(!selDay||!selTime){alert('Please select a date and time.');return;}
     renderTrainerSelector();
   }
-  if(n===5&&isBarnTier)buildSummary();
+  if(n===5&&isBarnTier){
+    if(selStaffTrainer===undefined){alert('Please pick a trainer for this lesson.');return;}
+    buildSummary();
+  }
   document.getElementById('step-'+cur).classList.remove('active');
   cur=n;
   document.getElementById('step-'+cur).classList.add('active');
@@ -505,7 +544,7 @@ async function saveBooking(){
     for(let w=0;w<recurringWeeks;w++){
       const d=new Date(now.getFullYear(),now.getMonth(),selDay+(w*7));
       const dateStr=d.toLocaleString('default',{month:'long',day:'numeric'});
-      if(isTimeConflict(dateStr,selTime,selLessonType))conflicts.push(dateStr);
+      if(isTimeConflict(dateStr,selTime,selLessonType,selStaffTrainer?selStaffTrainer.id:null))conflicts.push(dateStr);
     }
     if(conflicts.length>0){
       document.getElementById('error').textContent='Conflicts detected. Please go back.';
@@ -568,7 +607,7 @@ function resetForm(){
 async function load(){
   const {data:{user}}=await db.auth.getUser();
   if(!user){window.location.href='login.html';return;}
-  const {data:trainer}=await db.from('trainers').select('barn_open,barn_close,tier,is_lifetime,buffer_minutes').eq('id',user.id).single();
+  const {data:trainer}=await db.from('trainers').select('barn_open,barn_close,tier,is_lifetime,same_staff_buffer').eq('id',user.id).single();
   const isLifetime=trainer?.is_lifetime===true;
   const tier=trainer?.tier||'free';
   if(!isLifetime&&tier==='free'){
@@ -578,10 +617,10 @@ async function load(){
   isBarnTier=tier==='barn';
   barnOpen=trainer?.barn_open||'09:00';
   barnClose=trainer?.barn_close||'18:00';
-  bufferMinutes=trainer?.buffer_minutes??15;
+  sameStaffBuffer=trainer?.same_staff_buffer??false;
   const [{data:riders},{data:allB},{data:lessonTypes},{data:staffTrainers},{data:staffSchedules}]=await Promise.all([
     db.from('riders').select('*').eq('trainer_id',user.id).order('created_at',{ascending:false}),
-    db.from('bookings').select('date,time,duration,lesson_type').eq('trainer_id',user.id),
+    db.from('bookings').select('date,time,duration,lesson_type,staff_trainer_id').eq('trainer_id',user.id),
     db.from('lesson_types').select('*').eq('trainer_id',user.id).eq('active',true).order('sort_order',{ascending:true}),
     db.from('staff_trainers').select('*').eq('head_trainer_id',user.id).eq('active',true),
     db.from('staff_trainer_schedules').select('*').eq('head_trainer_id',user.id)
