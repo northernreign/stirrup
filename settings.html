@@ -344,6 +344,7 @@ const SUPABASE_URL='https://mfinlbqfowymmklhkuhb.supabase.co';
 const SUPABASE_KEY='sb_publishable_PcwbX1YoncwnrHobFmpAIA_L39K4XfK';
 const db=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
 const toggleStates={reminder:true,horse:true,overdue:true,autopay:false};
+const toggleColumnMap={reminder:'notify_reminder',horse:'notify_horse_assignment',overdue:'notify_overdue',autopay:'notify_autopay'};
 let editingLtId=null,editingLtIsSystem=false,userId=null;
 let currentBufferMins=15;
 const bufferOptions=[0,5,10,15,20,30];
@@ -388,11 +389,22 @@ function formatTime(val){
   return`${hour12}:${m===0?'00':'30'} ${ampm}`;
 }
 
-function tog(k){
+async function tog(k){
   toggleStates[k]=!toggleStates[k];
   const el=document.getElementById('t-'+k);
   el.classList.toggle('on',toggleStates[k]);
   el.classList.toggle('off',!toggleStates[k]);
+  const column=toggleColumnMap[k];
+  if(column&&userId){
+    const {error}=await db.from('trainers').update({[column]:toggleStates[k]}).eq('id',userId);
+    if(error){
+      // revert UI on failure so it doesn't claim a setting was saved when it wasn't
+      toggleStates[k]=!toggleStates[k];
+      el.classList.toggle('on',toggleStates[k]);
+      el.classList.toggle('off',!toggleStates[k]);
+      alert('Could not save this setting: '+error.message);
+    }
+  }
 }
 
 function openModal(name){
@@ -553,6 +565,7 @@ function openAddCare(type){
   document.getElementById('care-name').value='';
   document.getElementById('care-phone').value='';
   document.getElementById('care-notes').value='';
+  document.getElementById('care-save-btn').textContent='Add';
   document.getElementById('care-modal-actions').innerHTML=`
     <button class="btn-cancel" onclick="closeModal('care')">Cancel</button>
     <button class="btn-save" id="care-save-btn" onclick="saveCareMember()">Add</button>`;
@@ -674,6 +687,17 @@ async function loadSettings(){
     window._barnClose=trainer.barn_close||'18:00';
     currentBufferMins=trainer.buffer_minutes??15;
     renderBufferBtns();
+    toggleStates.reminder=trainer.notify_reminder??true;
+    toggleStates.horse=trainer.notify_horse_assignment??true;
+    toggleStates.overdue=trainer.notify_overdue??true;
+    toggleStates.autopay=trainer.notify_autopay??false;
+    Object.keys(toggleStates).forEach(k=>{
+      const el=document.getElementById('t-'+k);
+      if(el){
+        el.classList.toggle('on',toggleStates[k]);
+        el.classList.toggle('off',!toggleStates[k]);
+      }
+    });
     const tier=trainer.tier||'free';
     const isLifetime=trainer.is_lifetime===true;
     const tierNames={free:'Stirrup Free',pro:'Stirrup Pro',barn:'Stirrup Barn'};
