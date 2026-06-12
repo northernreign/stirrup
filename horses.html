@@ -21,6 +21,9 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2
 .page-title{font-size:22px;font-weight:600}
 .summary{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:1.25rem}
 .sum{background:#fff;border:1px solid #e8e6e0;border-radius:10px;padding:.75rem 1rem}
+.sum-clickable{cursor:pointer;transition:all .15s;border:1px solid #e8e6e0}
+.sum-clickable:hover{background:#f9f8f5}
+.sum-clickable.active{border-color:#1D9E75;background:#e0f5ed}
 .sum-label{font-size:11px;color:#5a5a55;margin-bottom:3px}
 .sum-val{font-size:20px;font-weight:600;color:#1a1a18}
 .horse-card{background:#fff;border:1px solid #e8e6e0;border-radius:10px;padding:1rem 1.25rem;margin-bottom:8px;transition:background .15s}
@@ -127,10 +130,10 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2
   </div>
 
   <div class="summary">
-    <div class="sum"><div class="sum-label">Total</div><div class="sum-val" id="total-horses">—</div></div>
-    <div class="sum"><div class="sum-label">Grazing 🍀</div><div class="sum-val" id="grazing-horses">—</div></div>
-    <div class="sum"><div class="sum-label">Working 🐴</div><div class="sum-val" id="working-horses">—</div></div>
-    <div class="sum"><div class="sum-label">Resting 😴</div><div class="sum-val" id="resting-horses">—</div></div>
+    <div class="sum sum-clickable" id="filter-total" onclick="setStatusFilter('all')"><div class="sum-label">Total</div><div class="sum-val" id="total-horses">—</div></div>
+    <div class="sum sum-clickable" id="filter-grazing" onclick="setStatusFilter('🍀')"><div class="sum-label">Grazing 🍀</div><div class="sum-val" id="grazing-horses">—</div></div>
+    <div class="sum sum-clickable" id="filter-working" onclick="setStatusFilter('🐴')"><div class="sum-label">Working 🐴</div><div class="sum-val" id="working-horses">—</div></div>
+    <div class="sum sum-clickable" id="filter-resting" onclick="setStatusFilter('😴')"><div class="sum-label">Resting 😴</div><div class="sum-val" id="resting-horses">—</div></div>
   </div>
 
   <div id="horse-list"><div class="loading">Loading horses…</div></div>
@@ -293,6 +296,7 @@ let selPeriodVal='morning';
 const selDays=new Set();
 const dayNames=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
 let userId=null,barnOpen='09:00',barnClose='18:00',isBarnTier=false,bufferMinutes=15;
+let currentStatusFilter='all';
 
 // Care appointment state
 let careType='farrier';
@@ -309,6 +313,20 @@ function getLessonBadge(horseId){
   if(count>=500)return'🏆';
   if(count>=250)return'🏅';
   return null;
+}
+
+function getNextLesson(horseId){
+  const todayStr=new Date().toISOString().split('T')[0];
+  const upcoming=allBookings.filter(b=>{
+    if(b.horse_id!==horseId)return false;
+    if(!b.scheduled_date)return false;
+    return b.scheduled_date>=todayStr;
+  });
+  upcoming.sort((a,b)=>{
+    if(a.scheduled_date!==b.scheduled_date)return a.scheduled_date<b.scheduled_date?-1:1;
+    return parseTimeToMins(a.time)-parseTimeToMins(b.time);
+  });
+  return upcoming[0]||null;
 }
 
 function isRetired(horse){
@@ -909,15 +927,35 @@ function formatDate(str){
   return d.toLocaleString('default',{month:'short',day:'numeric',year:'numeric'});
 }
 
+function setStatusFilter(filter){
+  currentStatusFilter=currentStatusFilter===filter?'all':filter;
+  renderHorses();
+}
+
 function renderHorses(){
   const list=document.getElementById('horse-list');
   const active=allHorses.filter(h=>h.active);
   document.getElementById('total-horses').textContent=active.length;
 
   const statuses=active.map(h=>getHorseStatus(h));
-  document.getElementById('grazing-horses').textContent=statuses.filter(s=>s.badge==='🍀').length;
-  document.getElementById('working-horses').textContent=statuses.filter(s=>s.badge==='🐴').length;
-  document.getElementById('resting-horses').textContent=statuses.filter(s=>s.badge==='😴').length;
+  const grazingCount=statuses.filter(s=>s.badge==='🍀').length;
+  const workingCount=statuses.filter(s=>s.badge==='🐴').length;
+  const restingCount=statuses.filter(s=>s.badge==='😴').length;
+  document.getElementById('grazing-horses').textContent=grazingCount;
+  document.getElementById('working-horses').textContent=workingCount;
+  document.getElementById('resting-horses').textContent=restingCount;
+
+  ['filter-total','filter-grazing','filter-working','filter-resting'].forEach(id=>document.getElementById(id).classList.remove('active'));
+  const filterIdMap={'all':'filter-total','🍀':'filter-grazing','🐴':'filter-working','😴':'filter-resting'};
+  if(filterIdMap[currentStatusFilter])document.getElementById(filterIdMap[currentStatusFilter]).classList.add('active');
+
+  let visible=active;
+  let statusesVisible=statuses;
+  if(currentStatusFilter!=='all'){
+    const pairs=active.map((h,i)=>({h,status:statuses[i]})).filter(p=>p.status.badge===currentStatusFilter);
+    visible=pairs.map(p=>p.h);
+    statusesVisible=pairs.map(p=>p.status);
+  }
 
   if(active.length===0){
     list.innerHTML=`<div class="empty">
@@ -929,9 +967,18 @@ function renderHorses(){
     return;
   }
 
+  if(visible.length===0){
+    list.innerHTML=`<div class="empty">
+      <div class="empty-icon">🐴</div>
+      <div class="empty-title">No horses match this filter</div>
+      <div class="empty-sub">Try a different status filter.</div>
+    </div>`;
+    return;
+  }
+
   list.innerHTML='';
-  active.forEach((h,idx)=>{
-    const status=statuses[idx];
+  visible.forEach((h,idx)=>{
+    const status=statusesVisible[idx];
     const lessonBadge=status.retired?null:getLessonBadge(h.id);
     const periods=allRestPeriods.filter(r=>r.horse_id===h.id);
     const schedules=allRestSchedules.filter(r=>r.horse_id===h.id);
@@ -988,6 +1035,9 @@ function renderHorses(){
           <button class="btn-sm-danger" onclick="removeHorse('${h.id}')">Remove horse</button>
         </div>`;
 
+    const nextLesson=status.retired?null:getNextLesson(h.id);
+    const nextLessonHtml=nextLesson?`<div class="horse-meta">📅 Next lesson: ${nextLesson.date} at ${nextLesson.time}${nextLesson.rider_name?' · '+nextLesson.rider_name:''}${nextLesson.lesson_type?' · '+nextLesson.lesson_type:''}</div>`:'';
+
     card.innerHTML=`
       <div class="horse-top">
         <div class="horse-icon">🐴</div>
@@ -999,6 +1049,7 @@ function renderHorses(){
             ${status.label?`<span style="font-size:11px;color:#5a5a55;background:#f0efe9;padding:2px 8px;border-radius:20px">${status.label}</span>`:''}
           </div>
           <div class="horse-meta">${[h.breed,h.color].filter(Boolean).join(' · ')||'No details'}${h.notes?' · '+h.notes:''}</div>
+          ${nextLessonHtml}
         </div>
       </div>
       ${restHtml&&!status.retired?`<div style="margin-top:10px;padding-top:10px;border-top:1px solid #f0efe9">${restHtml}</div>`:''}
@@ -1022,7 +1073,7 @@ async function load(){
     db.from('horse_rest_periods').select('*').eq('trainer_id',userId),
     db.from('horse_rest_schedules').select('*').eq('trainer_id',userId),
     db.from('bookings').select('horse_id,rider_name,time,duration,scheduled_date').eq('trainer_id',userId).eq('scheduled_date',todayStr),
-    db.from('bookings').select('id,horse_id,rider_name,time,duration,scheduled_date,date,payment_status').eq('trainer_id',userId).not('horse_id','is',null),
+    db.from('bookings').select('id,horse_id,rider_name,time,duration,scheduled_date,date,payment_status,lesson_type').eq('trainer_id',userId).not('horse_id','is',null),
     db.from('care_appointments').select('*').eq('trainer_id',userId),
     db.from('care_team').select('*').eq('trainer_id',userId).eq('active',true)
   ]);
