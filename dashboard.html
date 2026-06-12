@@ -26,6 +26,7 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 1
 .metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:1.25rem}
 .metric{background:#fff;border:1px solid #e8e6e0;border-radius:12px;padding:.875rem;cursor:pointer;transition:border-color .15s}
 .metric:hover{border-color:#1D9E75}
+.metric.alert{border-color:#e8a020}
 .metric-label{font-size:11px;color:#5a5a55;margin-bottom:5px}
 .metric-val{font-size:22px;font-weight:600;color:#1a1a18}
 .metric-sub{font-size:11px;color:#8a8a85;margin-top:2px}
@@ -55,6 +56,8 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 1
 .ev-jumping{background:#fde8c0;color:#7a4500}
 .ev-dressage{background:#fad9d0;color:#6b1f10}
 .ev-other{background:#e8e6e0;color:#3a3a35}
+.ev-farrier{background:#faeeda;color:#633806}
+.ev-vet{background:#e6f0fb;color:#0c447c}
 .more-events{font-size:9px;color:#8a8a85;padding:1px 3px;cursor:pointer}
 
 /* Weekly calendar (mobile) */
@@ -146,6 +149,7 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 1
       <a href="horses.html" class="btn btn-ghost">Horses</a>
       <a href="riders.html" class="btn btn-ghost">Riders</a>
       <a href="trainers.html" class="btn btn-ghost">Trainers</a>
+      <a href="assign-horses.html" class="btn btn-ghost">Assign horses</a>
       <a href="settings.html" class="btn btn-ghost">Settings</a>
     </div>
     <a href="book.html" class="btn btn-primary">+ Book</a>
@@ -165,10 +169,10 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 1
   </div>
 
   <div class="metrics">
-    <div class="metric" onclick="window.location.href='book.html'">
-      <div class="metric-label">Total bookings</div>
-      <div class="metric-val" id="m-lessons">—</div>
-      <div class="metric-sub">scheduled</div>
+    <div class="metric" id="metric-needs-horse" onclick="window.location.href='assign-horses.html'">
+      <div class="metric-label">Needs horse</div>
+      <div class="metric-val" id="m-needs-horse">—</div>
+      <div class="metric-sub">due within 24hrs</div>
     </div>
     <div class="metric" onclick="window.location.href='riders.html'">
       <div class="metric-label">Riders</div>
@@ -205,6 +209,8 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 1
         <div class="legend-item"><div class="legend-dot" style="background:#e4e2fd"></div>Group</div>
         <div class="legend-item"><div class="legend-dot" style="background:#fde8c0"></div>Jumping</div>
         <div class="legend-item"><div class="legend-dot" style="background:#fad9d0"></div>Dressage</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#faeeda"></div>🔨 Farrier</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#e6f0fb"></div>🩺 Vet</div>
         <div class="legend-item"><div class="legend-dot" style="background:#e8e6e0"></div>Other</div>
       </div>
 
@@ -259,6 +265,7 @@ let calYear=new Date().getFullYear();
 let calMonth=new Date().getMonth();
 let weekOffset=0;
 let allBookings=[];
+let allCareAppointments=[];
 const dayLabels=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 const dayLabelsShort=['S','M','T','W','T','F','S'];
 const monthNames=['January','February','March','April','May','June','July','August','September','October','November','December'];
@@ -270,7 +277,9 @@ const eventColors={
   group:{bg:'#e4e2fd',dot:'#7c6fd4'},
   jumping:{bg:'#fde8c0',dot:'#e8a020'},
   dressage:{bg:'#fad9d0',dot:'#c0392b'},
-  other:{bg:'#e8e6e0',dot:'#5a5a55'}
+  other:{bg:'#e8e6e0',dot:'#5a5a55'},
+  farrier:{bg:'#faeeda',dot:'#633806'},
+  vet:{bg:'#e6f0fb',dot:'#0c447c'}
 };
 
 function getEventColor(lessonType){
@@ -291,6 +300,15 @@ function getEventClass(lessonType){
   return'ev-other';
 }
 
+function parseTimeToMins(timeStr){
+  if(!timeStr)return 0;
+  const[timePart,ampm]=timeStr.split(' ');
+  let[h,m]=timePart.split(':').map(Number);
+  if(ampm==='PM'&&h!==12)h+=12;
+  if(ampm==='AM'&&h===12)h=0;
+  return h*60+m;
+}
+
 function getWeekStart(offset){
   const d=new Date();
   const day=d.getDay();
@@ -303,6 +321,11 @@ function getWeekStart(offset){
 function openBooking(bk){
   localStorage.setItem('stirrup_viewing_booking',JSON.stringify(bk));
   window.location.href='booking.html';
+}
+
+function openCareAppt(c){
+  // No dedicated detail page for care appointments yet — send to horses.html
+  window.location.href='horses.html';
 }
 
 function changeMonth(dir){
@@ -338,15 +361,25 @@ function renderCalendar(){
     const isToday=date.toDateString()===new Date().toDateString();
     const dateStr=date.toISOString().split('T')[0];
     const dayBookings=allBookings.filter(b=>b.scheduled_date===dateStr).sort((a,b)=>a.time>b.time?1:-1);
+    const dayCare=allCareAppointments.filter(c=>c.scheduled_date===dateStr).sort((a,b)=>a.time>b.time?1:-1);
     const cell=document.createElement('div');
     cell.className='cal-day'+(isToday?' today':'');
     let html=`<div class="cal-day-num">${d}</div>`;
     const maxShow=3;
+    let shown=0;
     dayBookings.slice(0,maxShow).forEach(bk=>{
       const cls=getEventClass(bk.lesson_type);
       html+=`<div class="cal-event ${cls}" onclick="event.stopPropagation();openBooking(${JSON.stringify(bk).replace(/"/g,'&quot;')})" title="${bk.rider_name} · ${bk.time}">${bk.time} ${bk.rider_name.split(' ')[0]}</div>`;
+      shown++;
     });
-    if(dayBookings.length>maxShow)html+=`<div class="more-events">+${dayBookings.length-maxShow} more</div>`;
+    dayCare.slice(0,Math.max(0,maxShow-shown)).forEach(c=>{
+      const icon=c.type==='farrier'?'🔨':'🩺';
+      const cls=c.type==='farrier'?'ev-farrier':'ev-vet';
+      html+=`<div class="cal-event ${cls}" onclick="event.stopPropagation();openCareAppt(${JSON.stringify(c).replace(/"/g,'&quot;')})" title="${c.horse_name} · ${c.time}">${c.time} ${icon} ${c.horse_name}</div>`;
+      shown++;
+    });
+    const totalEvents=dayBookings.length+dayCare.length;
+    if(totalEvents>shown)html+=`<div class="more-events">+${totalEvents-shown} more</div>`;
     cell.innerHTML=html;
     g.appendChild(cell);
   }
@@ -393,7 +426,8 @@ function renderWeekCal(){
     const dateStr=d.toISOString().split('T')[0];
     const isToday=d.toDateString()===new Date().toDateString();
     const dayBookings=allBookings.filter(b=>b.scheduled_date===dateStr).sort((a,b)=>a.time>b.time?1:-1);
-    if(dayBookings.length===0)continue;
+    const dayCare=allCareAppointments.filter(c=>c.scheduled_date===dateStr).sort((a,b)=>a.time>b.time?1:-1);
+    if(dayBookings.length===0&&dayCare.length===0)continue;
     hasAny=true;
 
     const dayEl=document.createElement('div');
@@ -408,6 +442,16 @@ function renderWeekCal(){
         <div class="week-event-dot" style="background:${color.dot}"></div>
         <div class="week-event-name">${bk.rider_name}</div>
         <div class="week-event-time">${bk.time}</div>
+      </div>`;
+    });
+
+    dayCare.forEach(c=>{
+      const icon=c.type==='farrier'?'🔨':'🩺';
+      const color=c.type==='farrier'?eventColors.farrier:eventColors.vet;
+      html+=`<div class="week-event-item" onclick="openCareAppt(${JSON.stringify(c).replace(/"/g,'&quot;')})">
+        <div class="week-event-dot" style="background:${color.dot}"></div>
+        <div class="week-event-name">${icon} ${c.horse_name}</div>
+        <div class="week-event-time">${c.time}</div>
       </div>`;
     });
 
@@ -453,6 +497,14 @@ const activityConfig={
     label:(a)=>`<strong>${a.entity_name}</strong> is back to grazing`},
   horse_started_rest:{icon:'😴',bg:'#fcebeb',color:'color-brown',
     label:(a)=>`<strong>${a.entity_name}</strong> started their scheduled rest`},
+  horse_assigned:{icon:'🐴',bg:'#e0f5ed',color:'color-green',
+    label:(a)=>`<strong>${a.meta?.horse_name||'A horse'}</strong> was assigned to <strong>${a.entity_name}'s</strong> lesson`},
+  care_farrier_scheduled:{icon:'🔨',bg:'#faeeda',color:'color-amber',
+    label:(a)=>`Farrier scheduled for <strong>${a.entity_name}</strong>${a.meta?.date?' · '+a.meta.date+' at '+a.meta.time:''}`},
+  care_vet_scheduled:{icon:'🩺',bg:'#e6f0fb',color:'color-blue',
+    label:(a)=>`Vet appointment scheduled for <strong>${a.entity_name}</strong>${a.meta?.date?' · '+a.meta.date+' at '+a.meta.time:''}`},
+  care_appointment_removed:{icon:'📅',bg:'#f0efe9',color:'color-amber',
+    label:(a)=>`A care appointment for <strong>${a.entity_name}</strong> was removed`},
   trainer_added:{icon:'👤',bg:'#e0f5ed',color:'color-purple',
     label:(a)=>`<strong>${a.entity_name}</strong> was added as a staff trainer`},
   trainer_availability_changed:{icon:'📅',bg:'#e6f0fb',color:'color-blue',
@@ -530,25 +582,42 @@ async function load(){
     badgeEl.innerHTML=`<div class="free-badge"><strong id="bookings-left">—</strong> left</div>`;
   }
 
-  const [{data:riders},{data:bookings},{data:horses},{data:activities}]=await Promise.all([
+  const todayStr=new Date().toISOString().split('T')[0];
+
+  const [{data:riders},{data:bookings},{data:horses},{data:activities},{data:careAppts}]=await Promise.all([
     db.from('riders').select('*').eq('trainer_id',user.id),
     db.from('bookings').select('*').eq('trainer_id',user.id).order('scheduled_date',{ascending:true}),
     db.from('horses').select('*').eq('trainer_id',user.id).eq('active',true),
-    db.from('activity_log').select('*').eq('trainer_id',user.id).order('created_at',{ascending:false}).limit(15)
+    db.from('activity_log').select('*').eq('trainer_id',user.id).order('created_at',{ascending:false}).limit(15),
+    db.from('care_appointments').select('*').eq('trainer_id',user.id).gte('scheduled_date',todayStr)
   ]);
 
   const r=riders||[];
   const b=bookings||[];
   allBookings=b;
+  allCareAppointments=careAppts||[];
 
   document.getElementById('m-riders').textContent=r.length;
-  document.getElementById('m-lessons').textContent=b.length;
   document.getElementById('m-horses').textContent=(horses||[]).length;
 
   if(tier==='free'){
     const blEl=document.getElementById('bookings-left');
     if(blEl)blEl.textContent=Math.max(0,20-b.length);
   }
+
+  // Needs horse: unassigned bookings due within 24hrs
+  const now=new Date();
+  const in24h=new Date(now.getTime()+24*60*60*1000);
+  const needsHorse=b.filter(bk=>{
+    if(bk.horse_id)return false;
+    if(!bk.scheduled_date||!bk.time)return false;
+    const d=new Date(bk.scheduled_date+'T00:00:00');
+    const mins=parseTimeToMins(bk.time);
+    d.setHours(Math.floor(mins/60),mins%60,0,0);
+    return d>=now&&d<=in24h;
+  });
+  document.getElementById('m-needs-horse').textContent=needsHorse.length;
+  document.getElementById('metric-needs-horse').classList.toggle('alert',needsHorse.length>0);
 
   const awaitingPayment=b.filter(bk=>lessonPassed(bk)&&bk.payment_status!=='paid');
   document.getElementById('m-unpaid').textContent=awaitingPayment.length;
