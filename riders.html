@@ -35,7 +35,8 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2
 .rider-name{font-size:14px;font-weight:500;color:#1a1a18;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
 .rider-meta{font-size:12px;color:#5a5a55;margin-top:1px}
 .rider-right{display:flex;align-items:center;gap:10px;flex-shrink:0}
-.payment-badge{font-size:11px;padding:2px 8px;border-radius:20px;font-weight:500}
+.payment-badge{font-size:11px;padding:2px 8px;border-radius:20px;font-weight:500;border:none;cursor:pointer;font-family:'Inter',sans-serif;transition:opacity .15s}
+.payment-badge:hover{opacity:.75}
 .badge-overdue{background:#faeeda;color:#633806}
 .badge-serious{background:#fcebeb;color:#791f1f}
 .chevron{font-size:14px;color:#8a8a85}
@@ -109,10 +110,19 @@ function getRiderPaymentStatus(riderId){
   return'current';
 }
 
-function getPaymentBadge(status){
-  if(status==='serious')return'<span class="payment-badge badge-serious">⚠️ Notice sent</span>';
-  if(status==='overdue')return'<span class="payment-badge badge-overdue">Payment due</span>';
+function getPaymentBadge(status,riderId){
+  if(status==='serious')return`<button class="payment-badge badge-serious" onclick="goToUnpaid(event,'${riderId}')">⚠️ Notice sent</button>`;
+  if(status==='overdue')return`<button class="payment-badge badge-overdue" onclick="goToUnpaid(event,'${riderId}')">Payment due</button>`;
   return'';
+}
+
+function goToUnpaid(event,riderId){
+  event.stopPropagation();
+  const r=allRiders.find(x=>x.id===riderId);
+  if(!r)return;
+  localStorage.setItem('stirrup_viewing_rider',JSON.stringify(r));
+  localStorage.setItem('stirrup_open_lessons_tab','true');
+  window.location.href='rider.html';
 }
 
 function filterRiders(){
@@ -147,11 +157,11 @@ function renderRiders(riders){
     const payStatus=getRiderPaymentStatus(r.id);
     const card=document.createElement('div');
     card.className='rider-card';
-    card.onclick=()=>{localStorage.setItem('stirrup_viewing_rider',JSON.stringify(r));window.location.href='rider.html';};
+    card.onclick=()=>{localStorage.setItem('stirrup_viewing_rider',JSON.stringify(r));localStorage.removeItem('stirrup_open_lessons_tab');window.location.href='rider.html';};
     card.innerHTML=`
       <div class="av">${badge}</div>
       <div class="rider-info">
-        <div class="rider-name">${r.first_name} ${r.last_name} ${getPaymentBadge(payStatus)}</div>
+        <div class="rider-name">${r.first_name} ${r.last_name} ${getPaymentBadge(payStatus,r.id)}</div>
         <div class="rider-meta">${r.level||'No level'} · ${r.lesson_type||'No type'}</div>
       </div>
       <div class="rider-right">
