@@ -30,7 +30,7 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2
 .sum-val{font-size:20px;font-weight:600;color:#1a1a18}
 .trainer-card{background:#fff;border:1px solid #e8e6e0;border-radius:10px;padding:1rem 1.25rem;margin-bottom:8px}
 .trainer-top{display:flex;align-items:center;gap:12px}
-.trainer-av{width:40px;height:40px;border-radius:50%;background:#f9f8f5;border:1px solid #e8e6e0;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.trainer-av{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
 .trainer-info{flex:1;min-width:0}
 .trainer-name{font-size:14px;font-weight:500;color:#1a1a18;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
 .trainer-role{font-size:11px;color:#8a8a85;margin-top:2px}
@@ -69,6 +69,7 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2
 .btn-save:hover{background:#178a64}
 .btn-save:disabled{background:#9ad4be;cursor:not-allowed}
 .error{background:#fcebeb;color:#c0392b;font-size:13px;padding:10px 12px;border-radius:8px;margin-bottom:14px;display:none}
+.success{background:#e0f5ed;color:#0f6e47;font-size:13px;padding:10px 12px;border-radius:8px;margin-bottom:14px;display:none}
 .section-title{font-size:13px;font-weight:600;color:#1a1a18;margin-bottom:8px;margin-top:14px}
 .day-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:8px}
 .day-btn{padding:6px 0;border-radius:6px;font-size:11px;text-align:center;cursor:pointer;border:1px solid #d4d2cb;background:#fff;color:#5a5a55;font-family:'Inter',sans-serif}
@@ -102,6 +103,8 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2
       <a href="paywall.html" class="btn-upgrade">Upgrade to Barn — $49/mo →</a>
     </div>
   </div>
+
+  <div class="success" id="page-success"></div>
 
   <div class="summary">
     <div class="sum"><div class="sum-label">Staff trainers</div><div class="sum-val" id="total-trainers">—</div></div>
@@ -150,6 +153,7 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2
     <div class="modal-sub" id="sched-trainer-name">Set when this trainer is available.</div>
     <div class="unavail-note">⚠️ This trainer is unavailable until at least one availability slot is set.</div>
     <div class="error" id="sched-error"></div>
+    <div class="success" id="sched-success"></div>
     <div class="section-title">Available days</div>
     <div class="day-grid" id="sched-days"></div>
     <div style="font-size:12px;color:#5a5a55;margin-bottom:6px">Available period</div>
@@ -184,11 +188,24 @@ function getTrainerBadge(createdAt){
   return'🧑‍🏫';
 }
 
+function getTrainerAvatarBg(createdAt){
+  if(!createdAt)return'#e0f5ed';
+  const months=(Date.now()-new Date(createdAt).getTime())/(1000*60*60*24*30.44);
+  if(months>=24)return'#faeeda';
+  return'#e0f5ed';
+}
+
 function getTrainerRole(createdAt){
   if(!createdAt)return'Staff trainer';
   const months=(Date.now()-new Date(createdAt).getTime())/(1000*60*60*24*30.44);
   if(months>=24)return'🎖️ Senior trainer · '+Math.floor(months/12)+' yr'+( Math.floor(months/12)>1?'s':'');
   return'🧑‍🏫 Staff trainer · '+Math.floor(months)+' months';
+}
+
+function showPageSuccess(msg){
+  const el=document.getElementById('page-success');
+  el.textContent=msg;el.style.display='block';
+  setTimeout(()=>{el.style.display='none';},3000);
 }
 
 function openModal(name){
@@ -224,6 +241,7 @@ function openSchedModal(trainerId,trainerName){
   currentTrainerId=trainerId;currentTrainerName=trainerName;
   document.getElementById('sched-trainer-name').textContent=`Set when ${trainerName} is available at the barn.`;
   document.getElementById('sched-error').style.display='none';
+  document.getElementById('sched-success').style.display='none';
   selSchedDays.clear();selSchedPeriodVal='morning';
   renderSchedDays();
   ['morning','afternoon','full'].forEach(p=>document.getElementById('sp-'+p).classList.toggle('sel',p===selSchedPeriodVal));
@@ -271,7 +289,9 @@ async function saveTrainer(){
     trainer_id:userId,action:'trainer_added',
     entity_type:'staff_trainer',entity_id:trainer.id,entity_name:name
   });
-  closeModal('add');load();
+  closeModal('add');
+  await load();
+  showPageSuccess(`${name} added. Set their availability so they can be booked.`);
 }
 
 async function saveEditTrainer(){
@@ -297,7 +317,9 @@ async function saveEditTrainer(){
     entity_type:'staff_trainer',entity_name:name,
     meta:{change:'profile_edited'}
   });
-  closeModal('edit');load();
+  closeModal('edit');
+  await load();
+  showPageSuccess(`${name}'s profile was updated.`);
 }
 
 async function saveSchedule(){
@@ -305,6 +327,7 @@ async function saveSchedule(){
     document.getElementById('sched-error').textContent='Please select at least one day.';
     document.getElementById('sched-error').style.display='block';return;
   }
+  document.getElementById('sched-error').style.display='none';
   const btn=document.getElementById('sched-save-btn');
   btn.disabled=true;btn.textContent='Saving…';
   const inserts=[...selSchedDays].map(d=>({
@@ -323,8 +346,12 @@ async function saveSchedule(){
     entity_type:'staff_trainer',entity_id:currentTrainerId,entity_name:currentTrainerName,
     meta:{days:[...selSchedDays],period:selSchedPeriodVal}
   });
-  document.getElementById('sched-error').style.display='none';
-  selSchedDays.clear();renderSchedDays();load();
+  const dayLabels=[...selSchedDays].sort().map(d=>dayNames[d]).join(', ');
+  const periodLabel=selSchedPeriodVal==='full'?'all day':selSchedPeriodVal;
+  document.getElementById('sched-success').textContent=`Added: ${dayLabels} · ${periodLabel}`;
+  document.getElementById('sched-success').style.display='block';
+  selSchedDays.clear();renderSchedDays();
+  await load();
 }
 
 async function removeSchedule(id,trainerName){
@@ -334,13 +361,14 @@ async function removeSchedule(id,trainerName){
     entity_type:'staff_trainer',entity_name:trainerName,
     meta:{change:'schedule_removed'}
   });
-  load();
+  await load();
+  showPageSuccess(`Availability removed for ${trainerName}.`);
 }
 
 async function removeTrainer(id){
   if(!confirm('Remove this trainer?'))return;
   await db.from('staff_trainers').update({active:false}).eq('id',id);
-  load();
+  await load();
 }
 
 function renderTrainers(){
@@ -365,6 +393,7 @@ function renderTrainers(){
     const schedules=allSchedules.filter(s=>s.staff_trainer_id===t.id);
     const hasSchedule=schedules.length>0;
     const badge=getTrainerBadge(t.created_at);
+    const avatarBg=getTrainerAvatarBg(t.created_at);
     const role=getTrainerRole(t.created_at);
     const card=document.createElement('div');
     card.className='trainer-card';
@@ -384,7 +413,7 @@ function renderTrainers(){
 
     card.innerHTML=`
       <div class="trainer-top">
-        <div class="trainer-av">${badge}</div>
+        <div class="trainer-av" style="background:${avatarBg}">${badge}</div>
         <div class="trainer-info">
           <div class="trainer-name">${t.name}</div>
           <div class="trainer-role">${role}</div>
