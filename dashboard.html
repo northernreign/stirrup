@@ -466,7 +466,7 @@ function renderWeekCal(){
 
 const activityConfig={
   booking_created:{icon:'🗓',bg:'#e0f5ed',color:'color-blue',
-    label:(a)=>`<strong>${a.entity_name}</strong> booked a ${a.meta?.lesson_type||'lesson'}${a.meta?.date?' on '+a.meta.date:''}`},
+    label:(a)=>`<strong>${a.entity_name}</strong> booked a ${a.meta?.lesson_type||'lesson'}${a.meta?.date?' on '+a.meta.date:''}${a.meta?.time?' at '+a.meta.time:''}${a.meta?.staff_trainer_name?' with <strong>'+a.meta.staff_trainer_name+'</strong>':''}`},
   booking_rescheduled:{icon:'✏️',bg:'#e6f0fb',color:'color-blue',
     label:(a)=>`<strong>${a.entity_name}'s</strong> lesson was rescheduled${a.meta?.new_date?' to '+a.meta.new_date:''}`},
   booking_cancelled:{icon:'🚫',bg:'#fcebeb',color:'color-red',
@@ -498,7 +498,7 @@ const activityConfig={
   horse_started_rest:{icon:'😴',bg:'#fcebeb',color:'color-brown',
     label:(a)=>`<strong>${a.entity_name}</strong> started their scheduled rest`},
   horse_assigned:{icon:'🐴',bg:'#e0f5ed',color:'color-green',
-    label:(a)=>`<strong>${a.meta?.horse_name||'A horse'}</strong> was assigned to <strong>${a.entity_name}'s</strong> lesson`},
+    label:(a)=>`<strong>${a.meta?.horse_name||'A horse'}</strong> was assigned to <strong>${a.entity_name}'s</strong>${a.meta?.lesson_type?' '+a.meta.lesson_type:''} lesson`},
   care_farrier_scheduled:{icon:'🔨',bg:'#faeeda',color:'color-amber',
     label:(a)=>`Farrier scheduled for <strong>${a.entity_name}</strong>${a.meta?.date?' · '+a.meta.date+' at '+a.meta.time:''}`},
   care_vet_scheduled:{icon:'🩺',bg:'#e6f0fb',color:'color-blue',
