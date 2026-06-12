@@ -20,6 +20,8 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2
 .section{margin-bottom:1.75rem}
 .lesson-card{background:#fff;border:1px solid #e8e6e0;border-radius:12px;padding:1rem 1.25rem;margin-bottom:10px}
 .lesson-card.urgent{border-color:#1D9E75}
+.lesson-card.overdue{border-color:#c0392b}
+.overdue-pill{font-size:11px;padding:2px 8px;border-radius:20px;background:#fcebeb;color:#c0392b;font-weight:500;white-space:nowrap}
 .lesson-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:10px;gap:10px}
 .lesson-info{flex:1}
 .lesson-rider{font-size:14px;font-weight:600;color:#1a1a18}
@@ -59,6 +61,11 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2
 <div class="wrap">
   <div class="page-title">Assign horses</div>
   <div class="page-sub">Pick a horse for each upcoming lesson.</div>
+
+  <div class="section" id="overdue-section" style="display:none">
+    <div class="section-title">Overdue · already happened</div>
+    <div id="overdue-list"></div>
+  </div>
 
   <div class="section" id="due-section" style="display:none">
     <div class="section-title">Due now · within 24 hours</div>
@@ -233,9 +240,9 @@ function formatLessonMeta(b){
   return `${b.lesson_type||'Lesson'} · ${b.date} at ${b.time}${b.duration?' · '+b.duration:''}`;
 }
 
-function renderLessonCard(b,urgent){
+function renderLessonCard(b,category){
   const card=document.createElement('div');
-  card.className='lesson-card'+(urgent?' urgent':'');
+  card.className='lesson-card'+(category==='overdue'?' overdue':category==='due'?' urgent':'');
 
   const top=document.createElement('div');
   top.className='lesson-top';
@@ -245,9 +252,6 @@ function renderLessonCard(b,urgent){
   info.innerHTML=`<div class="lesson-rider">${b.rider_name}</div><div class="lesson-meta">${formatLessonMeta(b)}</div>`;
   top.appendChild(info);
 
-  const gridWrap=document.createElement('div');
-  gridWrap.className='horse-grid-wrap';
-
   if(b.horse_id){
     const pill=document.createElement('div');
     pill.className='assigned-pill';
@@ -256,13 +260,17 @@ function renderLessonCard(b,urgent){
     changeBtn.className='btn-change';
     changeBtn.textContent='Change';
     changeBtn.onclick=()=>{
-      gridWrap.style.display='block';
+      gridWrapRef.style.display='block';
       pill.style.display='none';
     };
     pill.appendChild(changeBtn);
     top.appendChild(pill);
-    gridWrap.style.display='none';
-  } else if(urgent){
+  } else if(category==='overdue'){
+    const pill=document.createElement('div');
+    pill.className='overdue-pill';
+    pill.textContent='Overdue';
+    top.appendChild(pill);
+  } else if(category==='due'){
     const pill=document.createElement('div');
     pill.className='urgent-pill';
     pill.textContent='Needs horse';
@@ -270,8 +278,14 @@ function renderLessonCard(b,urgent){
   }
 
   card.appendChild(top);
+
+  const gridWrap=document.createElement('div');
+  gridWrap.className='horse-grid-wrap';
+  if(b.horse_id)gridWrap.style.display='none';
   gridWrap.appendChild(renderHorseGrid(b));
   card.appendChild(gridWrap);
+
+  var gridWrapRef=gridWrap;
 
   return card;
 }
@@ -279,51 +293,59 @@ function renderLessonCard(b,urgent){
 function render(){
   const now=new Date();
   const in24h=new Date(now.getTime()+24*60*60*1000);
-  const todayStart=new Date();todayStart.setHours(0,0,0,0);
 
   const unassigned=allBookings.filter(b=>{
-    const d=new Date(b.scheduled_date+'T00:00:00');
-    return d>=todayStart && !b.horse_id;
+    return !b.horse_id && b.scheduled_date && b.time;
   }).sort((a,b)=>{
     if(a.scheduled_date!==b.scheduled_date)return a.scheduled_date<b.scheduled_date?-1:1;
     return parseTimeToMins(a.time)-parseTimeToMins(b.time);
   });
 
-  const due=[],upcoming=[];
+  const overdue=[],due=[],upcoming=[];
   unassigned.forEach(b=>{
     const dateObj=new Date(b.scheduled_date+'T00:00:00');
     const mins=parseTimeToMins(b.time);
     dateObj.setHours(Math.floor(mins/60),mins%60,0,0);
-    if(dateObj<=in24h)due.push(b);
+    if(dateObj<now)overdue.push(b);
+    else if(dateObj<=in24h)due.push(b);
     else upcoming.push(b);
   });
 
+  const overdueSection=document.getElementById('overdue-section');
   const dueSection=document.getElementById('due-section');
   const upcomingSection=document.getElementById('upcoming-section');
+  const overdueList=document.getElementById('overdue-list');
   const dueList=document.getElementById('due-list');
   const upcomingList=document.getElementById('upcoming-list');
-  dueList.innerHTML='';upcomingList.innerHTML='';
+  overdueList.innerHTML='';dueList.innerHTML='';upcomingList.innerHTML='';
+
+  if(overdue.length>0){
+    overdueSection.style.display='block';
+    overdue.forEach(b=>overdueList.appendChild(renderLessonCard(b,'overdue')));
+  } else {
+    overdueSection.style.display='none';
+  }
 
   if(due.length>0){
     dueSection.style.display='block';
-    due.forEach(b=>dueList.appendChild(renderLessonCard(b,true)));
+    due.forEach(b=>dueList.appendChild(renderLessonCard(b,'due')));
   } else {
     dueSection.style.display='none';
   }
 
   if(upcoming.length>0){
     upcomingSection.style.display='block';
-    upcoming.forEach(b=>upcomingList.appendChild(renderLessonCard(b,false)));
+    upcoming.forEach(b=>upcomingList.appendChild(renderLessonCard(b,'upcoming')));
   } else {
     upcomingSection.style.display='none';
   }
 
   const empty=document.getElementById('empty-state');
-  if(due.length===0&&upcoming.length===0){
+  if(overdue.length===0&&due.length===0&&upcoming.length===0){
     empty.innerHTML=`<div class="empty">
       <div class="empty-icon">🐴</div>
       <div class="empty-title">All caught up</div>
-      <div class="empty-sub">Every upcoming lesson has a horse assigned.</div>
+      <div class="empty-sub">Every lesson has a horse assigned.</div>
     </div>`;
   } else {
     empty.innerHTML='';
@@ -334,10 +356,9 @@ async function load(){
   const {data:{user}}=await db.auth.getUser();
   if(!user){window.location.href='login.html';return;}
   userId=user.id;
-  const todayStr=new Date().toISOString().split('T')[0];
 
   const [{data:bookings},{data:horses},{data:periods},{data:schedules},{data:careAppts}]=await Promise.all([
-    db.from('bookings').select('id,rider_name,lesson_type,date,scheduled_date,time,duration,horse_id,horse_name').eq('trainer_id',userId).gte('scheduled_date',todayStr),
+    db.from('bookings').select('id,rider_name,lesson_type,date,scheduled_date,time,duration,horse_id,horse_name').eq('trainer_id',userId),
     db.from('horses').select('*').eq('trainer_id',userId).eq('active',true).order('name',{ascending:true}),
     db.from('horse_rest_periods').select('*').eq('trainer_id',userId),
     db.from('horse_rest_schedules').select('*').eq('trainer_id',userId),
