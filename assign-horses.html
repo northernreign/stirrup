@@ -231,7 +231,7 @@ async function assignHorse(bookingId,horseId,horseName){
   await db.from('activity_log').insert({
     trainer_id:userId,action:'horse_assigned',
     entity_type:'booking',entity_name:booking?booking.rider_name:'',
-    meta:{horse_name:horseName}
+    meta:{horse_name:horseName,lesson_type:booking?booking.lesson_type:null}
   });
   load();
 }
