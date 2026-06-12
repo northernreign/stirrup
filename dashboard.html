@@ -172,7 +172,7 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 1
     <div class="metric" id="metric-needs-horse" onclick="window.location.href='assign-horses.html'">
       <div class="metric-label">Needs horse</div>
       <div class="metric-val" id="m-needs-horse">—</div>
-      <div class="metric-sub">due within 24hrs</div>
+      <div class="metric-sub">overdue or due soon</div>
     </div>
     <div class="metric" onclick="window.location.href='riders.html'">
       <div class="metric-label">Riders</div>
@@ -605,7 +605,7 @@ async function load(){
     if(blEl)blEl.textContent=Math.max(0,20-b.length);
   }
 
-  // Needs horse: unassigned bookings due within 24hrs
+  // Needs horse: unassigned bookings that are overdue OR due within 24hrs
   const now=new Date();
   const in24h=new Date(now.getTime()+24*60*60*1000);
   const needsHorse=b.filter(bk=>{
@@ -614,7 +614,7 @@ async function load(){
     const d=new Date(bk.scheduled_date+'T00:00:00');
     const mins=parseTimeToMins(bk.time);
     d.setHours(Math.floor(mins/60),mins%60,0,0);
-    return d>=now&&d<=in24h;
+    return d<=in24h; // includes overdue (d < now) and due-soon (now <= d <= in24h)
   });
   document.getElementById('m-needs-horse').textContent=needsHorse.length;
   document.getElementById('metric-needs-horse').classList.toggle('alert',needsHorse.length>0);
