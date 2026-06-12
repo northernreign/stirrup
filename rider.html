@@ -78,6 +78,7 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2
 .level-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px}
 .level-btn{padding:8px;border-radius:8px;border:1px solid #d4d2cb;background:#fff;cursor:pointer;text-align:center;font-family:'Inter',sans-serif;font-size:12px;font-weight:500;color:#1a1a18}
 .level-btn.sel{background:#e0f5ed;border-color:#1D9E75;color:#0f6e47}
+.unpaid-notice{background:#fcebeb;border:1px solid #e8c5c5;border-radius:10px;padding:10px 12px;font-size:12px;color:#791f1f;margin-bottom:1rem}
 </style>
 </head>
 <body>
@@ -133,6 +134,7 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2
   </div>
 
   <div class="tab-panel" id="panel-lessons">
+    <div id="unpaid-notice-wrap"></div>
     <div class="card">
       <div class="card-title">Lesson history</div>
       <div id="lesson-list"><div class="loading">Loading lessons…</div></div>
@@ -203,7 +205,7 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2
 const SUPABASE_URL='https://mfinlbqfowymmklhkuhb.supabase.co';
 const SUPABASE_KEY='sb_publishable_PcwbX1YoncwnrHobFmpAIA_L39K4XfK';
 const db=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
-let rider=null,allHorses=[],selLevelVal='intermediate';
+let rider=null,allHorses=[],selLevelVal='intermediate',allBookingsForRider=[];
 
 function getRiderBadge(createdAt){
   if(!createdAt)return'🌱';
@@ -238,23 +240,30 @@ function pillFor(bk){
   return'<span class="pill pill-amber">'+bk.payment_status+'</span>';
 }
 
-function getPaymentBadge(bookings){
+function getUnpaidPastBookings(bookings){
   const today=new Date();today.setHours(0,0,0,0);
-  const hasNotice=bookings.find(b=>{
-    if(b.payment_status==='paid')return false;
-    if(!b.scheduled_date)return false;
-    const d=new Date(b.scheduled_date);d.setHours(0,0,0,0);
-    return d<today&&b.overdue_notice_sent===true;
-  });
-  if(hasNotice)return'<span class="payment-badge badge-serious">⚠️ Notice sent</span>';
-  const overdue=bookings.find(b=>{
+  return bookings.filter(b=>{
     if(b.payment_status==='paid')return false;
     if(!b.scheduled_date)return false;
     const d=new Date(b.scheduled_date);d.setHours(0,0,0,0);
     return d<today;
   });
-  if(overdue)return'<span class="payment-badge badge-overdue">Payment due</span>';
-  return'';
+}
+
+function getPaymentBadge(bookings){
+  const unpaid=getUnpaidPastBookings(bookings);
+  if(unpaid.length===0)return'';
+  const hasNotice=unpaid.some(b=>b.overdue_notice_sent===true);
+  if(hasNotice)return'<span class="payment-badge badge-serious">⚠️ Notice sent</span>';
+  return'<span class="payment-badge badge-overdue">Payment due</span>';
+}
+
+function renderUnpaidNotice(bookings){
+  const wrap=document.getElementById('unpaid-notice-wrap');
+  const unpaid=getUnpaidPastBookings(bookings);
+  if(unpaid.length===0){wrap.innerHTML='';return;}
+  const lines=unpaid.map(b=>`${b.date} · ${b.lesson_type}${b.price?' · '+b.price:''}`).join('<br>');
+  wrap.innerHTML=`<div class="unpaid-notice"><strong>${unpaid.length} unpaid past lesson${unpaid.length>1?'s':''}:</strong><br>${lines}</div>`;
 }
 
 function selLevel(l){
@@ -351,6 +360,7 @@ async function load(){
 
   allHorses=horses||[];
   const b=bookings||[];
+  allBookingsForRider=b;
 
   const badge=getRiderBadge(rider.created_at);
   document.getElementById('av').textContent=badge;
@@ -366,6 +376,7 @@ async function load(){
   }
 
   renderProfile();
+  renderUnpaidNotice(b);
 
   const list=document.getElementById('lesson-list');
   if(b.length===0){
@@ -385,6 +396,11 @@ async function load(){
         ${pillFor(bk)}`;
       list.appendChild(row);
     });
+  }
+
+  if(localStorage.getItem('stirrup_open_lessons_tab')==='true'){
+    localStorage.removeItem('stirrup_open_lessons_tab');
+    showTab('lessons');
   }
 }
 
