@@ -1,1 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Assign horses — Stirrup</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Inter',sans-serif;background:#f9f8f5;color:#1a1a18;min-height:100vh}
+nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2rem;background:#fff;border-bottom:1px solid #e8e6e0}
+.logo{font-size:18px;font-weight:600;color:#1a1a18;text-decoration:none}
+.btn{padding:7px 16px;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;text-decoration:none;display:inline-block;font-family:'Inter',sans-serif;border:1px solid transparent}
+.btn-ghost{background:transparent;border-color:#d4d2cb;color:#1a1a18}
+.btn-ghost:hover{background:#f0efe9}
+.wrap{max-width:720px;margin:0 auto;padding:2rem}
+.page-title{font-size:22px;font-weight:600;margin-bottom:4px}
+.page-sub{font-size:13px;color:#5a5a55;margin-bottom:1.5rem}
+.section-title{font-size:11px;font-weight:600;margin-bottom:10px;text-transform:uppercase;letter-spacing:.04em;color:#8a8a85}
+.section{margin-bottom:1.75rem}
+.lesson-card{background:#fff;border:1px solid #e8e6e0;border-radius:12px;padding:1rem 1.25rem;margin-bottom:10px}
+.lesson-card.urgent{border-color:#1D9E75}
+.lesson-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:10px;gap:10px}
+.lesson-info{flex:1}
+.lesson-rider{font-size:14px;font-weight:600;color:#1a1a18}
+.lesson-meta{font-size:12px;color:#5a5a55;margin-top:2px}
+.urgent-pill{font-size:11px;padding:2px 8px;border-radius:20px;background:#e0f5ed;color:#0f6e47;font-weight:500;white-space:nowrap}
+.assigned-pill{font-size:11px;padding:2px 8px;border-radius:20px;background:#f0efe9;color:#5a5a55;font-weight:500;display:flex;align-items:center;gap:6px;white-space:nowrap}
+.btn-change{font-size:11px;padding:2px 8px;border-radius:6px;border:1px solid #d4d2cb;background:transparent;color:#5a5a55;cursor:pointer;font-family:'Inter',sans-serif}
+.btn-change:hover{background:#f0efe9}
+.horse-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px}
+.horse-opt{display:flex;flex-direction:column;align-items:flex-start;gap:2px;padding:8px 10px;border-radius:8px;border:1px solid #d4d2cb;background:#fff;cursor:pointer;font-family:'Inter',sans-serif;text-align:left;transition:all .15s}
+.horse-opt:hover:not(.blocked){background:#f0efe9;border-color:#1D9E75}
+.horse-opt.blocked{cursor:not-allowed;opacity:.55;background:#f9f8f5}
+.horse-opt-name{font-size:13px;font-weight:500;color:#1a1a18;display:flex;align-items:center;gap:5px}
+.horse-opt-status{font-size:11px;color:#5a5a55}
+.empty{text-align:center;padding:3rem 1rem}
+.empty-icon{font-size:32px;margin-bottom:12px}
+.empty-title{font-size:15px;font-weight:500;color:#1a1a18;margin-bottom:6px}
+.empty-sub{font-size:13px;color:#5a5a55}
+.loading{text-align:center;padding:3rem;color:#8a8a85;font-size:14px}
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:100;align-items:center;justify-content:center}
+.modal-overlay.open{display:flex}
+.modal{background:#fff;border-radius:16px;padding:1.5rem;width:100%;max-width:380px;margin:1rem}
+.modal-title{font-size:16px;font-weight:600;margin-bottom:8px}
+.modal-sub{font-size:13px;color:#5a5a55;margin-bottom:1.25rem;line-height:1.5}
+.modal-actions{display:flex;gap:8px}
+.btn-cancel{flex:1;padding:9px;background:transparent;border:1px solid #d4d2cb;border-radius:8px;font-size:13px;cursor:pointer;font-family:'Inter',sans-serif;color:#5a5a55}
+.btn-confirm{flex:1;padding:9px;background:#1D9E75;border:none;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif;color:#fff}
+.btn-confirm:hover{background:#178a64}
+</style>
+</head>
+<body>
+<nav>
+  <a href="dashboard.html" class="logo">Stirrup</a>
+  <a href="dashboard.html" class="btn btn-ghost">← Dashboard</a>
+</nav>
 
+<div class="wrap">
+  <div class="page-title">Assign horses</div>
+  <div class="page-sub">Pick a horse for each upcoming lesson.</div>
+
+  <div class="section" id="due-section" style="display:none">
+    <div class="section-title">Due now · within 24 hours</div>
+    <div id="due-list"></div>
+  </div>
+
+  <div class="section" id="upcoming-section" style="display:none">
+    <div class="section-title">Upcoming</div>
+    <div id="upcoming-list"></div>
+  </div>
+
+  <div id="empty-state"></div>
+</div>
+
+<!-- Confirm assignment to resting horse -->
+<div class="modal-overlay" id="modal-confirm">
+  <div class="modal">
+    <div class="modal-title">😴 This horse is resting</div>
+    <div class="modal-sub" id="confirm-text">This horse is scheduled to rest at this time. Assign anyway?</div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeConfirm()">Cancel</button>
+      <button class="btn-confirm" onclick="confirmAssign()">Assign anyway</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SUPABASE_URL='https://mfinlbqfowymmklhkuhb.supabase.co';
+const SUPABASE_KEY='sb_publishable_PcwbX1YoncwnrHobFmpAIA_L39K4XfK';
+const db=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+
+let userId=null;
+let allBookings=[],allHorses=[],allRestPeriods=[],allRestSchedules=[],allCareAppointments=[];
+let pendingAssign=null; // {bookingId, horseId, horseName}
+
+function parseTimeToMins(timeStr){
+  if(!timeStr)return 0;
+  const[timePart,ampm]=timeStr.split(' ');
+  let[h,m]=timePart.split(':').map(Number);
+  if(ampm==='PM'&&h!==12)h+=12;
+  if(ampm==='AM'&&h===12)h=0;
+  return h*60+m;
+}
+
+function parseDuration(dur){
+  const match=(dur||'').match(/(\d+)/);
+  if(!match)return 60;
+  const n=parseInt(match[1]);
+  if((dur||'').includes('hour'))return n*60;
+  return n;
+}
+
+// Returns {status:'available'|'resting'|'double-booked'|'care-conflict', label}
+function getHorseAvailability(horse,booking){
+  const proposedStart=parseTimeToMins(booking.time);
+  const proposedDur=parseDuration(booking.duration||'60 minutes');
+  const proposedEnd=proposedStart+proposedDur;
+  const dateStr=booking.scheduled_date;
+
+  // Care appointment conflict (blocked)
+  const careConflict=allCareAppointments.find(c=>{
+    if(c.horse_id!==horse.id)return false;
+    if(c.scheduled_date!==dateStr)return false;
+    const cStart=parseTimeToMins(c.time);
+    const cEnd=cStart+(c.duration||30);
+    return proposedStart<cEnd&&proposedEnd>cStart;
+  });
+  if(careConflict){
+    const icon=careConflict.type==='farrier'?'🔨':'🩺';
+    const label=careConflict.type==='farrier'?'Farrier':'Vet';
+    return{status:'care-conflict',label:`${icon} ${label} at ${careConflict.time}`};
+  }
+
+  // Double-booked with another lesson (blocked)
+  const doubleBooked=allBookings.find(b=>{
+    if(b.id===booking.id)return false;
+    if(b.horse_id!==horse.id)return false;
+    if(b.scheduled_date!==dateStr)return false;
+    if(!b.time)return false;
+    const bStart=parseTimeToMins(b.time);
+    const bDur=parseDuration(b.duration||'60 minutes');
+    const bEnd=bStart+bDur;
+    return proposedStart<bEnd&&proposedEnd>bStart;
+  });
+  if(doubleBooked){
+    return{status:'double-booked',label:`🐴 Booked · ${doubleBooked.rider_name} at ${doubleBooked.time}`};
+  }
+
+  // Rest period (one-time)
+  const dateObj=new Date(dateStr+'T00:00:00');
+  const periods=allRestPeriods.filter(r=>r.horse_id===horse.id);
+  const activeRest=periods.find(r=>{
+    const s=new Date(r.start_date+'T00:00:00');
+    const e=new Date(r.end_date+'T00:00:00');
+    e.setHours(23,59,59,999);
+    return dateObj>=s&&dateObj<=e;
+  });
+  if(activeRest){
+    return{status:'resting',label:'😴 Resting (one-time)'};
+  }
+
+  // Recurring rest schedule
+  const jsDay=dateObj.getDay();
+  const ourDay=jsDay===0?6:jsDay-1;
+  const isMorning=proposedStart<720;
+  const schedules=allRestSchedules.filter(r=>r.horse_id===horse.id&&r.day_of_week===ourDay);
+  for(const s of schedules){
+    if(s.period==='full')return{status:'resting',label:'😴 Resting (full day)'};
+    if(s.period==='morning'&&isMorning)return{status:'resting',label:'😴 Resting (morning)'};
+    if(s.period==='afternoon'&&!isMorning)return{status:'resting',label:'😴 Resting (afternoon)'};
+  }
+
+  return{status:'available',label:'✅ Available'};
+}
+
+function renderHorseGrid(booking){
+  const grid=document.createElement('div');
+  grid.className='horse-grid';
+  allHorses.filter(h=>h.active).forEach(h=>{
+    const avail=getHorseAvailability(h,booking);
+    const blocked=avail.status==='care-conflict'||avail.status==='double-booked';
+    const opt=document.createElement('button');
+    opt.className='horse-opt'+(blocked?' blocked':'');
+    opt.innerHTML=`<div class="horse-opt-name">🐴 ${h.name}</div><div class="horse-opt-status">${avail.label}</div>`;
+    if(!blocked){
+      opt.onclick=()=>{
+        if(avail.status==='resting'){
+          openConfirm(booking.id,h.id,h.name,avail.label);
+        } else {
+          assignHorse(booking.id,h.id,h.name);
+        }
+      };
+    }
+    grid.appendChild(opt);
+  });
+  return grid;
+}
+
+function openConfirm(bookingId,horseId,horseName,label){
+  pendingAssign={bookingId,horseId,horseName};
+  document.getElementById('confirm-text').textContent=
+    `${horseName} is ${label.replace(/^😴 /,'').toLowerCase()} during this lesson. Assign anyway?`;
+  document.getElementById('modal-confirm').classList.add('open');
+}
+
+function closeConfirm(){
+  pendingAssign=null;
+  document.getElementById('modal-confirm').classList.remove('open');
+}
+
+async function confirmAssign(){
+  if(!pendingAssign)return;
+  const {bookingId,horseId,horseName}=pendingAssign;
+  closeConfirm();
+  await assignHorse(bookingId,horseId,horseName);
+}
+
+async function assignHorse(bookingId,horseId,horseName){
+  const {error}=await db.from('bookings').update({horse_id:horseId,horse_name:horseName}).eq('id',bookingId);
+  if(error){alert(error.message);return;}
+  const booking=allBookings.find(b=>b.id===bookingId);
+  await db.from('activity_log').insert({
+    trainer_id:userId,action:'horse_assigned',
+    entity_type:'booking',entity_name:booking?booking.rider_name:'',
+    meta:{horse_name:horseName}
+  });
+  load();
+}
+
+function formatLessonMeta(b){
+  return `${b.lesson_type||'Lesson'} · ${b.date} at ${b.time}${b.duration?' · '+b.duration:''}`;
+}
+
+function renderLessonCard(b,urgent){
+  const card=document.createElement('div');
+  card.className='lesson-card'+(urgent?' urgent':'');
+
+  const top=document.createElement('div');
+  top.className='lesson-top';
+
+  const info=document.createElement('div');
+  info.className='lesson-info';
+  info.innerHTML=`<div class="lesson-rider">${b.rider_name}</div><div class="lesson-meta">${formatLessonMeta(b)}</div>`;
+  top.appendChild(info);
+
+  const gridWrap=document.createElement('div');
+  gridWrap.className='horse-grid-wrap';
+
+  if(b.horse_id){
+    const pill=document.createElement('div');
+    pill.className='assigned-pill';
+    pill.innerHTML=`🐴 ${b.horse_name}`;
+    const changeBtn=document.createElement('button');
+    changeBtn.className='btn-change';
+    changeBtn.textContent='Change';
+    changeBtn.onclick=()=>{
+      gridWrap.style.display='block';
+      pill.style.display='none';
+    };
+    pill.appendChild(changeBtn);
+    top.appendChild(pill);
+    gridWrap.style.display='none';
+  } else if(urgent){
+    const pill=document.createElement('div');
+    pill.className='urgent-pill';
+    pill.textContent='Needs horse';
+    top.appendChild(pill);
+  }
+
+  card.appendChild(top);
+  gridWrap.appendChild(renderHorseGrid(b));
+  card.appendChild(gridWrap);
+
+  return card;
+}
+
+function render(){
+  const now=new Date();
+  const in24h=new Date(now.getTime()+24*60*60*1000);
+  const todayStart=new Date();todayStart.setHours(0,0,0,0);
+
+  const unassigned=allBookings.filter(b=>{
+    const d=new Date(b.scheduled_date+'T00:00:00');
+    return d>=todayStart && !b.horse_id;
+  }).sort((a,b)=>{
+    if(a.scheduled_date!==b.scheduled_date)return a.scheduled_date<b.scheduled_date?-1:1;
+    return parseTimeToMins(a.time)-parseTimeToMins(b.time);
+  });
+
+  const due=[],upcoming=[];
+  unassigned.forEach(b=>{
+    const dateObj=new Date(b.scheduled_date+'T00:00:00');
+    const mins=parseTimeToMins(b.time);
+    dateObj.setHours(Math.floor(mins/60),mins%60,0,0);
+    if(dateObj<=in24h)due.push(b);
+    else upcoming.push(b);
+  });
+
+  const dueSection=document.getElementById('due-section');
+  const upcomingSection=document.getElementById('upcoming-section');
+  const dueList=document.getElementById('due-list');
+  const upcomingList=document.getElementById('upcoming-list');
+  dueList.innerHTML='';upcomingList.innerHTML='';
+
+  if(due.length>0){
+    dueSection.style.display='block';
+    due.forEach(b=>dueList.appendChild(renderLessonCard(b,true)));
+  } else {
+    dueSection.style.display='none';
+  }
+
+  if(upcoming.length>0){
+    upcomingSection.style.display='block';
+    upcoming.forEach(b=>upcomingList.appendChild(renderLessonCard(b,false)));
+  } else {
+    upcomingSection.style.display='none';
+  }
+
+  const empty=document.getElementById('empty-state');
+  if(due.length===0&&upcoming.length===0){
+    empty.innerHTML=`<div class="empty">
+      <div class="empty-icon">🐴</div>
+      <div class="empty-title">All caught up</div>
+      <div class="empty-sub">Every upcoming lesson has a horse assigned.</div>
+    </div>`;
+  } else {
+    empty.innerHTML='';
+  }
+}
+
+async function load(){
+  const {data:{user}}=await db.auth.getUser();
+  if(!user){window.location.href='login.html';return;}
+  userId=user.id;
+  const todayStr=new Date().toISOString().split('T')[0];
+
+  const [{data:bookings},{data:horses},{data:periods},{data:schedules},{data:careAppts}]=await Promise.all([
+    db.from('bookings').select('id,rider_name,lesson_type,date,scheduled_date,time,duration,horse_id,horse_name').eq('trainer_id',userId).gte('scheduled_date',todayStr),
+    db.from('horses').select('*').eq('trainer_id',userId).eq('active',true).order('name',{ascending:true}),
+    db.from('horse_rest_periods').select('*').eq('trainer_id',userId),
+    db.from('horse_rest_schedules').select('*').eq('trainer_id',userId),
+    db.from('care_appointments').select('*').eq('trainer_id',userId)
+  ]);
+
+  allBookings=bookings||[];
+  allHorses=horses||[];
+  allRestPeriods=periods||[];
+  allRestSchedules=schedules||[];
+  allCareAppointments=careAppts||[];
+
+  render();
+}
+
+load();
+</script>
+</body>
+</html>
