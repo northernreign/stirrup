@@ -72,6 +72,34 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2
 .period-btn.sel{background:#e0f5ed;border-color:#1D9E75;color:#0f6e47;font-weight:500}
 .badge-legend{display:flex;flex-wrap:wrap;gap:12px;background:#fff;border:1px solid #e8e6e0;border-radius:10px;padding:.75rem 1rem;margin-bottom:1.25rem}
 .badge-legend-item{display:flex;align-items:center;gap:6px;font-size:12px;color:#5a5a55}
+.type-toggle{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+.type-btn{padding:10px;border-radius:8px;font-size:13px;text-align:center;cursor:pointer;border:1px solid #d4d2cb;background:#fff;color:#5a5a55;font-family:'Inter',sans-serif;font-weight:500}
+.type-btn.sel{background:#e0f5ed;border-color:#1D9E75;color:#0f6e47}
+.time-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:14px;max-height:160px;overflow-y:auto}
+.time-btn{padding:8px 4px;border-radius:8px;font-size:11px;text-align:center;border:1px solid #d4d2cb;background:#fff;cursor:pointer;color:#1a1a18;transition:all .15s;font-family:'Inter',sans-serif}
+.time-btn.sel{background:#e0f5ed;border-color:#1D9E75;color:#0f6e47;font-weight:500}
+.time-btn:hover{background:#f0efe9}
+.time-btn.taken{background:#f0efe9;color:#c8c6bf;cursor:default;text-decoration:line-through}
+.recurring-toggle{display:flex;align-items:center;gap:10px;padding:12px;background:#f9f8f5;border-radius:10px;margin-bottom:14px;cursor:pointer}
+.toggle{width:36px;height:20px;border-radius:10px;border:none;cursor:pointer;position:relative;transition:background .2s;flex-shrink:0;padding:0}
+.toggle.on{background:#1D9E75}
+.toggle.off{background:#d4d2cb}
+.toggle::after{content:'';position:absolute;top:3px;width:14px;height:14px;border-radius:50%;background:#fff;transition:left .2s}
+.toggle.on::after{left:19px}
+.toggle.off::after{left:3px}
+.recurring-label{font-size:13px;font-weight:500;color:#1a1a18;flex:1}
+.recurring-sub{font-size:11px;color:#5a5a55;margin-top:1px}
+.recurring-detail{background:#f9f8f5;border-radius:10px;padding:10px 12px;margin-bottom:14px;display:none}
+.conflict-box{background:#fcebeb;border-radius:10px;padding:12px;font-size:13px;color:#c0392b;margin-bottom:14px;display:none;line-height:1.5}
+.conflict-actions{display:flex;gap:8px;margin-top:10px}
+.btn-conflict{flex:1;padding:8px;border-radius:8px;font-size:12px;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif;border:1px solid #d4d2cb;background:#fff;color:#1a1a18}
+.btn-conflict:hover{background:#f0efe9}
+.btn-conflict-primary{flex:1;padding:8px;border-radius:8px;font-size:12px;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif;border:1px solid #1D9E75;background:#1D9E75;color:#fff}
+.btn-conflict-primary:hover{background:#178a64}
+.reschedule-box{display:none;margin-top:12px;padding-top:12px;border-top:1px solid #e8c5c5}
+.care-list{margin-top:8px;font-size:12px;color:#5a5a55}
+.care-item{display:flex;align-items:center;justify-content:space-between;padding:4px 0;border-bottom:1px solid #f0efe9}
+.care-item:last-child{border-bottom:none}
 </style>
 </head>
 <body>
@@ -93,6 +121,8 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2
     <div class="badge-legend-item">🍀 Grazing — available</div>
     <div class="badge-legend-item">🐴 Working — in a lesson now</div>
     <div class="badge-legend-item">😴 Resting — scheduled rest</div>
+    <div class="badge-legend-item">🔨 Farrier today</div>
+    <div class="badge-legend-item">🩺 Vet today</div>
     <div class="badge-legend-item">🌙 Sleeping — barn closed</div>
   </div>
 
@@ -173,17 +203,105 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2
   </div>
 </div>
 
+<!-- Care appointment modal -->
+<div class="modal-overlay" id="modal-care-appt">
+  <div class="modal">
+    <div class="modal-title">Schedule care appointment</div>
+    <div class="modal-sub" id="care-appt-horse-name">Set up a farrier or vet visit.</div>
+    <div class="error" id="care-appt-error"></div>
+
+    <div style="font-size:12px;font-weight:500;color:#3a3a35;margin-bottom:6px">Type</div>
+    <div class="type-toggle">
+      <button class="type-btn sel" id="ct-farrier" onclick="selCareType('farrier')">🔨 Farrier</button>
+      <button class="type-btn" id="ct-vet" onclick="selCareType('vet')">🩺 Vet</button>
+    </div>
+
+    <div class="field">
+      <label>Provider <span class="optional">optional</span></label>
+      <select id="care-provider"><option value="">— None selected —</option></select>
+    </div>
+
+    <div class="row2">
+      <div class="field"><label>Date</label><input type="date" id="care-date" onchange="renderCareTimes()"></div>
+      <div class="field"><label>Duration</label>
+        <select id="care-duration">
+          <option value="15">15 minutes</option>
+          <option value="30" selected>30 minutes</option>
+          <option value="45">45 minutes</option>
+          <option value="60">60 minutes</option>
+          <option value="90">90 minutes</option>
+          <option value="120">120 minutes</option>
+        </select>
+      </div>
+    </div>
+
+    <div style="font-size:12px;font-weight:500;color:#3a3a35;margin-bottom:6px">Time</div>
+    <div class="time-grid" id="care-times"></div>
+
+    <div class="recurring-toggle" onclick="toggleCareRecurring()">
+      <div>
+        <div class="recurring-label">Recurring appointment</div>
+        <div class="recurring-sub" id="care-recurring-sub">Repeat on a schedule</div>
+      </div>
+      <button class="toggle off" id="care-recurring-toggle" aria-label="Toggle recurring"></button>
+    </div>
+    <div class="recurring-detail" id="care-recurring-detail">
+      <div style="font-size:12px;color:#5a5a55;margin-bottom:8px">How often?</div>
+      <div class="period-grid" id="care-cadence-grid"></div>
+      <div style="font-size:12px;color:#5a5a55;margin-bottom:6px;margin-top:8px">How many occurrences?</div>
+      <div class="period-grid">
+        <button class="period-btn" onclick="selCareOccurrences(4)" id="co-4">4</button>
+        <button class="period-btn sel" onclick="selCareOccurrences(8)" id="co-8">8</button>
+        <button class="period-btn" onclick="selCareOccurrences(12)" id="co-12">12</button>
+      </div>
+    </div>
+
+    <div class="field"><label>Notes <span class="optional">optional</span></label><input type="text" id="care-notes" placeholder="e.g. front shoes only"></div>
+
+    <div class="conflict-box" id="care-conflict">
+      <div id="care-conflict-text"></div>
+      <div class="conflict-actions">
+        <button class="btn-conflict" onclick="continueAnyway()">Continue anyway</button>
+        <button class="btn-conflict-primary" onclick="showRescheduleBox()">Reschedule lesson</button>
+      </div>
+      <div class="reschedule-box" id="reschedule-box">
+        <div style="font-size:12px;font-weight:500;color:#3a3a35;margin-bottom:8px">Move this lesson to:</div>
+        <div class="row2">
+          <div class="field"><label>New date</label><input type="date" id="resched-date" onchange="renderReschedTimes()"></div>
+        </div>
+        <div style="font-size:12px;font-weight:500;color:#3a3a35;margin-bottom:6px">New time</div>
+        <div class="time-grid" id="resched-times"></div>
+        <button class="btn-save" style="width:100%;padding:9px" id="resched-save-btn" onclick="saveReschedule()">Move lesson & continue</button>
+      </div>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal('care-appt')">Cancel</button>
+      <button class="btn-save" id="care-appt-btn" onclick="checkAndSaveCareAppt()">Schedule appointment</button>
+    </div>
+  </div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 const SUPABASE_URL='https://mfinlbqfowymmklhkuhb.supabase.co';
 const SUPABASE_KEY='sb_publishable_PcwbX1YoncwnrHobFmpAIA_L39K4XfK';
 const db=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
-let allHorses=[],allRestPeriods=[],allRestSchedules=[],todayBookings=[],allBookings=[];
+let allHorses=[],allRestPeriods=[],allRestSchedules=[],todayBookings=[],allBookings=[],allCareAppointments=[],careTeam=[];
 let currentHorseId=null,currentHorseName=null,editingHorseId=null;
 let selPeriodVal='morning';
 const selDays=new Set();
 const dayNames=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
-let userId=null,barnOpen='09:00',barnClose='18:00';
+let userId=null,barnOpen='09:00',barnClose='18:00',isBarnTier=false,bufferMinutes=15;
+
+// Care appointment state
+let careType='farrier';
+let careRecurring=false;
+let careCadenceVal=6; // weeks (farrier) or 1 (vet weekly)
+let careOccurrences=8;
+let careSelectedTime=null;
+let conflictBooking=null;
+let reschedSelectedTime=null;
 
 function getLessonBadge(horseId){
   const count=allBookings.filter(b=>b.horse_id===horseId&&b.payment_status==='paid').length;
@@ -211,6 +329,11 @@ function isRetired(horse){
   return!!longRest;
 }
 
+function getTodayCareAppt(horseId){
+  const todayStr=new Date().toISOString().split('T')[0];
+  return allCareAppointments.find(c=>c.horse_id===horseId&&c.scheduled_date===todayStr);
+}
+
 function getHorseStatus(horse){
   if(isRetired(horse))return{badge:'😇',label:'',retired:true};
 
@@ -223,6 +346,15 @@ function getHorseStatus(horse){
   const isBarnOpen=currentMins>=openMins&&currentMins<closeMins;
 
   const todayDate=new Date();todayDate.setHours(0,0,0,0);
+
+  // Care appointment today takes priority (after retirement)
+  const careAppt=getTodayCareAppt(horse.id);
+  if(careAppt){
+    const badge=careAppt.type==='farrier'?'🔨':'🩺';
+    const label=careAppt.type==='farrier'?`Farrier today · ${careAppt.time}`:`Vet today · ${careAppt.time}`;
+    return{badge,label};
+  }
+
   const periods=allRestPeriods.filter(r=>r.horse_id===horse.id);
   const activeRest=periods.find(r=>{
     const s=new Date(r.start_date);s.setHours(0,0,0,0);
@@ -272,6 +404,31 @@ function parseDuration(dur){
   return n;
 }
 
+function parseTimeToMins(timeStr){
+  if(!timeStr)return 0;
+  const[timePart,ampm]=timeStr.split(' ');
+  let[h,m]=timePart.split(':').map(Number);
+  if(ampm==='PM'&&h!==12)h+=12;
+  if(ampm==='AM'&&h===12)h=0;
+  return h*60+m;
+}
+
+function generateTimeSlots(open,close){
+  const slots=[];
+  const [oh,om]=open.split(':').map(Number);
+  const [ch,cm]=close.split(':').map(Number);
+  let h=oh,m=om;
+  const closeTotal=ch*60+cm;
+  while(h*60+m<closeTotal){
+    const hour12=h>12?h-12:h===0?12:h;
+    const ampm=h>=12?'PM':'AM';
+    const mins=m===0?'00':m===15?'15':m===30?'30':'45';
+    slots.push(`${hour12}:${mins} ${ampm}`);
+    m+=15;if(m>=60){m=0;h++;}
+  }
+  return slots;
+}
+
 function openModal(name){
   if(name==='add'){
     document.getElementById('h-name').value='';
@@ -300,6 +457,7 @@ function openEditModal(horse){
 function closeModal(name){
   document.getElementById('modal-'+name).classList.remove('open');
   if(name==='rest'){currentHorseId=null;currentHorseName=null;selDays.clear();renderSchedDays();}
+  if(name==='care-appt'){currentHorseId=null;currentHorseName=null;}
 }
 
 function openRestModal(horseId,horseName){
@@ -333,6 +491,283 @@ function selPeriod(p){
   selPeriodVal=p;
   ['morning','afternoon','full'].forEach(x=>document.getElementById('p-'+x).classList.toggle('sel',x===p));
 }
+
+// ---- Care appointment modal ----
+
+function openCareApptModal(horseId,horseName){
+  currentHorseId=horseId;currentHorseName=horseName;
+  document.getElementById('care-appt-horse-name').textContent=`Set up a farrier or vet visit for ${horseName}.`;
+  document.getElementById('care-appt-error').style.display='none';
+  document.getElementById('care-conflict').style.display='none';
+  document.getElementById('reschedule-box').style.display='none';
+  document.getElementById('care-notes').value='';
+  const today=new Date().toISOString().split('T')[0];
+  document.getElementById('care-date').value=today;
+  document.getElementById('care-duration').value='30';
+  careType='farrier';
+  careRecurring=false;
+  careOccurrences=8;
+  careSelectedTime=null;
+  conflictBooking=null;
+  document.getElementById('care-recurring-toggle').className='toggle off';
+  document.getElementById('care-recurring-detail').style.display='none';
+  document.getElementById('care-appt-btn').disabled=false;
+  document.getElementById('care-appt-btn').textContent='Schedule appointment';
+  selCareType('farrier');
+  renderCareTimes();
+  document.getElementById('modal-care-appt').classList.add('open');
+}
+
+function selCareType(type){
+  careType=type;
+  document.getElementById('ct-farrier').classList.toggle('sel',type==='farrier');
+  document.getElementById('ct-vet').classList.toggle('sel',type==='vet');
+  renderProviderOptions();
+  renderCadenceOptions();
+  document.getElementById('care-recurring-sub').textContent=
+    type==='farrier'?'e.g. every 6-8 weeks':'e.g. weekly check-ins or vaccination follow-ups';
+}
+
+function renderProviderOptions(){
+  const sel=document.getElementById('care-provider');
+  sel.innerHTML='<option value="">— None selected —</option>';
+  careTeam.filter(c=>c.type===careType).forEach(c=>{
+    const o=document.createElement('option');
+    o.value=c.id;
+    o.textContent=c.name+(c.phone?` · ${c.phone}`:'');
+    sel.appendChild(o);
+  });
+}
+
+function renderCadenceOptions(){
+  const grid=document.getElementById('care-cadence-grid');
+  grid.innerHTML='';
+  const options=careType==='farrier'
+    ?[{label:'4 wks',val:4},{label:'6 wks',val:6},{label:'8 wks',val:8}]
+    :[{label:'Weekly',val:1},{label:'Every 2 wks',val:2},{label:'Monthly',val:4}];
+  careCadenceVal=options[careType==='farrier'?1:0].val;
+  options.forEach((o)=>{
+    const btn=document.createElement('button');
+    btn.className='period-btn'+(o.val===careCadenceVal?' sel':'');
+    btn.textContent=o.label;
+    btn.onclick=()=>{
+      careCadenceVal=o.val;
+      [...grid.children].forEach(c=>c.classList.remove('sel'));
+      btn.classList.add('sel');
+    };
+    grid.appendChild(btn);
+  });
+}
+
+function selCareOccurrences(n){
+  careOccurrences=n;
+  [4,8,12].forEach(x=>document.getElementById('co-'+x).classList.toggle('sel',x===n));
+}
+
+function toggleCareRecurring(){
+  careRecurring=!careRecurring;
+  const btn=document.getElementById('care-recurring-toggle');
+  btn.classList.toggle('on',careRecurring);
+  btn.classList.toggle('off',!careRecurring);
+  document.getElementById('care-recurring-detail').style.display=careRecurring?'block':'none';
+}
+
+function renderCareTimes(){
+  const g=document.getElementById('care-times');
+  g.innerHTML='';
+  const slots=generateTimeSlots(barnOpen,barnClose);
+  slots.forEach(t=>{
+    const btn=document.createElement('button');
+    btn.className='time-btn'+(t===careSelectedTime?' sel':'');
+    btn.textContent=t;
+    btn.onclick=()=>{careSelectedTime=t;renderCareTimes();};
+    g.appendChild(btn);
+  });
+  document.getElementById('care-conflict').style.display='none';
+}
+
+// Check for conflicting lesson on this horse/date/time
+function findLessonConflict(dateStr,timeStr,durationMins){
+  const proposedStart=parseTimeToMins(timeStr);
+  const proposedEnd=proposedStart+durationMins;
+  return allBookings.find(b=>{
+    if(b.horse_id!==currentHorseId)return false;
+    if(b.scheduled_date!==dateStr)return false;
+    if(!b.time)return false;
+    const bStart=parseTimeToMins(b.time);
+    const bDur=parseDuration(b.duration||'60 minutes');
+    const bEnd=bStart+bDur;
+    return proposedStart<bEnd&&proposedEnd>bStart;
+  });
+}
+
+async function checkAndSaveCareAppt(){
+  if(!careSelectedTime){
+    document.getElementById('care-appt-error').textContent='Please select a time.';
+    document.getElementById('care-appt-error').style.display='block';
+    return;
+  }
+  document.getElementById('care-appt-error').style.display='none';
+  const dateStr=document.getElementById('care-date').value;
+  const durationMins=parseInt(document.getElementById('care-duration').value);
+
+  const conflict=findLessonConflict(dateStr,careSelectedTime,durationMins);
+  if(conflict){
+    conflictBooking=conflict;
+    document.getElementById('care-conflict-text').textContent=
+      `${currentHorseName} has a lesson with ${conflict.rider_name} at ${conflict.time} on this date. You can continue anyway (double-booked) or move that lesson to a new time.`;
+    document.getElementById('care-conflict').style.display='block';
+    document.getElementById('reschedule-box').style.display='none';
+    return;
+  }
+  await saveCareAppointment();
+}
+
+function continueAnyway(){
+  document.getElementById('care-conflict').style.display='none';
+  saveCareAppointment();
+}
+
+function showRescheduleBox(){
+  document.getElementById('reschedule-box').style.display='block';
+  const careDate=document.getElementById('care-date').value;
+  document.getElementById('resched-date').value=careDate;
+  reschedSelectedTime=null;
+  renderReschedTimes();
+}
+
+function renderReschedTimes(){
+  const g=document.getElementById('resched-times');
+  g.innerHTML='';
+  const slots=generateTimeSlots(barnOpen,barnClose);
+  const dateStr=document.getElementById('resched-date').value;
+  slots.forEach(t=>{
+    // disable slot if it conflicts with another booking for this horse (excluding the one being moved)
+    const conflict=allBookings.find(b=>{
+      if(b===conflictBooking)return false;
+      if(b.horse_id!==currentHorseId)return false;
+      if(b.scheduled_date!==dateStr)return false;
+      if(!b.time)return false;
+      const bStart=parseTimeToMins(b.time);
+      const bDur=parseDuration(b.duration||'60 minutes');
+      const bEnd=bStart+bDur+bufferMinutes;
+      const tStart=parseTimeToMins(t);
+      const tDur=parseDuration(conflictBooking?.duration||'60 minutes');
+      const tEnd=tStart+tDur+bufferMinutes;
+      return tStart<bEnd&&tEnd>bStart;
+    });
+    const btn=document.createElement('button');
+    btn.className='time-btn'+(conflict?' taken':t===reschedSelectedTime?' sel':'');
+    btn.textContent=t;
+    if(!conflict)btn.onclick=()=>{reschedSelectedTime=t;renderReschedTimes();};
+    else btn.disabled=true;
+    g.appendChild(btn);
+  });
+}
+
+async function saveReschedule(){
+  if(!reschedSelectedTime){
+    alert('Please select a new time for the lesson.');
+    return;
+  }
+  const btn=document.getElementById('resched-save-btn');
+  btn.disabled=true;btn.textContent='Moving lesson…';
+  const newDateIso=document.getElementById('resched-date').value;
+  const newDateObj=new Date(newDateIso+'T00:00:00');
+  const newDateDisplay=`${newDateObj.toLocaleString('default',{month:'long'})} ${newDateObj.getDate()}`;
+
+  const {error}=await db.from('bookings').update({
+    date:newDateDisplay,
+    scheduled_date:newDateIso,
+    time:reschedSelectedTime
+  }).eq('id',conflictBooking.id);
+
+  btn.disabled=false;btn.textContent='Move lesson & continue';
+  if(error){alert(error.message);return;}
+
+  await db.from('activity_log').insert({
+    trainer_id:userId,action:'booking_rescheduled',
+    entity_type:'booking',entity_name:conflictBooking.rider_name,
+    meta:{new_date:newDateDisplay}
+  });
+
+  // update local cache so conflict check no longer fires, then save the care appointment
+  conflictBooking.scheduled_date=newDateIso;
+  conflictBooking.date=newDateDisplay;
+  conflictBooking.time=reschedSelectedTime;
+  document.getElementById('care-conflict').style.display='none';
+  document.getElementById('reschedule-box').style.display='none';
+  await saveCareAppointment();
+}
+
+async function saveCareAppointment(){
+  const btn=document.getElementById('care-appt-btn');
+  btn.disabled=true;btn.textContent='Saving…';
+
+  const dateIso=document.getElementById('care-date').value;
+  const dateObj=new Date(dateIso+'T00:00:00');
+  const dateDisplay=`${dateObj.toLocaleString('default',{month:'long'})} ${dateObj.getDate()}`;
+  const durationMins=parseInt(document.getElementById('care-duration').value);
+  const providerId=document.getElementById('care-provider').value||null;
+  const provider=careTeam.find(c=>c.id===providerId);
+  const notes=document.getElementById('care-notes').value.trim();
+
+  const base={
+    trainer_id:userId,horse_id:currentHorseId,horse_name:currentHorseName,
+    type:careType,provider_id:providerId,provider_name:provider?provider.name:null,
+    time:careSelectedTime,duration:durationMins,notes
+  };
+
+  if(careRecurring){
+    const inserts=[];
+    for(let i=0;i<careOccurrences;i++){
+      const d=new Date(dateIso+'T00:00:00');
+      d.setDate(d.getDate()+(i*careCadenceVal*7));
+      inserts.push({
+        ...base,
+        date:`${d.toLocaleString('default',{month:'long'})} ${d.getDate()}`,
+        scheduled_date:d.toISOString().split('T')[0],
+        is_recurring:true,recurring_weeks:careCadenceVal,recurring_total:careOccurrences
+      });
+    }
+    const {error}=await db.from('care_appointments').insert(inserts);
+    if(error){
+      document.getElementById('care-appt-error').textContent=error.message;
+      document.getElementById('care-appt-error').style.display='block';
+      btn.disabled=false;btn.textContent='Schedule appointment';return;
+    }
+  } else {
+    const {error}=await db.from('care_appointments').insert({
+      ...base,date:dateDisplay,scheduled_date:dateIso,is_recurring:false
+    });
+    if(error){
+      document.getElementById('care-appt-error').textContent=error.message;
+      document.getElementById('care-appt-error').style.display='block';
+      btn.disabled=false;btn.textContent='Schedule appointment';return;
+    }
+  }
+
+  await db.from('activity_log').insert({
+    trainer_id:userId,
+    action:careType==='farrier'?'care_farrier_scheduled':'care_vet_scheduled',
+    entity_type:'horse',entity_id:currentHorseId,entity_name:currentHorseName,
+    meta:{date:dateDisplay,time:careSelectedTime,provider:provider?provider.name:null,recurring:careRecurring}
+  });
+
+  closeModal('care-appt');
+  load();
+}
+
+async function removeCareAppointment(id,horseName){
+  await db.from('care_appointments').delete().eq('id',id);
+  await db.from('activity_log').insert({
+    trainer_id:userId,action:'care_appointment_removed',
+    entity_type:'horse',entity_name:horseName
+  });
+  load();
+}
+
+// ---- Horse CRUD ----
 
 async function saveHorse(){
   const name=document.getElementById('h-name').value.trim();
@@ -500,6 +935,13 @@ function renderHorses(){
     const lessonBadge=status.retired?null:getLessonBadge(h.id);
     const periods=allRestPeriods.filter(r=>r.horse_id===h.id);
     const schedules=allRestSchedules.filter(r=>r.horse_id===h.id);
+    const careAppts=allCareAppointments.filter(c=>c.horse_id===h.id)
+      .filter(c=>{
+        const d=new Date(c.scheduled_date);d.setHours(0,0,0,0);
+        const today=new Date();today.setHours(0,0,0,0);
+        return d>=today;
+      })
+      .sort((a,b)=>a.scheduled_date<b.scheduled_date?-1:1);
     const card=document.createElement('div');
     card.className='horse-card';
 
@@ -521,13 +963,28 @@ function renderHorses(){
         });
         restHtml+='</div>';
       }
+      if(careAppts.length>0){
+        restHtml+=`<div style="font-size:12px;font-weight:500;color:#3a3a35;margin-bottom:4px;margin-top:8px">Care appointments</div><div class="care-list">`;
+        careAppts.slice(0,5).forEach(c=>{
+          const icon=c.type==='farrier'?'🔨':'🩺';
+          const typeLabel=c.type==='farrier'?'Farrier':'Vet';
+          restHtml+=`<div class="care-item"><span>${icon} ${typeLabel} · ${c.date} at ${c.time}${c.provider_name?' · '+c.provider_name:''}${c.notes?' · '+c.notes:''}</span><button class="btn-remove-rest" onclick="removeCareAppointment('${c.id}','${h.name}')">Remove</button></div>`;
+        });
+        if(careAppts.length>5)restHtml+=`<div style="padding:4px 0;color:#8a8a85">+${careAppts.length-5} more</div>`;
+        restHtml+='</div>';
+      }
     }
+
+    const careButtons=isBarnTier&&!status.retired
+      ?`<button class="btn-sm" onclick="openCareApptModal('${h.id}','${h.name}')">🔨🩺 Schedule care</button>`
+      :'';
 
     const actionsHtml=status.retired
       ?`<div class="horse-actions"><button class="btn-sm-danger" onclick="removeHorse('${h.id}')">Remove from roster</button></div>`
       :`<div class="horse-actions">
           <button class="btn-sm" onclick='openEditModal(${JSON.stringify(h)})'>Edit</button>
           <button class="btn-sm" onclick="openRestModal('${h.id}','${h.name}')">+ Add rest</button>
+          ${careButtons}
           <button class="btn-sm-danger" onclick="removeHorse('${h.id}')">Remove horse</button>
         </div>`;
 
@@ -554,22 +1011,28 @@ async function load(){
   const {data:{user}}=await db.auth.getUser();
   if(!user){window.location.href='login.html';return;}
   userId=user.id;
-  const {data:trainer}=await db.from('trainers').select('barn_open,barn_close').eq('id',user.id).single();
+  const {data:trainer}=await db.from('trainers').select('barn_open,barn_close,tier,buffer_minutes').eq('id',user.id).single();
   barnOpen=trainer?.barn_open||'09:00';
   barnClose=trainer?.barn_close||'18:00';
+  isBarnTier=(trainer?.tier||'free')==='barn';
+  bufferMinutes=trainer?.buffer_minutes??15;
   const todayStr=new Date().toISOString().split('T')[0];
-  const [{data:horses},{data:periods},{data:schedules},{data:bookings},{data:allB}]=await Promise.all([
+  const [{data:horses},{data:periods},{data:schedules},{data:bookings},{data:allB},{data:careAppts},{data:team}]=await Promise.all([
     db.from('horses').select('*').eq('trainer_id',userId).order('name',{ascending:true}),
     db.from('horse_rest_periods').select('*').eq('trainer_id',userId),
     db.from('horse_rest_schedules').select('*').eq('trainer_id',userId),
     db.from('bookings').select('horse_id,rider_name,time,duration,scheduled_date').eq('trainer_id',userId).eq('scheduled_date',todayStr),
-    db.from('bookings').select('horse_id,scheduled_date,payment_status').eq('trainer_id',userId).not('horse_id','is',null)
+    db.from('bookings').select('id,horse_id,rider_name,time,duration,scheduled_date,date,payment_status').eq('trainer_id',userId).not('horse_id','is',null),
+    db.from('care_appointments').select('*').eq('trainer_id',userId),
+    db.from('care_team').select('*').eq('trainer_id',userId).eq('active',true)
   ]);
   allHorses=horses||[];
   allRestPeriods=periods||[];
   allRestSchedules=schedules||[];
   todayBookings=bookings||[];
   allBookings=allB||[];
+  allCareAppointments=careAppts||[];
+  careTeam=team||[];
   renderHorses();
   renderSchedDays();
 }
