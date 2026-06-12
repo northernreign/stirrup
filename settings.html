@@ -29,6 +29,9 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2
 .badge-barn{background:#faeeda;color:#633806}
 .section{margin-bottom:1.75rem}
 .section-label{font-size:11px;font-weight:500;color:#8a8a85;letter-spacing:.04em;text-transform:uppercase;margin-bottom:8px}
+.section-label-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.section-label-row .section-label{margin-bottom:0}
+.barn-tag{font-size:10px;padding:2px 7px;border-radius:20px;background:#faeeda;color:#633806;font-weight:500;letter-spacing:normal;text-transform:none}
 .card{background:#fff;border:1px solid #e8e6e0;border-radius:12px;overflow:hidden}
 .row{display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid #f0efe9;cursor:pointer;transition:background .15s}
 .row:last-child{border-bottom:none}
@@ -83,6 +86,7 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2
 .price-prefix input{padding-left:22px}
 .price-prefix::before{content:'$';position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:14px;color:#5a5a55;pointer-events:none}
 .system-note{font-size:11px;color:#8a8a85;background:#f9f8f5;border-radius:6px;padding:6px 10px;margin-bottom:12px}
+.empty-care{text-align:center;padding:1rem;color:#8a8a85;font-size:12px}
 </style>
 </head>
 <body>
@@ -147,6 +151,26 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2
         </div>
         <div class="buffer-btns" id="buffer-btns"></div>
       </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-label-row">
+      <div class="section-label">Care team</div>
+      <span class="barn-tag" id="care-barn-tag">Barn feature</span>
+    </div>
+    <div style="font-size:12px;color:#5a5a55;margin-bottom:10px;line-height:1.5" id="care-team-intro">
+      Save farriers and vets here so you can quickly schedule care appointments for your horses.
+    </div>
+
+    <div style="font-size:12px;font-weight:500;color:#3a3a35;margin-bottom:6px">🔨 Farriers</div>
+    <div class="card" id="farrier-card" style="margin-bottom:14px">
+      <div style="text-align:center;padding:1rem;color:#8a8a85;font-size:13px">Loading…</div>
+    </div>
+
+    <div style="font-size:12px;font-weight:500;color:#3a3a35;margin-bottom:6px">🩺 Vets</div>
+    <div class="card" id="vet-card">
+      <div style="text-align:center;padding:1rem;color:#8a8a85;font-size:13px">Loading…</div>
     </div>
   </div>
 
@@ -287,6 +311,21 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2
   </div>
 </div>
 
+<!-- Add/edit care team member modal -->
+<div class="modal-overlay" id="modal-care">
+  <div class="modal">
+    <div class="modal-title" id="care-modal-title">Add farrier</div>
+    <div class="modal-sub" id="care-modal-sub">They'll appear as an option when scheduling care appointments.</div>
+    <div class="field"><label>Name</label><input type="text" id="care-name" placeholder="e.g. Jamie Lopez"></div>
+    <div class="field"><label>Phone (optional)</label><input type="tel" id="care-phone" placeholder="(555) 123-4567"></div>
+    <div class="field"><label>Notes (optional)</label><input type="text" id="care-notes" placeholder="e.g. Comes every other Tuesday"></div>
+    <div class="modal-actions" id="care-modal-actions">
+      <button class="btn-cancel" onclick="closeModal('care')">Cancel</button>
+      <button class="btn-save" id="care-save-btn" onclick="saveCareMember()">Add</button>
+    </div>
+  </div>
+</div>
+
 <!-- Delete modal -->
 <div class="modal-overlay" id="modal-delete">
   <div class="modal">
@@ -308,6 +347,7 @@ const toggleStates={reminder:true,horse:true,overdue:true,autopay:false};
 let editingLtId=null,editingLtIsSystem=false,userId=null;
 let currentBufferMins=15;
 const bufferOptions=[0,5,10,15,20,30];
+let editingCareId=null,editingCareType='farrier';
 
 function renderBufferBtns(){
   const c=document.getElementById('buffer-btns');
@@ -503,6 +543,102 @@ async function loadLessonTypes(){
   card.appendChild(addRow);
 }
 
+// ---- Care team ----
+
+function openAddCare(type){
+  editingCareId=null;
+  editingCareType=type;
+  document.getElementById('care-modal-title').textContent=type==='farrier'?'Add farrier':'Add vet';
+  document.getElementById('care-modal-sub').textContent="They'll appear as an option when scheduling care appointments.";
+  document.getElementById('care-name').value='';
+  document.getElementById('care-phone').value='';
+  document.getElementById('care-notes').value='';
+  document.getElementById('care-modal-actions').innerHTML=`
+    <button class="btn-cancel" onclick="closeModal('care')">Cancel</button>
+    <button class="btn-save" id="care-save-btn" onclick="saveCareMember()">Add</button>`;
+  document.getElementById('modal-care').classList.add('open');
+}
+
+function openEditCare(member){
+  editingCareId=member.id;
+  editingCareType=member.type;
+  document.getElementById('care-modal-title').textContent=member.type==='farrier'?'Edit farrier':'Edit vet';
+  document.getElementById('care-modal-sub').textContent='Update their contact details.';
+  document.getElementById('care-name').value=member.name||'';
+  document.getElementById('care-phone').value=member.phone||'';
+  document.getElementById('care-notes').value=member.notes||'';
+  document.getElementById('care-modal-actions').innerHTML=`
+    <button class="btn-cancel" onclick="closeModal('care')">Cancel</button>
+    <button class="btn-save" id="care-save-btn" onclick="saveCareMember()">Save changes</button>
+    <button class="btn-delete" onclick="removeCareMember('${member.id}')" style="flex:0 0 auto;padding:9px 14px">Remove</button>`;
+  document.getElementById('modal-care').classList.add('open');
+}
+
+async function saveCareMember(){
+  const name=document.getElementById('care-name').value.trim();
+  if(!name){alert('Please enter a name.');return;}
+  const phone=document.getElementById('care-phone').value.trim();
+  const notes=document.getElementById('care-notes').value.trim();
+  const btn=document.getElementById('care-save-btn');
+  if(btn){btn.disabled=true;btn.textContent='Saving…';}
+
+  if(editingCareId){
+    await db.from('care_team').update({name,phone,notes}).eq('id',editingCareId);
+  } else {
+    await db.from('care_team').insert({
+      trainer_id:userId,name,phone,notes,type:editingCareType,active:true
+    });
+  }
+  closeModal('care');
+  loadCareTeam();
+}
+
+async function removeCareMember(id){
+  if(!confirm('Remove this care team member?'))return;
+  await db.from('care_team').update({active:false}).eq('id',id);
+  closeModal('care');
+  loadCareTeam();
+}
+
+function renderCareCard(elId,members,type){
+  const card=document.getElementById(elId);
+  card.innerHTML='';
+  if(!members||members.length===0){
+    const empty=document.createElement('div');
+    empty.className='empty-care';
+    empty.textContent=type==='farrier'?'No farriers added yet.':'No vets added yet.';
+    card.appendChild(empty);
+  } else {
+    members.forEach(m=>{
+      const row=document.createElement('div');
+      row.className='row';
+      row.onclick=()=>openEditCare(m);
+      row.innerHTML=`
+        <div class="row-icon" style="background:${type==='farrier'?'#faeeda':'#e6f0fb'}">${type==='farrier'?'🔨':'🩺'}</div>
+        <div class="row-body">
+          <div class="row-title">${m.name}</div>
+          <div class="row-sub">${m.phone?m.phone:''}${m.phone&&m.notes?' · ':''}${m.notes?m.notes:''}${!m.phone&&!m.notes?'No additional details':''}</div>
+        </div>
+        <div class="row-right">Edit →</div>`;
+      card.appendChild(row);
+    });
+  }
+  const addRow=document.createElement('div');
+  addRow.className='add-lt-row';
+  addRow.innerHTML=`<button class="btn btn-ghost" style="font-size:13px" onclick="openAddCare('${type}')">+ Add ${type==='farrier'?'farrier':'vet'}</button>`;
+  card.appendChild(addRow);
+}
+
+async function loadCareTeam(){
+  const {data:members}=await db.from('care_team').select('*').eq('trainer_id',userId).eq('active',true).order('created_at',{ascending:true});
+  const farriers=(members||[]).filter(m=>m.type==='farrier');
+  const vets=(members||[]).filter(m=>m.type==='vet');
+  renderCareCard('farrier-card',farriers,'farrier');
+  renderCareCard('vet-card',vets,'vet');
+}
+
+// ---- Account ----
+
 async function handleSignOut(){
   if(confirm('Sign out of Stirrup?')){
     await db.auth.signOut();
@@ -517,6 +653,8 @@ async function handleDelete(){
   await db.from('horses').delete().eq('trainer_id',userId);
   await db.from('staff_trainers').delete().eq('head_trainer_id',userId);
   await db.from('lesson_types').delete().eq('trainer_id',userId);
+  await db.from('care_team').delete().eq('trainer_id',userId);
+  await db.from('care_appointments').delete().eq('trainer_id',userId);
   await db.from('trainers').delete().eq('id',userId);
   await db.auth.signOut();
   localStorage.clear();
@@ -552,8 +690,12 @@ async function loadSettings(){
     if(tier==='barn'&&isLifetime){
       document.getElementById('upgrade-btn').style.display='none';
     }
+    if(tier==='barn'){
+      document.getElementById('care-barn-tag').style.display='none';
+    }
   }
   loadLessonTypes();
+  loadCareTeam();
 }
 
 loadSettings();
