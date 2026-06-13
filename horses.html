@@ -290,6 +290,31 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2
 const SUPABASE_URL='https://mfinlbqfowymmklhkuhb.supabase.co';
 const SUPABASE_KEY='sb_publishable_PcwbX1YoncwnrHobFmpAIA_L39K4XfK';
 const db=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+
+// Safely fetch the current user. Returns the user object, or null if
+// genuinely signed out. On a network/connection error (not an auth
+// failure), shows a retry message instead of bouncing to login —
+// a dropped request doesn't mean the session is invalid.
+async function getUserSafe(){
+  try{
+    const {data,error}=await db.auth.getUser();
+    if(error){
+      if(confirm('Connection problem — could not verify your session.\n\nTap OK to try again, or Cancel to go to the login page.')){
+        return getUserSafe();
+      }
+      window.location.href='login.html';
+      return null;
+    }
+    return data?.user||null;
+  }catch(e){
+    if(confirm('Connection problem — could not verify your session.\n\nTap OK to try again, or Cancel to go to the login page.')){
+      return getUserSafe();
+    }
+    window.location.href='login.html';
+    return null;
+  }
+}
+
 let allHorses=[],allRestPeriods=[],allRestSchedules=[],todayBookings=[],allBookings=[],allCareAppointments=[],careTeam=[];
 let currentHorseId=null,currentHorseName=null,editingHorseId=null;
 let selPeriodVal='morning';
@@ -1059,8 +1084,8 @@ function renderHorses(){
 }
 
 async function load(){
-  const {data:{user}}=await db.auth.getUser();
-  if(!user){window.location.href='login.html';return;}
+  const user=await getUserSafe();
+  if(!user){return;}
   userId=user.id;
   const {data:trainer}=await db.from('trainers').select('barn_open,barn_close,tier,buffer_minutes').eq('id',user.id).single();
   barnOpen=trainer?.barn_open||'09:00';
